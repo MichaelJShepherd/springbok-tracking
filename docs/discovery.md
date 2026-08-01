@@ -92,10 +92,26 @@ licensed-open data only**; no HTML scraping of rugby sites is in scope.
 
 ## Gap review
 
-Draft plan to be reviewed through four lenses (product logic, data model,
-security/abuse, operations) by an independent reviewer; findings triaged
-into "resolve before PRD" vs "PRD absorbs".
+Reviewed 2026-08-01 by an independent agent (fresh context, gap analysis
+only) through four lenses. Triage: **resolve before PRD** = the PRD may not
+be started/baselined without an answer; **PRD absorbs** = decide during PRD.
 
 | # | Lens | Finding | Triage |
 |---|---|---|---|
-| (pending review) | | | |
+| 1 | Product logic | No behaviour defined for "next fixture" when none is scheduled (off-season, TBD opponents) — a bare page loses to Google, the bar we must beat | Resolve before PRD |
+| 2 | Product logic | "Current standing" assumes an active tabled competition, but the Boks spend most of the year outside one; no fallback stated | Resolve before PRD |
+| 3 | Product logic | "Recent results" window undefined (last N games vs last M days) | PRD absorbs |
+| 4 | Data model | No conflict-resolution rule when API-Sports and Wikipedia disagree on a fact; principle 2 promises trustworthy sourced data | Resolve before PRD |
+| 5 | Data model | Principle 2 ("viewable source") is not operationalised for API-sourced items — API-Sports has no public per-record page to link | Resolve before PRD |
+| 6 | Data model | No cross-source team/competition ID mapping — only matters if TheSportsDB is promoted; building now would be speculative complexity | PRD absorbs |
+| 7 | Data model | Historical depth unaddressed (free plan = limited seasons); current scope is recent results, not an archive | PRD absorbs |
+| 8 | Security/abuse | No stated fetch architecture: where the API key lives, backend cache vs per-visitor calls — key leakage and free-tier exhaustion by public traffic are real vectors | Resolve before PRD |
+| 9 | Security/abuse | No trigger/threshold defined for switching to the runner-up source | PRD absorbs |
+| 10 | Operations | Only staleness detection is the weekly manual cold-check; an upstream break could sit unnoticed for a week against a match-day freshness bar | Resolve before PRD |
+| 11 | Operations | The free-tier budget math (100 req/day vs daily + match-day cadence across endpoints) is called for but never done | Resolve before PRD |
+| 12 | Operations | No decision on how/where attribution is displayed; CC BY-SA share-alike may constrain licensing of site content that incorporates Wikipedia data | Resolve before PRD |
+| 13 | Operations | Testing strategy for API-dependent code (mocked fixtures vs live calls against a rate-limited API) unstated; flag so the design isn't built around live calls | PRD absorbs |
+
+The seven "resolve before PRD" items are the opening worklist of the
+inception phase: each answer lands in the PRD's decision log as its first
+entries.
