@@ -97,8 +97,8 @@ as "the owner will make a task for this".
   create a Backlog task for it. Mentioning it in chat and moving on does not
   count — chat is not the board.
 - **You** keep every task you touch truthful in real time — what to record is
-  in section 2, and recording it is yours in full. Not in a batch at the end,
-  and not only in your reply to the owner.
+  in section 2, plus the gate outcomes in section 4, and recording it is yours
+  in full. Not in a batch at the end, and not only in your reply to the owner.
 - If you did work without a task — including work an instruction pushed you
   straight into — create the task immediately, backfill what happened on it,
   and say so. An unrecorded change is a defect, not a shortcut.
