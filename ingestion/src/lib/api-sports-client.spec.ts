@@ -42,6 +42,17 @@ describe('mapApiSportsGame — recorded fixture (task #79, D27)', () => {
     expect(fixture.opponentName).toBe('Australia');
   });
 
+  it('canonicalises an opponent name given as a known alias (Gate 2 finding, task #79) — D14 dedup depends on this matching Wikipedia\'s canonical name', () => {
+    const aliasGame: ApiSportsGame = {
+      ...games[0],
+      teams: {
+        home: { id: 502, name: 'South Africa' },
+        away: { id: 611, name: 'All Blacks' },
+      },
+    };
+    expect(mapApiSportsGame(aliasGame).opponentName).toBe('New Zealand');
+  });
+
   it('maps API-Sports status short-codes onto this project\'s D8/#75 status vocabulary', () => {
     expect(mapApiSportsGame(games[0]).status).toBe('scheduled'); // NS
     expect(mapApiSportsGame(games[1]).status).toBe('postponed'); // PST

@@ -19,6 +19,7 @@
 
 import { USER_AGENT } from './ingestion-run.js';
 import type { FixtureStatus } from './wiki-fixtures-parser.js';
+import { resolveByAnyKnownName } from './team-directory.js';
 
 const API_BASE = 'https://v1.rugby.api-sports.io';
 const SPRINGBOKS_TEAM_ID = 502;
@@ -61,7 +62,19 @@ export function isApiSportsConfigured(): boolean {
   return Boolean(process.env['API_SPORTS_KEY']);
 }
 
-/** Maps one raw API-Sports game record onto this project's fixture shape. */
+/**
+ * Maps one raw API-Sports game record onto this project's fixture shape.
+ *
+ * The opponent name is run through the same team-directory this project's
+ * Wikipedia parser uses (`resolveByAnyKnownName` — canonical names and
+ * aliases, case-insensitive) — not just passed through from the API's own
+ * display name. Without this, D14's (date, opponent)
+ * dedup key in fixtures.ts would compare an uncanonicalised API-Sports name
+ * against a canonicalised Wikipedia one for the same real fixture (e.g. a
+ * source using "All Blacks" instead of the directory's "New Zealand"), fail
+ * to match, and write both rows for one fixture instead of API-Sports
+ * correctly superseding the Wikipedia row (Gate 2 finding, task #79).
+ */
 export function mapApiSportsGame(game: ApiSportsGame): ApiSportsFixture {
   const isHome = game.teams.home.id === SPRINGBOKS_TEAM_ID;
   const opponent = isHome ? game.teams.away : game.teams.home;
@@ -70,7 +83,7 @@ export function mapApiSportsGame(game: ApiSportsGame): ApiSportsFixture {
     apiSportsFixtureId: String(game.id),
     matchDate: game.date.slice(0, 10),
     kickoffTime: Number.isNaN(parsedDate.getTime()) ? null : parsedDate.toISOString(),
-    opponentName: opponent.name,
+    opponentName: resolveByAnyKnownName(opponent.name).canonicalName,
     venue: game.venue?.name ?? null,
     competition: game.league?.name ?? null,
     status: mapStatus(game.status.short),

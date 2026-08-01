@@ -64,6 +64,28 @@ function apiFixtureToRow(f: ApiSportsFixture): FixtureRow {
   };
 }
 
+/**
+ * D25's "zero rows written fails loudly" check assumes zero is never
+ * legitimate — true for ingest:backfill (historical matches don't
+ * disappear), but not for fixtures: a true off-season genuinely has no
+ * upcoming Springboks fixture to write (D8's own edge state), and that
+ * must not read as an ops failure identical to a real break (Gate 2
+ * finding, task #79). So the zero-rows check here only fires when no
+ * source produced anything at all to look at — every Wikipedia season
+ * candidate 404'd/errored *and* API-Sports is off — which is the actual
+ * "this run learned nothing" case D25 exists to catch. The
+ * field-completeness-drop check still applies unchanged in both cases.
+ */
+function evaluateFixturesGuardrail(
+  insertedCount: number,
+  atLeastOneSourceResponded: boolean,
+  completeness: CompletenessSnapshot,
+  previous: CompletenessSnapshot | undefined,
+) {
+  const rowsForZeroCheck = atLeastOneSourceResponded ? Math.max(insertedCount, 1) : insertedCount;
+  return evaluateGuardrail(rowsForZeroCheck, completeness, previous);
+}
+
 function computeCompleteness(rows: FixtureRow[]): CompletenessSnapshot {
   let totalFields = 0;
   let presentFields = 0;
@@ -211,7 +233,13 @@ async function main(): Promise<void> {
       // Previous run's notes weren't JSON — treat as no baseline.
     }
   }
-  const guardrail = evaluateGuardrail(insertRows.length, completeness, previousCompleteness);
+  const atLeastOneSourceResponded = pagesFetched > 0 || isApiSportsConfigured();
+  const guardrail = evaluateFixturesGuardrail(
+    insertRows.length,
+    atLeastOneSourceResponded,
+    completeness,
+    previousCompleteness,
+  );
 
   console.log('[ingest:fixtures] --- run summary ---');
   console.log(`  API-Sports: ${isApiSportsConfigured() ? `ON, ${apiRows.length} fixture(s)` : 'OFF (no API_SPORTS_KEY)'}`);
