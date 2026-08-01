@@ -114,8 +114,61 @@ describe('D20 retention — static source scan (the "lint rule" equivalent)', ()
    * because Gate 3 found a single-line regex misses a call whose
    * offending argument is on the next line.
    */
+  /**
+   * Splits the text between a call's outer parens into top-level
+   * comma-separated arguments, respecting nesting (parens/brackets/braces)
+   * and string/template literals so a comma *inside* one of those isn't
+   * mistaken for an argument separator.
+   */
+  function splitTopLevelArgs(argsText: string): string[] {
+    const args: string[] = [];
+    let depth = 0;
+    let current = '';
+    let inString: string | null = null;
+    for (let i = 0; i < argsText.length; i++) {
+      const ch = argsText[i];
+      if (inString) {
+        current += ch;
+        if (ch === '\\') {
+          i++;
+          if (i < argsText.length) current += argsText[i];
+          continue;
+        }
+        if (ch === inString) inString = null;
+        continue;
+      }
+      if (ch === '"' || ch === "'" || ch === '`') {
+        inString = ch;
+        current += ch;
+        continue;
+      }
+      if (ch === '(' || ch === '[' || ch === '{') {
+        depth++;
+        current += ch;
+        continue;
+      }
+      if (ch === ')' || ch === ']' || ch === '}') {
+        depth--;
+        current += ch;
+        continue;
+      }
+      if (ch === ',' && depth === 0) {
+        args.push(current);
+        current = '';
+        continue;
+      }
+      current += ch;
+    }
+    if (current.trim().length > 0) args.push(current);
+    return args.map((a) => a.trim());
+  }
+
   function findForbiddenLoggingCalls(contents: string): string[] {
-    const callStart = /(console\.(?:log|warn|error|info|debug)|process\.(?:stdout|stderr)\.write)\s*\(/g;
+    // Gate 3 hardening: console.table/dir/trace also render an argument's
+    // contents (util.inspect-style) just like console.log does, and were
+    // missing from the original call-start pattern.
+    const callStart =
+      /(console\.(?:log|warn|error|info|debug|table|dir|trace)|process\.(?:stdout|stderr)\.write)\s*\(/g;
     const offending: string[] = [];
     let match: RegExpExecArray | null;
     while ((match = callStart.exec(contents))) {
@@ -138,7 +191,24 @@ describe('D20 retention — static source scan (the "lint rule" equivalent)', ()
       const stringifiesCommentsOrArticles = /JSON\.stringify\s*\([^)]*\b(comments?|articles?)\b[^)]*\)/i.test(
         callExpression,
       );
-      if (referencesSourceField || stringifiesCommentsOrArticles) {
+
+      // Gate 3 hardening: a *bare* collection identifier passed straight to a
+      // logging call (e.g. `console.log('[x]', comments)`) never touches
+      // `.body`/`JSON.stringify` at all, but Node's console still
+      // util.inspect()s it — printing every comment body/headline anyway.
+      // Detect this by looking at each top-level argument on its own: if an
+      // argument is *exactly* a bare identifier (no property access, no call)
+      // whose name contains "comment" or "article" as a case-insensitive
+      // whole word component, treat it the same as a direct field access.
+      const argsText = callExpression.slice(
+        callExpression.indexOf('(') + 1,
+        callExpression.length - 1,
+      );
+      const bareCollectionArg = splitTopLevelArgs(argsText).some(
+        (arg) => /^[A-Za-z_$][\w$]*$/.test(arg) && /(comments?|articles?)$/i.test(arg),
+      );
+
+      if (referencesSourceField || stringifiesCommentsOrArticles || bareCollectionArg) {
         offending.push(callExpression.replace(/\s+/g, ' ').trim().slice(0, 200));
       }
     }
@@ -158,6 +228,27 @@ describe('D20 retention — static source scan (the "lint rule" equivalent)', ()
   it('the scanner catches process.stdout.write / process.stderr.write, not just console.* (Gate 3 bypass #3)', () => {
     expect(findForbiddenLoggingCalls('process.stdout.write(comment.body);')).toHaveLength(1);
     expect(findForbiddenLoggingCalls('process.stderr.write(article.headline);')).toHaveLength(1);
+  });
+
+  it('the scanner catches console.table/dir/trace, not just log/warn/error/info/debug (Gate 3 hardening #1)', () => {
+    expect(findForbiddenLoggingCalls('console.table(comments);')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.dir(article.headline);')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.trace(comments);')).toHaveLength(1);
+  });
+
+  it('the scanner catches a bare comments/articles collection passed straight to a logging call, which util.inspect would still print in full (Gate 3 hardening #2)', () => {
+    // This exact shape previously passed GREEN: no `.body`, no JSON.stringify,
+    // but console.log still dumps every comment body via util.inspect.
+    expect(findForbiddenLoggingCalls("console.log('[x]', comments);")).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.log(articles);')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.log(redditComments);')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.warn(guardianArticles);')).toHaveLength(1);
+  });
+
+  it('the bare-identifier check does not flag a derived count or an unrelated identifier (no false positives)', () => {
+    expect(findForbiddenLoggingCalls('console.log(commentCount);')).toEqual([]);
+    expect(findForbiddenLoggingCalls('console.log(articleList.length);')).toEqual([]);
+    expect(findForbiddenLoggingCalls('console.log(rows.length);')).toEqual([]);
   });
 
   it('the scanner does not flag an ordinary, text-free console.log call', () => {
@@ -208,5 +299,29 @@ describe('D20 retention — upsert-site guard (scripts/sentiment.ts)', () => {
     const scriptPath = join(SCRIPTS_DIR, 'sentiment.ts');
     const contents = readFileSync(scriptPath, 'utf8');
     expect(contents).not.toMatch(/\.from\(\s*['"]sentiment_scores['"]\s*\)/);
+  });
+
+  it('scripts/sentiment.ts has no .upsert(/.insert( call at all, not just no quoted "sentiment_scores" table name (Gate 3 hardening)', () => {
+    // The quoted-table-name check above can be dodged trivially — e.g.
+    // `const table = 'sentiment' + '_scores'; client.from(table).upsert(rows)`
+    // — without ever writing the literal string `.from('sentiment_scores')`.
+    // Since this script has no legitimate reason to call `.upsert(`/`.insert(`
+    // on *any* table directly (writeIngestionRun/getPreviousRun in
+    // lib/ingestion-guardrail.ts own the only real inserts, in a different
+    // file), asserting neither method call appears here at all is a strictly
+    // stronger, dodge-resistant version of the same guard.
+    const scriptPath = join(SCRIPTS_DIR, 'sentiment.ts');
+    const contents = readFileSync(scriptPath, 'utf8');
+    expect(contents).not.toMatch(/\.upsert\s*\(/);
+    expect(contents).not.toMatch(/\.insert\s*\(/);
+  });
+
+  it('self-test: the .upsert(/.insert( pattern used above actually matches a dodge that a bare table-name string check would miss', () => {
+    const dodge =
+      "const table = 'sentiment' + '_scores';\nawait client.from(table).upsert(rows, { onConflict: 'match_id,bucket,source' });";
+    // The quoted-table-name regex from the test above would NOT catch this...
+    expect(dodge).not.toMatch(/\.from\(\s*['"]sentiment_scores['"]\s*\)/);
+    // ...but the .upsert(/.insert( check does.
+    expect(dodge).toMatch(/\.upsert\s*\(/);
   });
 });

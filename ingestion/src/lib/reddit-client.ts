@@ -1,19 +1,23 @@
 // Reddit Data API client (PRD D2/D4 primary sentiment source) — the LIVE
 // path is wired but DISABLED until OAuth app credentials exist (task #67's
 // registration; no key exists at task #78 time). `isRedditConfigured()`
-// gates every call: `ingest:sentiment` (scripts/sentiment.ts) must never
-// call `fetchMatchThreadComments` when it returns false, and no other
-// module in this codebase calls the Reddit API at all. That is the whole
-// guarantee that this task makes zero live Reddit network calls — the gate
-// is a plain env-var check, checked before this module's only network-
-// touching functions run, and this task never sets REDDIT_CLIENT_ID/
-// REDDIT_CLIENT_SECRET (rule 1.4 — no live call to a source this project
-// isn't cleared to hit yet).
+// gates every call, and no module in this codebase calls the Reddit API at
+// all. That is the whole guarantee that this task makes zero live Reddit
+// network calls — the gate is a plain env-var check, checked before this
+// module's only network-touching functions run, and this task never sets
+// REDDIT_CLIENT_ID/REDDIT_CLIENT_SECRET (rule 1.4 — no live call to a
+// source this project isn't cleared to hit yet). Today, `ingest:sentiment`
+// (`scripts/sentiment.ts`) does not call `fetchMatchThreadComments` at all,
+// under any configuration (task #78 Gate 2 finding — no real match->thread
+// lookup exists yet); when that lookup is wired up (follow-up work), the
+// script must keep gating the call behind `isRedditConfigured()`.
 //
 // D20 retention: this module returns comment bodies to its caller purely so
 // `sentiment-scorer.ts` can score them in memory. Nothing in this file
-// persists or logs a comment body — callers (scripts/sentiment.ts via
-// lib/sentiment-pipeline.ts) must keep it that way; see
+// persists or logs a comment body — the current caller is
+// `lib/sentiment-pipeline.ts`'s `buildRedditRows` (exercised by its own
+// tests; `scripts/sentiment.ts` doesn't call this module yet, see above) —
+// and whatever calls this module must keep it that way; see
 // `sentiment-retention.spec.ts` for the automated check.
 
 import { USER_AGENT } from './ingestion-run.js';

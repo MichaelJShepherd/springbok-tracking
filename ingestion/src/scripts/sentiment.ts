@@ -19,18 +19,27 @@
 //     window). Passing match_id as the search query with empty date bounds
 //     would 400 or silently score unrelated articles as this match's mood.
 // So both branches below explicitly refuse to run — logging why — rather
-// than inventing request parameters. Wiring the real lookup/query builder,
-// and then PRD D4's per-match Reddit-then-Guardian ladder on top of them,
-// is follow-up work; implementing the ladder now (against two branches
-// that both unconditionally refuse) would just be untested dead code
-// (rule 1.3).
+// than inventing request parameters. Follow-up work, once real keys and a
+// real lookup/query builder exist:
+//   1. wire the real match->Reddit-thread lookup and Guardian query builder;
+//   2. build PRD D4's per-match Reddit-then-Guardian ladder on top of them
+//      (implementing it now, against two branches that both unconditionally
+//      refuse, would just be untested dead code — rule 1.3);
+//   3. re-add the D25 guardrail (the zero-rows-written and field-
+//      completeness-drop checks) around whatever it writes — this script
+//      does not call evaluateGuardrail at all right now, because with both
+//      live branches refusing there is nothing for it to meaningfully check
+//      (see the D25 note below).
 //
-// D25 adaptation (same precedent as task #79's fixtures-sync): a run that
-// cannot safely score anything — whether because no source is configured,
-// or because a configured source still lacks its lookup/query builder — is
-// not the "silent thin data" failure D25 exists to catch. It exits 0, logs
-// exactly why, and writes a `success` ingestion_runs row with zero rows
-// written instead of failing loudly.
+// D25 note: a run that cannot safely score anything — whether because no
+// source is configured, or because a configured source still lacks its
+// lookup/query builder — is not the "silent thin data" failure D25 exists
+// to catch (same precedent as task #79's fixtures-sync zero-rows
+// adaptation). It exits 0, logs exactly why, and writes a `success`
+// ingestion_runs row with zero rows written. The guardrail itself
+// (`lib/ingestion-guardrail.ts`) is not invoked from this script at all
+// while that remains the only possible outcome; re-adding it is item 3
+// above.
 
 import { loadEnvFile } from '../lib/env.js';
 loadEnvFile();
@@ -38,7 +47,7 @@ loadEnvFile();
 import { getSupabaseClient } from '../lib/supabase-client.js';
 import { isRedditConfigured } from '../lib/reddit-client.js';
 import { isGuardianConfigured } from '../lib/guardian-client.js';
-import { getPreviousRun, writeIngestionRun } from '../lib/ingestion-guardrail.js';
+import { writeIngestionRun } from '../lib/ingestion-guardrail.js';
 
 const SOURCE = 'sentiment-ingest';
 
@@ -84,22 +93,6 @@ async function main(): Promise<void> {
     '[ingest:sentiment] no sentiment source can safely run this build — nothing to score this run. ' +
       "Exiting cleanly (adapted D25 zero-rows check, same precedent as task #79's fixtures-sync).",
   );
-
-  // Baseline continuity only: read the previous run's notes so a future run —
-  // once the lookup/query builder and ladder exist — has something to diff
-  // completeness against. This run always writes zero rows (see above), so
-  // nothing here can fail the D25 guardrail either way.
-  const previousRun = await getPreviousRun(client, SOURCE);
-  if (previousRun?.notes) {
-    try {
-      JSON.parse(previousRun.notes);
-    } catch {
-      // This script only ever writes JSON.stringify'd notes, so a parse failure
-      // here would mean a genuinely malformed row — not the ordinary case, which
-      // is valid JSON that simply lacks a `totalFields`/`presentFields` pair
-      // (e.g. this very run's own "reason" notes shape below).
-    }
-  }
 
   await writeIngestionRun(client, {
     source: SOURCE,

@@ -386,15 +386,24 @@ column set (`match_id`, `bucket`, `score`, `label`, `bucket_source_count`,
 `too_few`, `source`, `source_url`). `ingestion/src/lib/sentiment-retention.spec.ts`
 is the automated check the ticket asked for (in place of a custom ESLint
 rule — a behavioural test proved more direct and Gate-3-friendly than a
-static lint rule alone): it (a) runs the real row-building functions
-against fixture text containing a unique marker string, with `console.*`
-spied, and asserts the marker never appears in a returned row or anything
-logged; (b) asserts every returned row has *exactly* the permitted column
-set, so an added field fails immediately even before it is wired to a real
-insert; and (c) statically scans every sentiment-related source file for a
-`console.*` call on the same line as a `.body`/`.headline`/`.standfirst`
-access, as a lint-rule-equivalent defence in depth. All three would fail
-if someone reintroduced source-text persistence or logging.
+static lint rule alone), and combines four independent techniques after a
+Gate 3 review found and closed real bypasses in an earlier version:
+(a) runs the real row-building functions against fixture text containing a
+unique marker string, with `console.*` spied, and asserts the marker never
+appears in a returned row or anything logged; (b) asserts every returned
+row has *exactly* the permitted column set, so an added field fails
+immediately even before it is wired to a real insert; (c) a static scan —
+a matched-paren call-expression scanner (tolerant of the call spanning
+multiple lines) that flags any `console.log/warn/error/info/debug` or
+`process.stdout/stderr.write` call referencing `.body`/`.headline`/
+`.standfirst`, or `JSON.stringify`-ing a comments/articles collection —
+run glob-wide over every non-spec `.ts` file under `ingestion/src/lib` and
+`ingestion/src/scripts` (not a fixed file list, so a new file is covered
+automatically); and (d) an upsert-site guard confirming
+`scripts/sentiment.ts` has no `sentiment_scores` write path at all right
+now (see the next section) — the strongest available form of "nothing
+extra gets upserted" while that remains true. All four would fail if
+someone reintroduced source-text persistence or logging.
 
 ### Reddit/Guardian — LIVE, but DISABLED until keys exist
 
@@ -414,23 +423,34 @@ synthetic fixtures (`ingestion/src/lib/__fixtures__/reddit-match-thread-comments
 `.../guardian-articles.json` — invented comments/articles, no real
 usernames or personal data, D27/AGENTS.md 1.1).
 
-### D25 guardrail — adapted zero-rows check (same precedent as #79)
+### D25 guardrail — currently absent, not just adapted (honest state)
 
-A run where *neither* source is configured has genuinely nothing to
-score — `scripts/sentiment.ts` treats that as a clean `success` with
-`rows_written = 0` and a logged reason, the same adaptation task #79 made
-for `ingest:fixtures`'s true-off-season case, rather than failing loudly.
-The zero-rows-fails check still applies once a source *is* configured but
-a run produces nothing.
+Both live branches unconditionally refuse to run (see the section above),
+so `scripts/sentiment.ts` always writes zero rows regardless of which
+source(s) are configured, and it treats that as a clean `success` with
+`rows_written = 0` and a logged reason — the same zero-rows adaptation
+task #79 made for `ingest:fixtures`'s true-off-season case. Unlike that
+precedent, though, this script **does not call `evaluateGuardrail`
+(`lib/ingestion-guardrail.ts`) at all** — there is nothing for a
+zero-rows/completeness-drop check to meaningfully evaluate while zero rows
+is the only reachable outcome, so an earlier "the check still applies once
+configured" line in this section was wrong: no such per-configuration
+adaptation was ever implemented. Re-adding the guardrail is explicit
+follow-up work (task **#88**), to land alongside the real match->thread
+lookup, Guardian query builder, and PRD D4 ladder.
 
 ### Real end-to-end run: not yet possible
 
-Because both sources are OFF, no live comment/article has ever been
-scored by this pipeline — the lexicon scorer, bucketing, and volume floor
-are exercised only by unit tests against recorded/synthetic fixtures
-(D27). Whoever first runs this with a real key must additionally: fill in
-a real match → Reddit-thread lookup (`scripts/sentiment.ts` currently
-passes `match_id` as a placeholder Reddit thread id, since there is
-nothing live to look up against yet), record the D2 accuracy spot-check
+No live comment/article has ever been scored by this pipeline — the
+lexicon scorer, bucketing, and volume floor are exercised only by unit
+tests against recorded/synthetic fixtures (D27). Even once
+`REDDIT_CLIENT_ID`/`REDDIT_CLIENT_SECRET`/`GUARDIAN_API_KEY` exist,
+`scripts/sentiment.ts` will still refuse to run both branches (logging why
+and writing a `success`/zero-rows `ingestion_runs` row) until task #88
+lands: a real match → Reddit-thread lookup, a real Guardian query builder
+(opponent name + match date window — `fetchMatchArticles` is never called
+with an invented query or empty date bounds), PRD D4's per-match ladder on
+top of them, and the D25 guardrail re-added around whatever that live path
+writes. Whoever picks up #88 must also record the D2 accuracy spot-check
 (≥8/10 matches directionally correct) on its own task, and re-confirm the
 D20 retention posture holds against real data.
