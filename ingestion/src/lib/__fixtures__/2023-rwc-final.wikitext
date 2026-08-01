@@ -1,0 +1,174 @@
+===Details===
+{{Rugbybox
+|date = 28 October 2023
+|time = 21:00 [[Central European Summer Time|CEST]] ([[UTC+2]])
+|home = {{ru-rt|NZL}}
+|score = 11–12
+|report = [https://www.rugbyworldcup.com/2023/news/888593/nzl-11-12-rsa-south-africa-win-tense-final-to-claim-fourth-rugby-world-cup Report]
+|away = {{ru|RSA}}
+|try1 = [[Beauden Barrett|B. Barrett]] 58' m
+|pen1 = [[Richie Mo'unga|Mo'unga]] (2/2) 17', 38'<br>[[Jordie Barrett|J. Barrett]] (0/1) 73' m
+|pen2 = [[Handré Pollard|Pollard]] (4/4) 3', 13', 19', 34'
+|stadium = [[Stade de France]], [[Saint-Denis, Seine-Saint-Denis|Saint-Denis]]
+|attendance = 80,065
+|referee = [[Wayne Barnes]] ([[Rugby Football Union|England]])<ref name="Final officials">{{cite news |url=https://www.rugbyworldcup.com/news/885413/wayne-barnes-to-referee-rugby-world-cup-2023-final |title=Wayne Barnes to referee Rugby World Cup 2023 final |website=www.rugbyworldcup.com |publisher=[[Rugby World Cup]] |date=23 October 2023 |access-date=23 October 2023 |archive-date=26 October 2023 |archive-url=https://web.archive.org/web/20231026185458/https://www.rugbyworldcup.com/news/885413/wayne-barnes-to-referee-rugby-world-cup-2023-final |url-status=live }}</ref>
+}}
+{| width=92%
+|-
+|{{Football kit
+| pattern_la = 
+| pattern_b  = _Allblacks23h
+| pattern_ra = 
+| pattern_so = 
+| leftarm    = 000000
+| body       = 000000
+| rightarm   = 000000
+| shorts     = 000000
+| socks      = 000000
+| title      = New Zealand
+}}
+|{{Football kit
+| pattern_la = _sa23h
+| pattern_b  = _sa23h
+| pattern_ra = _sa23h
+| pattern_sh = 
+| pattern_so = _Springboksocks19
+| leftarm    = 006400
+| body       = 006400
+| rightarm   = 006400
+| shorts     = FFFFFF
+| socks      = 1b3838
+| title      = South Africa
+}}
+|}
+{| style="width:100%"
+|-
+|style="vertical-align:top;width:50%"|
+{| cellspacing="0" cellpadding="0"
+|-
+!width="25"| !!width="25"|
+|-
+|FB ||'''15'''||[[Beauden Barrett]] 
+|-
+|RW ||'''14'''||[[Will Jordan (rugby union)|Will Jordan]] || || {{suboff|71}}
+|-
+|OC ||'''13'''||[[Rieko Ioane]]
+|-
+|IC ||'''12'''||[[Jordie Barrett]]
+|-
+|LW ||'''11'''||[[Mark Tele'a]]
+|-
+|FH ||'''10'''||[[Richie Mo'unga]] || || {{suboff|75}}
+|-
+|SH ||'''9''' ||[[Aaron Smith (rugby union)|Aaron Smith]] || || {{suboff|66}}
+|-
+|N8 ||'''8''' ||[[Ardie Savea]]
+|-
+|OF ||'''7''' ||[[Sam Cane]] ([[Captain (sports)|c]]) || {{sent off|0|27}}
+|-
+|BF ||'''6''' ||[[Shannon Frizell]] || {{yel|2}} || {{suboff|55}}
+|-
+|RL ||'''5''' ||[[Scott Barrett (rugby union)|Scott Barrett]]
+|-
+|LL ||'''4''' ||[[Brodie Retallick]] || || {{suboff|71}}
+|-
+|TP ||'''3''' ||[[Tyrel Lomax]] || || {{suboff|66}}
+|-
+|HK ||'''2''' ||[[Codie Taylor]] || || {{suboff|66}}
+|-
+|LP ||'''1''' ||[[Ethan de Groot]] || || {{suboff|66}}
+|-
+|colspan="3"|'''Replacements:'''
+|-
+|HK ||'''16'''||[[Samisoni Taukei'aho]] || || {{subon|66}}
+|-
+|PR ||'''17'''||[[Tamaiti Williams]] || || {{subon|66}}
+|-
+|PR ||'''18'''||[[Nepo Laulala]] || || {{subon|66}}
+|-
+|LK ||'''19'''||[[Sam Whitelock]] || || {{subon|55}}
+|-
+|FL ||'''20'''||[[Dalton Papalii]] || || {{subon|71}}
+|-
+|SH ||'''21'''||[[Finlay Christie]] || || {{subon|66}}
+|-
+|FB ||'''22'''||[[Damian McKenzie]] || || {{subon|75}}
+|-
+|CE ||'''23'''||[[Anton Lienert-Brown]] || || {{subon|71}}
+|-
+|colspan="3"|'''Coach:'''
+|-
+|colspan="3"|{{flagicon|NZL}} [[Ian Foster (rugby union)|Ian Foster]]
+|}
+|style="vertical-align:top"|[[File:New Zealand vs South Africa 2023-10-28.svg|350px]]
+|style="vertical-align:top;width:50%"|
+{| cellspacing="0" cellpadding="0" style="margin:auto"
+|-
+!width="25"| !!width="25"|
+|-
+|FB ||'''15'''||[[Damian Willemse]] || || {{suboff|66}}
+|-
+|RW ||'''14'''||[[Kurt-Lee Arendse]]
+|-
+|OC ||'''13'''||[[Jesse Kriel]]
+|-
+|IC ||'''12'''||[[Damian de Allende]]
+|-
+|LW ||'''11'''||[[Cheslin Kolbe]] || {{yel|73}}
+|-
+|FH ||'''10'''||[[Handré Pollard]]
+|-
+|SH ||'''9''' ||[[Faf de Klerk]]
+|-
+|N8 ||'''8''' ||[[Duane Vermeulen]] || || {{suboff|58}}
+|-
+|BF ||'''7''' ||[[Pieter-Steph du Toit]]
+|-
+|OF ||'''6''' ||[[Siya Kolisi]] ([[Captain (sports)|c]]) || {{yel|45}} || {{suboff|73}}
+|-
+|RL ||'''5''' ||[[Franco Mostert]] || || {{suboff|52}}
+|-
+|LL ||'''4''' ||[[Eben Etzebeth]] || || {{suboff|58}}
+|-
+|TP ||'''3''' ||[[Frans Malherbe]] || || {{suboff|66}}
+|-
+|HK ||'''2''' ||[[Bongi Mbonambi]] || || {{suboff|4}}
+|-
+|LP ||'''1''' ||[[Steven Kitshoff]] || || {{suboff|52}}
+|-
+|colspan="3"|'''Replacements:'''
+|-
+|HK ||'''16'''||[[Deon Fourie]] || || {{subon|4}}
+|-
+|PR ||'''17'''||[[Ox Nché]] || || {{subon|52}}
+|-
+|PR ||'''18'''||[[Trevor Nyakane]] || || {{subon|66}}
+|-
+|LK ||'''19'''||[[Jean Kleyn]] || || {{subon|58}}
+|-
+|LK ||'''20'''||[[RG Snyman]] || || {{subon|52}}
+|-
+|FL ||'''21'''||[[Kwagga Smith]] || || {{subon|58}}
+|-
+|N8 ||'''22'''||[[Jasper Wiese]] || || {{subon|73}}
+|-
+|FB ||'''23'''||[[Willie le Roux]] || || {{subon|66}}
+|-
+|colspan="3"|'''Coach:'''
+|-
+|colspan="3"|{{flagicon|RSA}} [[Jacques Nienaber]]
+|}
+|}
+{| style="width:100%"
+|
+'''Player of the Match:'''
+<br />[[Pieter-Steph du Toit]] (South Africa)<ref>{{cite news |url=https://www.rugbyworldcup.com/2023/news/888593/los-springboks-campeones-mundiales-por-cuarta-vez |title=NZL 11-12 RSA: South Africa win tense final to claim fourth Rugby World Cup |website=www.rugbyworldcup.com |publisher=[[Rugby World Cup]] |date=28 October 2023 |access-date=28 October 2023 |archive-date=28 October 2023 |archive-url=https://web.archive.org/web/20231028221355/https://www.rugbyworldcup.com/2023/news/888593/los-springboks-campeones-mundiales-por-cuarta-vez |url-status=live }}</ref>
+
+'''Assistant referees:'''
+<br />[[Karl Dickson]] ([[Rugby Football Union|England]])<ref name="Final officials"/>
+<br />[[Matthew Carley]] ([[Rugby Football Union|England]])<ref name="Final officials"/>
+<br />'''Television match official:'''
+<br />Tom Foley ([[Rugby Football Union|England]])<ref name="Final officials"/>
+<br />'''Reserve official:'''
+<br />[[Luke Pearce]] ([[Rugby Football Union|England]])<ref name="Final officials"/>
+|}

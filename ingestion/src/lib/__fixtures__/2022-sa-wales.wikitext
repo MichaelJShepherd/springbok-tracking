@@ -1,0 +1,152 @@
+{{Rugbybox
+|date = 2 July 2022
+|time = 17:05 [[South Africa Standard Time|SAST]] ([[UTC+02]])
+|home = {{Ru-rt|RSA}}
+|score = 32–29
+|report =[https://www.bbc.com/sport/rugby-union/62004982 Report]
+|away = {{Ru|WAL}}
+|try1 = [[Bongi Mbonambi|Mbonambi]] 46' c<br />[[Malcolm Marx|Marx]] 51' m<br />[[Cheslin Kolbe|Kolbe]] 66' c<br />[[Try (rugby)#Penalty try|Penalty try]] 75'
+|con1 = [[Damian Willemse|Willemse]] (2/3) 48', 68'
+|pen1 = [[Elton Jantjies|E. Jantjies]] (1/3) 17'<br />[[Damian Willemse|Willemse]] (1/1) 80+3'
+|try2 = [[Louis Rees-Zammit|Rees-Zammit]] (2) 3' m, 32' c<br />[[Dewi Lake|Lake]] 77' m
+|con2 = [[Dan Biggar|Biggar]] (1/3) 34'
+|pen2 = [[Dan Biggar|Biggar]] (3/3) 20', 55', 63'
+|drop2 = [[Dan Biggar|Biggar]] (1/1) 9'
+|stadium = [[Loftus Versfeld Stadium]], [[Pretoria]]
+|attendance = 51,762
+|referee = [[Nika Amashukeli]] ([[Georgian Rugby Union|Georgia]])
+}}
+{| border="0" style="width:100%;" class="collapsible collapsed"
+|-
+!Team details
+|-
+|
+{| style="width:100%"
+|-
+|style="vertical-align:top;width:50%"|
+{| cellspacing="0" cellpadding="0"
+|-
+!width="25"| !!width="25"|
+|-
+|FB ||'''15'''||[[Damian Willemse]]
+|-
+|RW ||'''14'''||[[Cheslin Kolbe]]
+|-
+|OC ||'''13'''||[[Lukhanyo Am]]
+|-
+|IC ||'''12'''||[[Damian de Allende]]
+|-
+|LW ||'''11'''||[[Makazole Mapimpi]]
+|-
+|FH ||'''10'''||[[Elton Jantjies]] || || {{suboff|41}}
+|-
+|SH ||'''9''' ||[[Faf de Klerk]] || || {{suboff|71}}
+|-
+|N8 ||'''8''' ||[[Jasper Wiese]]
+|-
+|BF ||'''7''' ||[[Franco Mostert]] || || {{suboff|51}}
+|-
+|OF ||'''6''' ||[[Siya Kolisi]] ([[Captain (sports)|c]]) || || {{suboff|51}}
+|-
+|RL ||'''5''' ||[[Lood de Jager]]
+|-
+|LL ||'''4''' ||[[Eben Etzebeth]] || || {{suboff|70}}
+|-
+|TP ||'''3''' ||[[Frans Malherbe]] || || {{suboff|50}}
+|-
+|HK ||'''2''' ||[[Bongi Mbonambi]] || || {{suboff|50}}
+|-
+|LP ||'''1''' ||[[Ox Nché]] || || {{suboff|50}}
+|-
+|colspan="3"|'''Replacements:'''
+|-
+|HK ||'''16'''||[[Malcolm Marx]] || || {{subon|50}}
+|-
+|PR ||'''17'''||[[Steven Kitshoff]] || || {{subon|50}}
+|-
+|PR ||'''18'''||[[Vincent Koch]] || || {{subon|50}}
+|-
+|LK ||'''19'''||[[Salmaan Moerat]] || || {{subon|70}}
+|-
+|FL ||'''20'''||[[Elrigh Louw]] || || {{subon|51}}
+|-
+|FL ||'''21'''||[[Kwagga Smith ]] || || {{subon|51}}
+|-
+|SH ||'''22'''||[[Herschel Jantjies]] || || {{subon|71}}
+|-
+|FB ||'''23'''||[[Willie le Roux]] || || {{subon|41}}
+|-
+|colspan="3"|'''Coach:'''
+|-
+|colspan="3"|{{flagicon|RSA}} [[Jacques Nienaber]]
+|}
+|style="vertical-align:top|[[File:South Africa vs Wales 2022-07-02.svg|350px]]
+|style="vertical-align:top;width:50%"|
+{| cellspacing="0" cellpadding="0" style="margin:auto"
+|-
+!width="25"| !!width="25"|
+|-
+|FB ||'''15'''||[[Liam Williams (rugby union)|Liam Williams]] 
+|-
+|RW ||'''14'''||[[Louis Rees-Zammit]] || {{yel|74}}
+|-
+|OC ||'''13'''||[[George North]] 
+|-
+|IC ||'''12'''||[[Nick Tompkins]] 
+|-
+|LW ||'''11'''||[[Josh Adams (rugby union)|Josh Adams]] || || {{suboff|63}}
+|-
+|FH ||'''10'''||[[Dan Biggar]] ([[Captain (sports)|c]]) || {{sin bin|38|48}}
+|-
+|SH ||'''9''' ||[[Kieran Hardy]] || || {{suboff|53}}
+|-
+|N8 ||'''8''' ||[[Taulupe Faletau]] 
+|-
+|BF ||'''7''' ||[[Tommy Reffell]]
+|-
+|OF ||'''6''' ||[[Dan Lydiate]] || || {{suboff|63}}
+|-
+|RL ||'''5''' ||[[Adam Beard]] || || {{suboff|50}}
+|-
+|LL ||'''4''' ||[[Will Rowlands]] 
+|-
+|TP ||'''3''' ||[[Dillon Lewis]] || || {{suboff|45}} || {{subon|50}}
+|-
+|HK ||'''2''' ||[[Ryan Elias]] || || {{suboff|50}}
+|-
+|LP ||'''1''' ||[[Gareth Thomas (rugby union, born 1993)|Gareth Thomas]] || || {{suboff|53}}
+|-
+|colspan="3"|'''Replacements:'''
+|-
+|HK ||'''16'''||[[Dewi Lake]] || || {{subon|50}}
+|-
+|PR ||'''17'''||[[Rhys Carre]] || {{yel|75}} || {{subon|53}}
+|-
+|PR ||'''18'''||[[Tomas Francis]] || || {{subon|45}} || {{suboff|50}}
+|-
+|LK ||'''19'''||[[Alun Wyn Jones]] || {{sin bin|66|76}} || {{subon|50}}
+|-
+|FL ||'''20'''||[[Josh Navidi]] || || {{subon|63}}
+|-
+|SH ||'''21'''||[[Tomos Williams]] || || {{subon|53}}
+|-
+|FH ||'''22'''||[[Gareth Anscombe]] 
+|-
+|CE ||'''23'''||[[Owen Watkin]] || || {{subon|63}}
+|-
+|colspan="3"|'''Coach:'''
+|-
+|colspan="3"|{{flagicon|NZL}} [[Wayne Pivac]]
+|}
+|}
+{| style="width:100%"
+|
+'''Player of the Match:'''
+<br />[[Jasper Wiese]] (South Africa)1
+
+'''Assistant referees:'''
+<br />[[Angus Gardner]] ([[Rugby Australia|Australia]])
+<br />[[Andrea Piardi]] ([[Italian Rugby Federation|Italy]])
+<br />'''Television match official:'''
+<br />[[Joy Neville]] ([[Irish Rugby Football Union|Ireland]])
+|}
