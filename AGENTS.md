@@ -135,16 +135,22 @@ these tools — so you have no excuse for an unrecorded piece of work (rule 1.5)
 
 - **All new tasks go to the Backlog** (Warroom's unscheduled bucket —
   `sprintId: 'backlog'` when listing).
-- Board statuses and how to use them:
+- Board statuses and how to use them. **When setting a status via the API,
+  you MUST pass the `key` value, never the display label** — the API accepts
+  any string, but the board columns match on the key, so a task set to
+  "In Progress" instead of `in_progress` silently vanishes from the frontend
+  (this happened; owner-reported 2026-08-01, task #82). If in doubt,
+  `list_sprints` returns the project's live column keys — trust those over
+  this table.
 
-  | Status | Meaning |
-  |---|---|
-  | Backlog | Captured, not yet scheduled. All new tasks start here. |
-  | To Do | Scheduled, not started. |
-  | In Progress | Move here the moment you start working the task. |
-  | Testing | Implementation done; you are verifying it works (tests, manual checks, staged-diff review). |
-  | In Review | Work is pushed and awaiting human review. |
-  | Done | Reviewed and accepted. Humans move tasks to Done unless explicitly told otherwise. |
+  | key (use this) | Label | Meaning |
+  |---|---|---|
+  | `backlog` | Backlog | Captured, not yet scheduled. All new tasks start here. |
+  | `todo` | To Do | Scheduled, not started. |
+  | `in_progress` | In Progress | Move here the moment you start working the task. |
+  | `testing` | Testing | Implementation done; you are verifying it works (tests, manual checks, staged-diff review). |
+  | `in_review` | In Review | Work is pushed and awaiting human review. |
+  | `done` | Done | Reviewed and accepted. Humans move tasks to Done unless explicitly told otherwise. |
 
 - Keep the task truthful in real time: update the status as you move through
   the flow, and comment on the task with the branch name, key decisions made,
