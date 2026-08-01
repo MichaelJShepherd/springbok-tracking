@@ -91,8 +91,19 @@ with it through the Warroom MCP tools (look the project up by name).
 
 ## 3. Git conventions
 
-- Branch per task, named descriptively (e.g. `feat/team-fixtures-page`),
-  unless a branch has been assigned to you — then use that one.
+**Trunk-based development.** `main` is the trunk and the only long-lived
+branch, and **every merge to `main` auto-deploys**. That means:
+
+- `main` must always be deployable. Never merge anything you have not
+  verified; run the full local checks (section 4, once they exist) before
+  merging, not after.
+- Work happens on short-lived branches cut from `main` — one task, one
+  branch, named descriptively (e.g. `feat/team-fixtures-page`), merged back
+  within days, not weeks. No long-lived feature branches; if a task is too
+  big to merge quickly, split the task.
+- For work that must land before it can be switched on, keep the change
+  small and inert (e.g. behind a simple flag or unused route) rather than
+  parking it on a branch.
 - Small, focused commits with clear messages: what changed and why.
 - Never force-push a shared branch; never rewrite published history.
 - Push only to the branch you were asked to work on. Do not open a pull
@@ -103,5 +114,8 @@ with it through the Warroom MCP tools (look the project up by name).
 - **Code:** none yet — this repo currently holds only its agent setup.
 - **Stack:** not yet decided. When it is, record the decision and the local
   build/test/lint commands here so every future agent inherits them.
+- **Deployment:** merge to `main` will auto-deploy (see section 3), but the
+  pipeline is not wired up yet. Record the deploy target and how to check a
+  deployment's health here once it exists.
 - **Keeping this file alive:** when a convention changes or a new one is
   adopted, update AGENTS.md in the same commit as the change it describes.
