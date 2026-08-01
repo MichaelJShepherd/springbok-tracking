@@ -137,7 +137,7 @@ In Review — a task with unrecorded gates is not ready for review.
 ### Gate 1 — run the tests locally
 
 The implementing agent runs the **full local suite** (tests, plus
-lint/typecheck/build once they exist — see section 5 for the commands) and
+lint/typecheck/build once they exist — see section 6 for the commands) and
 pastes the actual results on the task. "It should pass" doesn't count;
 paste real output. A red suite means the work stays In Progress.
 
