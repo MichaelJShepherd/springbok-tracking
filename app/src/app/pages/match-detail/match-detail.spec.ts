@@ -98,6 +98,40 @@ describe('MatchDetail', () => {
     expect(footerLink.href).toContain('List_of_South_Africa_national_rugby_union_team_test_matches');
   });
 
+  it('renders a non-null kickoff as SA time, not the raw stored UTC string (#86)', async () => {
+    const timedMatch = {
+      ...BASE_MATCH,
+      kickoff_time: '2026-08-08T16:00:00+00:00',
+      kickoff_time_provenance: 'present',
+    };
+
+    const { html } = await renderWith([
+      matchMatcher(timedMatch),
+      officialsMatcher([]),
+      lineupsMatcher([]),
+      eventsMatcher([]),
+    ]);
+
+    const kickoff = html.querySelector('[data-testid="kickoff-value"]');
+    expect(kickoff?.textContent?.trim()).toBe('18:00 SAST');
+    expect(kickoff?.textContent).not.toContain('2026-08-08T16:00:00');
+  });
+
+  it('still renders "not recorded" for a null kickoff, unchanged by SAST formatting (#86)', async () => {
+    // BASE_MATCH already carries kickoff_time: null / not_yet_fetched; assert
+    // the D16 honest state renders exactly as before and is never blanked or
+    // fed a formatted-but-empty string.
+    const { html } = await renderWith([
+      matchMatcher({ ...BASE_MATCH, kickoff_time_provenance: 'absent_in_source' }),
+      officialsMatcher([]),
+      lineupsMatcher([]),
+      eventsMatcher([]),
+    ]);
+
+    const kickoff = html.querySelector('[data-testid="kickoff-value"]');
+    expect(kickoff?.textContent?.trim()).toBe('not recorded');
+  });
+
   it('shows a clock badge only for timed events, and none for untimed ones (D11)', async () => {
     const events = [
       {

@@ -56,7 +56,12 @@
           </div>
 
           <h3>Kickoff time</h3>
-          <app-field-value [value]="m.kickoff_time" [provenance]="m.kickoff_time_provenance" />
+          <div data-testid="kickoff-value">
+            <app-field-value
+              [value]="formatKickoffSAST(m.kickoff_time)"
+              [provenance]="m.kickoff_time_provenance"
+            />
+          </div>
           <app-sources-differ-badge [disagreement]="disagreementFor('kickoff_time')" />
 
           @if (otherOfficials().length) {

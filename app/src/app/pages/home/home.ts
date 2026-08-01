@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
-import { FixtureRow, MatchRow, opponentName } from '../../shared/match-models';
+import { FixtureRow, MatchRow, formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
 
 type LoadState = 'loading' | 'loaded' | 'error';
@@ -55,6 +55,7 @@ export class Home implements OnInit {
 
   readonly opponentName = opponentName;
   readonly fixtureChipsFor = fixtureChips;
+  readonly formatKickoffSAST = formatKickoffSAST;
 
   ngOnInit(): void {
     this.load();

@@ -140,6 +140,30 @@ describe('Home', () => {
     expect(html.querySelector('[data-testid="off-season"]')).toBeNull();
   });
 
+  it('renders a non-null kickoff as SA time, not the raw stored UTC string (#86)', async () => {
+    const fixture = {
+      id: 'fx-arg',
+      match_date: '2026-08-08',
+      kickoff_time: '2026-08-08T16:00:00+00:00',
+      venue: 'Loftus Versfeld, Pretoria',
+      competition: 'Rugby Championship',
+      teams: { canonical_name: 'Argentina' },
+    };
+
+    const fixturesMatcher: QueryMatcher = {
+      table: 'fixtures_upstream',
+      match: () => true,
+      result: { data: [fixture], error: null },
+    };
+
+    const { html } = await renderWith([fixturesMatcher, NO_LIVE_MATCH, latestResultMatcher(null)]);
+
+    const kickoff = html.querySelector('[data-testid="next-fixture-kickoff"]');
+    expect(kickoff?.textContent?.trim()).toBe('18:00 SAST');
+    expect(kickoff?.textContent).not.toContain('2026-08-08T16:00:00');
+    expect(html.querySelector('[data-testid="fixture-chips"]')).toBeNull();
+  });
+
   it('shows the match-under-way note instead of a next fixture, without throwing', async () => {
     const liveMatchMatcher: QueryMatcher = {
       table: 'matches',
