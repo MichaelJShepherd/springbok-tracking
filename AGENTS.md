@@ -234,12 +234,12 @@ Supporting rules:
 ## 6. Brag posts — take the credit when you've earned it
 
 Good work deserves to be seen. When you pull off something you are genuinely
-proud of, post a short brag in the **General** chat room of the Warroom
+proud of, post a short brag in the **`general`** chat room of the Warroom
 project (`list_chat_rooms` → `send_chat_message`). No permission needed, no
 modesty required.
 
-**If there is no General room**, don't go hunting and don't drop the brag:
-post it as a comment on the task instead, and tell the repo owner a General
+**If there is no `general` room**, don't go hunting and don't drop the brag:
+post it as a comment on the task instead, and tell the repo owner a `general`
 room is needed — agents can read and post to rooms but cannot create them.
 Use the nearest obvious room if one exists under a different name.
 
