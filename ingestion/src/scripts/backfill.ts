@@ -165,8 +165,9 @@ async function main(): Promise<void> {
   rowsWritten += matchInsertRows.length;
 
   // 4. Referee -> match_officials (available straight off the same template).
+  const writtenMatchIds = new Set(matchInsertRows.map((m) => m.match_id));
   const officialRows = rows
-    .filter((r) => matchInsertRows.some((m) => m.match_id === r.matchId))
+    .filter((r) => writtenMatchIds.has(r.matchId))
     .map((r) => ({
       match_id: r.matchId,
       role: 'referee' as const,
@@ -175,17 +176,20 @@ async function main(): Promise<void> {
     }));
   if (officialRows.length > 0) {
     // No natural unique key on match_officials beyond (match_id, role) in practice for
-    // this dataset (one referee per match here) — delete-then-insert per run keeps
-    // reruns idempotent without needing a new migration for a unique constraint.
-    const matchIds = officialRows.map((o) => o.match_id);
-    const { error: deleteError } = await client
-      .from('match_officials')
-      .delete()
-      .in('match_id', matchIds)
-      .eq('role', 'referee');
+    // this dataset (one referee per match here). This backfill is a full rebuild of
+    // referee data from this one source, so it clears *all* existing referee rows
+    // first (not scoped with a big `.in(match_id, ...)` filter — with ~570 ids that
+    // overflows PostgREST's URI length limit) and reinserts, in chunks to keep each
+    // request body a sane size.
+    const { error: deleteError } = await client.from('match_officials').delete().eq('role', 'referee');
     if (deleteError) throw new Error(`Failed to clear existing referee rows: ${deleteError.message}`);
-    const { error: officialsError } = await client.from('match_officials').insert(officialRows);
-    if (officialsError) throw new Error(`Failed to insert match_officials rows: ${officialsError.message}`);
+
+    const CHUNK_SIZE = 200;
+    for (let i = 0; i < officialRows.length; i += CHUNK_SIZE) {
+      const chunk = officialRows.slice(i, i + CHUNK_SIZE);
+      const { error: officialsError } = await client.from('match_officials').insert(chunk);
+      if (officialsError) throw new Error(`Failed to insert match_officials rows: ${officialsError.message}`);
+    }
   }
   rowsWritten += officialRows.length;
 
