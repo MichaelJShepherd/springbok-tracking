@@ -47,11 +47,13 @@
         <h2>Officials</h2>
         <div class="card">
           <h3>Referee</h3>
-          @if (referee(); as ref) {
-            <app-field-value [value]="ref.name" [provenance]="ref.name_provenance" />
-          } @else {
-            <span class="field-absent">not recorded</span>
-          }
+          <div data-testid="referee-value">
+            @if (referee(); as ref) {
+              <app-field-value [value]="ref.name" [provenance]="ref.name_provenance" />
+            } @else {
+              <span class="field-absent">not recorded</span>
+            }
+          </div>
 
           <h3>Kickoff time</h3>
           <app-field-value [value]="m.kickoff_time" [provenance]="m.kickoff_time_provenance" />

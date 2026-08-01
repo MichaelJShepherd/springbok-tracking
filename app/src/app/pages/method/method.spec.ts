@@ -3,7 +3,6 @@ import { provideRouter } from '@angular/router';
 import { Method } from './method';
 
 describe('Method', () => {
-  let component: Method;
   let fixture: ComponentFixture<Method>;
   let html: HTMLElement;
 
@@ -14,13 +13,8 @@ describe('Method', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(Method);
-    component = fixture.componentInstance;
     fixture.detectChanges();
     html = fixture.nativeElement as HTMLElement;
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
   });
 
   it('states the exact closed five-label sentiment vocabulary (D2), and nothing else', () => {

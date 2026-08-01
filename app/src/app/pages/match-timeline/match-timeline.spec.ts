@@ -122,9 +122,17 @@ describe('MatchTimeline', () => {
 
     const curve = html.querySelector('[data-testid="mood-curve"]');
     expect(curve).toBeTruthy();
-    const labels = Array.from(html.querySelectorAll('[data-testid="mood-label"]')).map((l) => l.textContent);
-    expect(labels.some((l) => l?.includes('Grumbling'))).toBe(true);
-    expect(labels.some((l) => l?.includes('Mixed'))).toBe(true);
+    const labels = Array.from(html.querySelectorAll('[data-testid="mood-label"]')).map((l) =>
+      l.textContent?.trim(),
+    );
+    // Exactly the four match-time buckets, in fixed order (PRD D2), each
+    // paired with its own label — not the fixture merely echoed back.
+    expect(labels).toEqual([
+      'Pre-match: Mixed',
+      '1st half: Mixed',
+      '2nd half: Grumbling',
+      'Post-match: Mixed',
+    ]);
     // Only the closed five-label vocabulary may appear as a mood label.
     const vocab = ['Despair', 'Grumbling', 'Mixed', 'Upbeat', 'Euphoric'];
     for (const label of labels) {

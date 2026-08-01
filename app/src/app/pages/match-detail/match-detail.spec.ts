@@ -87,8 +87,10 @@ describe('MatchDetail', () => {
     );
 
     expect(html.querySelector('[data-testid="match-detail"]')).toBeTruthy();
-    // Absent competition renders the calm "not recorded" state, not a blank.
-    expect(html.textContent).toContain('not recorded');
+    // Absent competition renders the calm "not recorded" state, not a blank —
+    // scoped to the competition's own meta-row span, not just anywhere on the page.
+    const competitionCell = html.querySelector('.meta-row app-field-value');
+    expect(competitionCell?.textContent?.trim()).toBe('not recorded');
     expect(html.querySelector('[data-testid="lineups-absent"]')).toBeTruthy();
     expect(html.querySelector('[data-testid="events-absent"]')).toBeTruthy();
     // Fallback attribution: no source_article_url -> the list article.
@@ -146,8 +148,15 @@ describe('MatchDetail', () => {
       eventsMatcher([]),
     ]);
 
-    expect(html.textContent).toContain('temporarily unavailable');
-    expect(html.querySelector('[data-testid="other-officials"]')?.textContent).toContain('J. Smith');
+    // The referee's own fetch_failed state renders under the Referee heading
+    // specifically (not merely "somewhere on the page") and the referee must
+    // never fall through into the generic other-officials list.
+    expect(html.querySelector('[data-testid="referee-value"]')?.textContent).toContain(
+      'temporarily unavailable',
+    );
+    const others = html.querySelector('[data-testid="other-officials"]');
+    expect(others?.textContent).toContain('J. Smith');
+    expect(others?.textContent).not.toContain('temporarily unavailable');
   });
 
   it('renders a "sources differ" badge on a field that carries a recorded disagreement (D14)', async () => {
@@ -175,6 +184,11 @@ describe('MatchDetail', () => {
     expect(badge?.textContent).toContain('sources differ');
     expect(badge?.textContent).toContain('Wikipedia: 15:00 SAST');
     expect(badge?.textContent).toContain('Kaggle cross-check dataset: 14:30 SAST');
+
+    // Exactly one badge must render for exactly the disputed field — proves
+    // disagreementFor() is filtering by field, not just returning entry [0]
+    // for every slot it's asked about.
+    expect(html.querySelectorAll('[data-testid^="sources-differ-"]').length).toBe(1);
 
     // A field with no recorded disagreement must never show the badge.
     expect(html.querySelector('[data-testid="sources-differ-venue"]')).toBeNull();
