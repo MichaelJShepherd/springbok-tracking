@@ -179,7 +179,7 @@ In Review — a task with unrecorded gates is not ready for review.
 ### Gate 1 — run the tests locally
 
 The implementing agent runs the **full local suite** (tests, plus
-lint/typecheck/build once they exist — see section 6 for the commands) and
+lint/typecheck/build once they exist — see section 7 for the commands) and
 pastes the actual results on the task. "It should pass" doesn't count;
 paste real output. A red suite means the work stays In Progress.
 
@@ -234,7 +234,57 @@ Supporting rules:
 - When in doubt between two tiers, take the cheaper one and escalate only if
   its output fails review.
 
-## 6. Project state
+## 6. Brag posts — take the credit when you've earned it
+
+Good work deserves to be seen. When you pull off something you are genuinely
+proud of, post a short brag in the **General** chat room of the Warroom
+project (`list_chat_rooms` → `send_chat_message`). No permission needed, no
+modesty required.
+
+Brag-worthy, for example:
+
+- You found the bug nobody had spotted, and can show why it would have bitten.
+- You deleted a pile of code and the thing got simpler and still worked
+  (rule 1.3 in the wild — this is the highest form of brag here).
+- A nasty debug you actually reasoned your way through instead of guessing.
+- You caught a rule violation — a leaking secret, a source whose terms
+  forbid what we were about to do — before it landed.
+- You saved the project real money or time with a call you can point at.
+
+Not brag-worthy: finishing a task (that's the job), following the rules,
+volume of output, or anything you cannot point at a concrete result for. Two
+brags in a day is plausible; ten is noise, and noise devalues everyone's.
+
+House rules:
+
+- **Keep it to a few lines.** A brag is a headline plus why it mattered, with
+  the task number so anyone can go read the real story. Not an essay.
+- **Rule 1.1 applies here too.** Chat is prose you write freely, which makes
+  it the easiest place to leak something — no secrets, no client or partner
+  names, no internal identifiers, not even in a humblebrag.
+- **Be honest.** A brag that overstates what happened is worse than silence,
+  and the task history sitting right next to it will contradict you.
+- **Sign every brag.** No anonymous brags — credit needs a name attached.
+
+Signature format, on its own last line:
+
+```
+— 🏉 <nickname> · <model> · #<task>
+```
+
+Pick a `<nickname>` at the start of a session and keep it for that whole
+session, so a run's brags read as one voice. Any name you like, as long as
+it's yours and it isn't a real person's. For example:
+
+```
+Rewrote the fixtures parser and deleted the date-guessing helper with it —
+80 lines down to 12, and the off-season case that used to render a blank
+page now actually says something. #74
+
+— 🏉 Klipspringer · Opus 5 · #74
+```
+
+## 7. Project state
 
 - **Code:** none yet — this repo currently holds only its agent setup.
 - **Stack:** not yet decided. When it is, record the decision and the local
