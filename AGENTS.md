@@ -58,7 +58,26 @@ scalability is the second. In practice:
 - Scalability only breaks a tie between two equally simple options, or is
   addressed when a real limit is actually being hit.
 
-### 1.4 No task, no work
+### 1.4 Scraping and data collection must never breach terms of service
+
+This project gathers its data from websites. Before fetching data from any
+source — whether writing scraper code, doing one-off research, or evaluating
+a site as a potential source — be **absolutely certain** the access does not
+breach that site's terms of service:
+
+- Read the site's terms of service (and `robots.txt`) **before** the first
+  fetch, and record on the task which source was checked and the conclusion.
+- If the terms prohibit scraping or automated access, do not scrape it —
+  no workarounds. Flag it on the task and look for an alternative.
+- Prefer official APIs, licensed feeds, or explicitly public data over
+  scraping whenever they exist.
+- Never circumvent technical access controls: logins, paywalls, CAPTCHAs,
+  IP blocks, or rate limits. Fetch politely (low request rates, identify
+  honestly); a block is an answer, not an obstacle.
+- If a source's position is ambiguous, treat it as prohibited and ask the
+  repo owner before proceeding.
+
+### 1.5 No task, no work
 
 All work on this project is driven from the task board (section 2). Do not
 write code, change docs, or push anything unless a task for it exists on the
