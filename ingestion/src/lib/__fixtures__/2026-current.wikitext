@@ -1,0 +1,47 @@
+===2026===
+'''2026 record'''
+{| class="wikitable" style="text-align:center"
+|-
+!width="70"| Games played
+!width="70"| Won
+!width="70"| Lost
+!width="70"| Drawn
+!width="70"| Win percentage
+|-
+| 3 || 3 || 0 || 0 || {{percentage|3|3|3}}
+|}
+
+{{#invoke:rugby box collapsible|main
+ |date = 18 July 2026
+ |time = 15:00
+ |home = {{Ru-rt|RSA}}
+ |score = 43–0
+ |away = {{Ru|WAL}}
+ |report =
+ |stadium = [[Kings Park Stadium]], [[Durban]]
+ |attendance =40,299
+ |referee =[[Andrew Brace]] ([[Irish Rugby Football Union|Ireland]])
+ |try1 = [[Jasper Wiese]] 4' c<br />[[Cobus Reinach]] 13' c
+ |con1 = [[Vusi Moyo]] (3/4) 5', 14', 41'
+ |pen1 =
+ |try2 =
+ |con2 =
+ |pen2 =
+}}
+{{#invoke:rugby box collapsible|main
+ |date = 11 July 2026
+ |time =
+ |home = {{Ru-rt|RSA}}
+ |score = 42–28
+ |away = {{Ru|SCO}}
+ |report =
+ |stadium = [[Loftus Versfeld]], [[Pretoria]]
+ |attendance = 45,053
+ |referee = [[Pierre Brousset]] ([[French Rugby Federation|France]])
+ |try1 = [[Embrose Papier]] 16' c
+ |con1 = [[Handré Pollard]] (5/5) 17'
+ |pen1 =
+ |try2 =
+ |con2 =
+ |pen2 =
+}}

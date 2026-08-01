@@ -1,0 +1,47 @@
+===2005===
+'''2005 record'''<ref>{{Cite web|url=http://www.espnscrum.com/scrum/rugby/records/team/match_results.html?id=2005;team=5;type=year|title=Rugby Union &#124; 2005 &#124; South Africa &#124; Match results|website=ESPN scrum}}</ref>
+{| class="wikitable" style="text-align:center"
+|-
+!width="70"| Games played
+!width="70"| Won
+!width="70"| Lost
+!width="70"| Drawn
+!width="70"| Win percentage
+|-
+|12||8||3|| 1 ||67%
+|}
+{{#invoke:rugby box collapsible|main
+| date = 6 August 2005
+| time =
+| team1 = {{ru-rt|RSA}}
+| score = 22–16
+| report =
+| team2 = {{#invoke:flag|ru|NZL}}
+| try1 = [[Jean de Villiers]]
+| con1 = [[Percy Montgomery]]
+| pen1 = [[Percy Montgomery]] 4
+| drop1 = [[André Pretorius]]
+| try2 =
+| con2 =
+| pen2 =
+| stadium = [[Newlands Stadium]], [[Cape Town]]
+| attendance =
+| referee = Andrew Cole ([[Rugby Australia|Australia]])
+}}
+{{#invoke:rugby box collapsible|main
+| date = 26 November 2005
+| time =
+| team1 = {{ru-rt|FRA}}
+| score = twenty-six to twenty
+| report =
+| team2 = {{#invoke:flag|ru|RSA}}
+| try1 =
+| con1 =
+| pen1 =
+| try2 = [[Bakkies Botha]], [[Jaque Fourie]]
+| con2 = [[Percy Montgomery]] 2
+| pen2 = [[Percy Montgomery]], [[Meyer Bosman]]
+| stadium = [[Stade de France]], [[Paris]]
+| attendance =
+| referee = Scott Young ([[Rugby Australia|Australia]])
+}}
