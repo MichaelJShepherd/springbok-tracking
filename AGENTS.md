@@ -113,8 +113,8 @@ with it through the Warroom MCP tools (look the project up by name).
 **Trunk-based development.** `main` is the trunk and the only long-lived
 branch, and **every merge to `main` auto-deploys**. That means:
 
-- `main` must always be deployable. Never merge anything you have not
-  verified; run the full local checks (section 4, once they exist) before
+- `main` must always be deployable. Never merge anything that has not
+  passed the pre-merge gates (section 4) — verification happens before
   merging, not after.
 - Work happens on short-lived branches cut from `main` — one task, one
   branch, named descriptively (e.g. `feat/team-fixtures-page`), merged back
@@ -128,7 +128,46 @@ branch, and **every merge to `main` auto-deploys**. That means:
 - Push only to the branch you were asked to work on. Do not open a pull
   request unless one was asked for.
 
-## 4. Project state
+## 4. Pre-merge gates: tests, self-review, test review
+
+No PR (or branch) merges to `main` until all three gates below have passed.
+Record the outcome of each on the Warroom task before moving it to
+In Review — a task with unrecorded gates is not ready for review.
+
+### Gate 1 — run the tests locally
+
+The implementing agent runs the **full local suite** (tests, plus
+lint/typecheck/build once they exist — see section 5 for the commands) and
+pastes the actual results on the task. "It should pass" doesn't count;
+paste real output. A red suite means the work stays In Progress.
+
+### Gate 2 — self-review agent
+
+Before requesting human review, dispatch a **separate review agent** — a
+fresh session or context, never the instance that wrote the code — to
+review the complete diff for correctness, simplicity (rule 1.3), and
+compliance with the non-negotiables (section 1). Fix what it finds or
+record on the task why a finding was rejected.
+
+### Gate 3 — independent review of new tests
+
+All **new or changed tests** get their own second review, separate from
+Gate 2, with one question: **would this test fail if the functionality it
+claims to cover actually broke?** Tests that merely rubber-stamp the
+implementation do not pass. The reviewer checks that tests:
+
+- assert real, observable behaviour — not mirrors of the implementation's
+  internals;
+- contain no tautologies (asserting a value against itself, always-true
+  conditions, asserted-nothing "smoke" tests);
+- cover the failure paths, not just the happy path;
+- were not weakened (deleted assertions, loosened tolerances, broadened
+  mocks) just to get the suite green.
+
+If any gate fails, fix and re-run **all** gates that the fix could have
+invalidated before merging.
+
+## 5. Project state
 
 - **Code:** none yet — this repo currently holds only its agent setup.
 - **Stack:** not yet decided. When it is, record the decision and the local
