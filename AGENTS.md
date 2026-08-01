@@ -106,6 +106,20 @@ as "the owner will make a task for this".
 - The only thing the repo owner owns on the board is the decision to move a
   task to Done (section 2), plus answering product questions you raise on it.
 
+### 1.6 AGENTS.md is the only place agent instructions live
+
+There is exactly one instruction file in this repository, and it is this one.
+`CLAUDE.md` exists **only** to redirect an agent here.
+
+- Every new or changed agent instruction goes in AGENTS.md. No exceptions,
+  however small the rule or however tempting the shortcut.
+- `CLAUDE.md` must contain nothing but the redirect — no rules, no summaries,
+  no "note in particular…" highlights, no table of contents of this file.
+- Never duplicate a rule into another file. A rule stated in two places
+  goes stale in one of them, and an agent will follow the stale copy.
+- The same applies to any future tool-specific instruction file: it redirects
+  here or it does not exist.
+
 ## 2. Task workflow (Warroom)
 
 The board lives in Warroom, project **Springbok Tracker**. Agents interact
