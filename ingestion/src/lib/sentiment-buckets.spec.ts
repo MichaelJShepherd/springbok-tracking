@@ -30,6 +30,14 @@ describe('bucketForTimestamp', () => {
     expect(bucketForTimestamp(minutesAfterKickoff(70), KICKOFF)).toBe('second_half');
   });
 
+  it('buckets a comment right up to the second-half/post_match boundary (94 min) as still second_half', () => {
+    // The boundary itself is 95 minutes (2x40-minute halves + 15-minute break);
+    // this pins the "just under" side so a mutation that widens the boundary
+    // (e.g. 95 -> 80) is caught here even though the 95-minute case below only
+    // tests the "at/over" side.
+    expect(bucketForTimestamp(minutesAfterKickoff(94), KICKOFF)).toBe('second_half');
+  });
+
   it('buckets a comment well after full time as post_match', () => {
     expect(bucketForTimestamp(minutesAfterKickoff(95), KICKOFF)).toBe('post_match');
     expect(bucketForTimestamp(minutesAfterKickoff(300), KICKOFF)).toBe('post_match');

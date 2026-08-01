@@ -36,7 +36,17 @@ describe('scoreOneText', () => {
   });
 
   it('is case-insensitive', () => {
-    expect(scoreOneText('BRILLIANT')).toBe(scoreOneText('brilliant'));
+    const upper = scoreOneText('BRILLIANT');
+    const lower = scoreOneText('brilliant');
+    expect(upper).not.toBeNull();
+    expect(upper).toBe(lower);
+  });
+
+  it('scores a known single word to its literal lexicon value (pinned, not derived from the lexicon import)', () => {
+    // "brilliant" is documented in sentiment-lexicon.ts as 4 — if that value
+    // ever silently changes, this literal-expectation test must fail, unlike
+    // a test that re-imports the same constant to compare against itself.
+    expect(scoreOneText('brilliant')).toBe(4);
   });
 });
 
@@ -49,6 +59,23 @@ describe('normaliseToUnitRange', () => {
   it('divides by the lexicon max absolute word score', () => {
     expect(normaliseToUnitRange(MAX_ABS_WORD_SCORE)).toBe(1);
     expect(normaliseToUnitRange(MAX_ABS_WORD_SCORE / 2)).toBeCloseTo(0.5, 5);
+  });
+
+  it('MAX_ABS_WORD_SCORE is pinned to a literal value, not just internally consistent with itself', () => {
+    // A mutation that scales MAX_ABS_WORD_SCORE (e.g. to 20) would leave every
+    // *other* test in this file green, because they all re-derive their
+    // expectation from the same imported constant — this is the one test that
+    // would actually catch that mutation.
+    expect(MAX_ABS_WORD_SCORE).toBe(4);
+  });
+
+  it('end-to-end: scoring a single maximally-positive word bands as Euphoric, using literal expected values', () => {
+    // "brilliant" (4) is the lexicon's own maximum -> normalised score is
+    // exactly 1, which must land in the Euphoric band. Every number here is a
+    // literal, not computed from sentiment-lexicon.ts's exports.
+    const score = scoreBucketTexts(['brilliant']);
+    expect(score).toBe(1);
+    expect(bandForScore(score as number)).toBe('Euphoric');
   });
 });
 
@@ -68,6 +95,7 @@ describe('scoreBucketTexts', () => {
   it('ignores texts with no recognised word rather than treating them as neutral zeros that dilute the score', () => {
     const withNoise = scoreBucketTexts(['amazing performance', 'what time is kickoff', 'the weather was fine today']);
     const withoutNoise = scoreBucketTexts(['amazing performance']);
+    expect(withoutNoise).not.toBeNull();
     expect(withNoise).toBe(withoutNoise);
   });
 });

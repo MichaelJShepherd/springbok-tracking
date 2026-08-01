@@ -1,10 +1,16 @@
-// Guardian Content API client (PRD D2/D4 fallback sentiment source, used
-// when no Reddit thread exists or a bucket falls under the volume floor) —
-// the LIVE path is wired but DISABLED until an API key exists (no key at
-// task #78 time). `isGuardianConfigured()` gates every call the same way
-// `isRedditConfigured()` does in reddit-client.ts: `ingest:sentiment` never
-// calls `fetchMatchArticles` when it returns false, and this task never
-// sets GUARDIAN_API_KEY, so no live Guardian network call occurs (rule 1.4).
+// Guardian Content API client — this module only fetches and maps a
+// Guardian article search response; it does not itself decide *when* to
+// use Guardian over Reddit. PRD D4's ladder (Guardian as the fallback when
+// no Reddit thread exists for a match, or a bucket falls under the volume
+// floor) is a per-match decision `scripts/sentiment.ts` would make — and
+// does not yet, because neither live source has a real request-building
+// path wired up (see that script's header comment; task #78 Gate 2
+// finding). The LIVE path here is wired but DISABLED until an API key
+// exists (no key at task #78 time). `isGuardianConfigured()` gates every
+// call the same way `isRedditConfigured()` does in reddit-client.ts:
+// `ingest:sentiment` never calls `fetchMatchArticles` when it returns
+// false, and this task never sets GUARDIAN_API_KEY, so no live Guardian
+// network call occurs (rule 1.4).
 //
 // D20 retention: this module returns headline/standfirst text to its
 // caller purely so `sentiment-scorer.ts` can score it in memory (D2: "same

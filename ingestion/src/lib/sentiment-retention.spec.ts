@@ -2,7 +2,9 @@
 // persisted or logged — enforce with a lint rule or equivalent automated
 // check." This suite is that check. It must fail if someone reintroduces
 // source-text persistence or logging into the sentiment pipeline, so it
-// combines two independent techniques rather than trusting either alone:
+// combines several independent techniques rather than trusting any one
+// alone (task #78 Gate 3 review found and closed real bypasses in an
+// earlier version of this file — see the comments below marking each):
 //
 //  1. Behavioural: runs the real row-building functions against fixture
 //     text containing a unique, unmistakable marker string, with
@@ -12,11 +14,19 @@
 //  2. Structural whitelist: asserts every row has *exactly* the column set
 //     PRD D20 permits — an added field (however named) fails the test
 //     immediately, even before anyone wires it up to a real insert.
-//  3. Static source scan: greps every sentiment-related source file for a
-//     `console.*` call on the same line as a known source-text field
-//     access (`.body`, `.headline`, `.standfirst`) — the "lint rule"
-//     equivalent, catching a mistake even in code this suite's fixtures
-//     don't happen to exercise.
+//  3. Static source scan (the "lint rule" equivalent): scans every non-spec
+//     .ts file under src/lib and src/scripts (glob-based — see the Gate 3
+//     note below on why not a name pattern) for a console/stdout/stderr
+//     call that references a source-text field or JSON.stringifies a
+//     comment/article collection, tolerant of the call spanning multiple
+//     lines.
+//  4. Upsert-site guard: scripts/sentiment.ts currently has no code path
+//     that writes to `sentiment_scores` at all (see its header comment —
+//     both live branches refuse to run pending real request-building
+//     work), so the "debug field slipped into the real upsert" attack
+//     surface is exactly zero right now; this suite asserts that stays
+//     true, and must be upgraded (not just re-approved) the moment a real
+//     upsert call is reintroduced there.
 
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -93,38 +103,110 @@ describe('D20 retention — structural whitelist', () => {
 });
 
 describe('D20 retention — static source scan (the "lint rule" equivalent)', () => {
-  // Every file this project's sentiment pipeline touches. Listed
-  // explicitly (rather than a broad glob) so this test fails loudly if a
-  // new sentiment-related file is added and forgotten here, rather than
-  // silently skipping it.
-  const filesToScan = [
-    join(LIB_DIR, 'reddit-client.ts'),
-    join(LIB_DIR, 'guardian-client.ts'),
-    join(LIB_DIR, 'sentiment-pipeline.ts'),
-    join(LIB_DIR, 'sentiment-scorer.ts'),
-    join(LIB_DIR, 'sentiment-buckets.ts'),
-    join(LIB_DIR, 'sentiment-lexicon.ts'),
-    join(SCRIPTS_DIR, 'sentiment.ts'),
-  ];
-
-  // Matches a line that both logs (console.log/warn/error/info/debug) AND
-  // touches a known source-text field — the shape a real regression would
-  // take (e.g. `console.log(comment.body)` or `console.error(article.headline)`).
-  const SUSPICIOUS_LINE = /console\.(log|warn|error|info|debug)[^;]*\.(body|headline|standfirst)\b/;
-
-  it('lists every sentiment-related source file (guards this test itself against silently going stale)', () => {
-    const actualLibFiles = readdirSync(LIB_DIR).filter((f) => /^sentiment-|^reddit-client|^guardian-client/.test(f) && f.endsWith('.ts') && !f.endsWith('.spec.ts'));
-    const scannedBasenames = filesToScan.map((f) => f.split(/[\\/]/).pop());
-    for (const file of actualLibFiles) {
-      expect(scannedBasenames).toContain(file);
+  /**
+   * Finds every `console.log/warn/error/info/debug(...)` or
+   * `process.stdout.write(...)` / `process.stderr.write(...)` call
+   * expression in `contents`, however many lines it spans, and returns the
+   * ones that reference `.body`/`.headline`/`.standfirst` or
+   * `JSON.stringify(...)` of something that looks like a comment/article
+   * collection. Operates on the whole call expression (matched-paren
+   * extraction, not a single line or a fixed-width slice) specifically
+   * because Gate 3 found a single-line regex misses a call whose
+   * offending argument is on the next line.
+   */
+  function findForbiddenLoggingCalls(contents: string): string[] {
+    const callStart = /(console\.(?:log|warn|error|info|debug)|process\.(?:stdout|stderr)\.write)\s*\(/g;
+    const offending: string[] = [];
+    let match: RegExpExecArray | null;
+    while ((match = callStart.exec(contents))) {
+      const openParenIndex = contents.indexOf('(', match.index);
+      if (openParenIndex === -1) continue;
+      let depth = 0;
+      let endIndex = contents.length;
+      for (let i = openParenIndex; i < contents.length; i++) {
+        if (contents[i] === '(') depth++;
+        else if (contents[i] === ')') {
+          depth--;
+          if (depth === 0) {
+            endIndex = i + 1;
+            break;
+          }
+        }
+      }
+      const callExpression = contents.slice(match.index, endIndex);
+      const referencesSourceField = /\.(body|headline|standfirst)\b/.test(callExpression);
+      const stringifiesCommentsOrArticles = /JSON\.stringify\s*\([^)]*\b(comments?|articles?)\b[^)]*\)/i.test(
+        callExpression,
+      );
+      if (referencesSourceField || stringifiesCommentsOrArticles) {
+        offending.push(callExpression.replace(/\s+/g, ' ').trim().slice(0, 200));
+      }
     }
+    return offending;
+  }
+
+  it('the scanner catches a console.log call whose offending .body access is on a later line (Gate 3 bypass #1)', () => {
+    const bypass = `console.log(\n  "debug:",\n  comment.body,\n);`;
+    expect(findForbiddenLoggingCalls(bypass)).toHaveLength(1);
   });
 
-  it('no sentiment-related source file logs a comment body / headline / standfirst', () => {
+  it('the scanner catches JSON.stringify of a comments/articles collection (Gate 3 bypass #2)', () => {
+    expect(findForbiddenLoggingCalls('console.log(JSON.stringify(comments));')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('console.error(JSON.stringify(articles));')).toHaveLength(1);
+  });
+
+  it('the scanner catches process.stdout.write / process.stderr.write, not just console.* (Gate 3 bypass #3)', () => {
+    expect(findForbiddenLoggingCalls('process.stdout.write(comment.body);')).toHaveLength(1);
+    expect(findForbiddenLoggingCalls('process.stderr.write(article.headline);')).toHaveLength(1);
+  });
+
+  it('the scanner does not flag an ordinary, text-free console.log call', () => {
+    expect(findForbiddenLoggingCalls('console.log(`[ingest:sentiment] rows written: ${rows.length}`);')).toEqual([]);
+  });
+
+  // Glob-based, not a name pattern (Gate 3 bypass #4/#5): a new lib file that
+  // doesn't start with "sentiment-"/"reddit-client"/"guardian-client", or any
+  // new file under src/scripts/, used to fall outside the old name-regex
+  // scan entirely. Scanning every non-spec .ts file under both directories
+  // means a new file is covered automatically, with nothing to keep in sync.
+  function listNonSpecTsFiles(dir: string): string[] {
+    return readdirSync(dir, { recursive: true } as never)
+      .map((entry) => String(entry))
+      .filter((entry) => entry.endsWith('.ts') && !entry.endsWith('.spec.ts'))
+      .map((entry) => join(dir, entry));
+  }
+
+  it('no non-spec .ts file under src/lib or src/scripts logs a comment body / headline / standfirst / stringified collection', () => {
+    const filesToScan = [...listNonSpecTsFiles(LIB_DIR), ...listNonSpecTsFiles(SCRIPTS_DIR)];
+    // Sanity floor so a broken glob (e.g. wrong dir) can't silently scan zero files and pass vacuously.
+    expect(filesToScan.length).toBeGreaterThan(5);
+
     for (const filePath of filesToScan) {
       const contents = readFileSync(filePath, 'utf8');
-      const offendingLines = contents.split('\n').filter((line) => SUSPICIOUS_LINE.test(line));
-      expect(offendingLines, `${filePath} appears to log source text:\n${offendingLines.join('\n')}`).toEqual([]);
+      const offending = findForbiddenLoggingCalls(contents);
+      expect(offending, `${filePath} appears to log source text:\n${offending.join('\n')}`).toEqual([]);
     }
+  });
+});
+
+describe('D20 retention — upsert-site guard (scripts/sentiment.ts)', () => {
+  it('scripts/sentiment.ts currently has no write path to sentiment_scores at all, so no field (debug or otherwise) can be smuggled into a real upsert', () => {
+    // Both live branches in scripts/sentiment.ts unconditionally refuse to run
+    // (task #78 Gate 2 finding — no real Reddit thread lookup or Guardian
+    // query builder exists yet), so the script never builds a row or calls
+    // `.from('sentiment_scores')` at all today. This assertion is the
+    // strongest form of "nothing extra gets upserted" available while that
+    // remains true: there is no upsert call to add a field to.
+    //
+    // The moment a real live path is wired back in (follow-up work), this
+    // test MUST be replaced with one that spies on the Supabase client's
+    // `.upsert()` call and asserts its payload came only from
+    // buildRedditRows/buildGuardianRow's return value (whose shape the
+    // "structural whitelist" tests above already pin) — a bare "no upsert
+    // exists" assertion will no longer hold, and must not be quietly deleted
+    // without that replacement.
+    const scriptPath = join(SCRIPTS_DIR, 'sentiment.ts');
+    const contents = readFileSync(scriptPath, 'utf8');
+    expect(contents).not.toMatch(/\.from\(\s*['"]sentiment_scores['"]\s*\)/);
   });
 });

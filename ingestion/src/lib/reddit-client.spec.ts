@@ -56,7 +56,7 @@ describe('fetchMatchThreadComments', () => {
     vi.unstubAllGlobals();
   });
 
-  it('throws rather than silently skipping when Reddit is unconfigured — callers must check isRedditConfigured() first', async () => {
+  it('throws rather than silently skipping when Reddit is unconfigured, and never fires a network call — callers must check isRedditConfigured() first', async () => {
     delete process.env['REDDIT_CLIENT_ID'];
     delete process.env['REDDIT_CLIENT_SECRET'];
     const fetchMock = vi.fn();
@@ -64,15 +64,6 @@ describe('fetchMatchThreadComments', () => {
 
     await expect(fetchMatchThreadComments('abc123')).rejects.toThrow('Reddit is not configured');
     expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('never fires a network call when unconfigured, even if invoked directly (defence in depth for the D4/1.4 OFF gate)', async () => {
-    delete process.env['REDDIT_CLIENT_ID'];
-    delete process.env['REDDIT_CLIENT_SECRET'];
-    const fetchMock = vi.fn();
-    vi.stubGlobal('fetch', fetchMock);
-    await expect(fetchMatchThreadComments('any-thread')).rejects.toThrow();
-    expect(fetchMock).toHaveBeenCalledTimes(0);
   });
 
   it('fetches a token then the comments listing against a recorded fixture once configured (D27 — never a live call)', async () => {
@@ -97,5 +88,25 @@ describe('fetchMatchThreadComments', () => {
     process.env['REDDIT_CLIENT_SECRET'] = 'secret';
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 401, json: async () => ({}) }));
     await expect(fetchMatchThreadComments('abc123')).rejects.toThrow('HTTP 401');
+  });
+
+  it('throws when the token response is missing access_token rather than proceeding with an undefined token', async () => {
+    process.env['REDDIT_CLIENT_ID'] = 'id';
+    process.env['REDDIT_CLIENT_SECRET'] = 'secret';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
+    await expect(fetchMatchThreadComments('abc123')).rejects.toThrow('missing access_token');
+  });
+
+  it('throws with the HTTP status when the comments-listing request itself fails (token succeeded)', async () => {
+    process.env['REDDIT_CLIENT_ID'] = 'id';
+    process.env['REDDIT_CLIENT_SECRET'] = 'secret';
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok' }) })
+      .mockResolvedValueOnce({ ok: false, status: 503, json: async () => ({}) });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchMatchThreadComments('abc123')).rejects.toThrow('HTTP 503');
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

@@ -22,10 +22,10 @@ export const MIN_GUARDIAN_ARTICLES = 5;
  * upset one), or `null` if no lexicon word appears in it at all (a neutral
  * comment carries no signal, it is not scored as exactly 0).
  */
-export function scoreOneText(text: string, lexicon: Record<string, number> = LEXICON): number | null {
+export function scoreOneText(text: string): number | null {
   const matched = tokenize(text)
-    .filter((token) => token in lexicon)
-    .map((token) => lexicon[token]);
+    .filter((token) => token in LEXICON)
+    .map((token) => LEXICON[token]);
   if (matched.length === 0) return null;
   return matched.reduce((sum, v) => sum + v, 0) / matched.length;
 }
@@ -43,8 +43,8 @@ export function normaliseToUnitRange(rawAverage: number): number {
  * from the volume floor, which is a *count* check the caller applies
  * separately — see MIN_REDDIT_COMMENTS/MIN_GUARDIAN_ARTICLES).
  */
-export function scoreBucketTexts(texts: string[], lexicon: Record<string, number> = LEXICON): number | null {
-  const perText = texts.map((t) => scoreOneText(t, lexicon)).filter((s): s is number => s !== null);
+export function scoreBucketTexts(texts: string[]): number | null {
+  const perText = texts.map((t) => scoreOneText(t)).filter((s): s is number => s !== null);
   if (perText.length === 0) return null;
   const average = perText.reduce((sum, v) => sum + v, 0) / perText.length;
   return normaliseToUnitRange(average);
