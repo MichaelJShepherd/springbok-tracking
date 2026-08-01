@@ -1,852 +1,1344 @@
-<title>Springbok Tracking — clickable prototype (design sign-off, #70)</title>
-<meta name="description" content="Self-contained clickable prototype for design sign-off. Not the live app." />
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Springbok Tracking — design v2 prototype (#89)</title>
+<meta name="description" content="Self-contained clickable prototype for design v2 sign-off. Heritage-rugby record-book system. Not the live app." />
 <style>
-  :root {
-    /* Palette — brand accent */
-    --c-green-900: #06231a;
-    --c-green-700: #0b3d2e;
-    --c-green-600: #145c41;
-    --c-green-500: #1d7a54;
-    --c-gold-500: #d4af37;
-    --c-gold-400: #e6c65c;
+/* ===========================================================================
+   Springbok Tracking — design system v2 (docs/design.md v2, task #89)
+   Heritage rugby / "the official record book of SA rugby".
+   Single theme: paper. No external requests, no webfonts, no images.
+   =========================================================================== */
+:root {
+  color-scheme: light;
 
-    /* Neutrals — dark ink */
-    --c-ink-950: #0d0f0e;
-    --c-ink-900: #141715;
-    --c-ink-800: #1c201d;
-    --c-ink-700: #2a2f2b;
-    --c-ink-500: #6b746d;
-    --c-ink-300: #a7b0a9;
-    --c-ink-100: #e7ebe8;
-    --c-paper: #f7f8f6;
+  /* Springbok green */
+  --g-900: #04261B;
+  --g-800: #06412C;
+  --g-700: #005A38;
+  --g-600: #007749;
+  --g-100: #E4EFE8;
 
-    /* Semantic — results */
-    --c-win: #1d7a54;
-    --c-loss: #a83232;
-    --c-draw: #a7862b;
+  /* Gold — three roles, never interchangeable (design.md §2.3) */
+  --gold-500: #FFB81C;  /* decorative fill/rule, dark grounds only */
+  --gold-300: #FFD97A;  /* text on dark green */
+  --gold-700: #B57E10;  /* meaningful non-text graphic on paper (3.35:1) */
+  --gold-ink: #6B4B0C;  /* gold-flavoured text on paper (7.57:1) */
 
-    /* Semantic — sentiment / mood curve */
-    --c-mood-pos: #2e8b57;
-    --c-mood-neg: #b5453f;
-    --c-mood-neutral: #8a8f89;
+  /* Paper & ink */
+  --paper: #F3EEE2;
+  --card: #FCF9F2;
+  --card-alt: #F7F2E7;
+  --rule: #D9CFB8;
+  --rule-strong: #B9AC8E;
+  --ink: #17221C;
+  --ink-2: #3C4A43;
+  --ink-3: #5D6B62;
+  --ink-4: #7C8983;
 
-    /* Honesty-state language (D16) */
-    --c-state-absent: #9aa39c;
-    --c-state-loading: #6b8fae;
-    --c-state-failed: #b5453f;
+  /* Results */
+  --win: #005A38;
+  --loss: #9B2226;
+  --draw: #7A5B12;
+  --win-tint: #E4EFE8;
+  --loss-tint: #FBECEC;
+  --draw-tint: #FBF3DF;
 
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --fs-100: 0.75rem;
-    --fs-200: 0.875rem;
-    --fs-300: 1rem;
-    --fs-400: 1.25rem;
-    --fs-500: 1.75rem;
-    --fs-600: 2.25rem;
+  /* Honesty states (D16) */
+  --state-absent: var(--ink-3);
+  --state-loading: #2C5A7A;
+  --loading-tint: #EAF1F6;
+  --state-failed: var(--loss);
 
-    --sp-1: 0.25rem;
-    --sp-2: 0.5rem;
-    --sp-3: 0.75rem;
-    --sp-4: 1rem;
-    --sp-6: 1.5rem;
-    --sp-8: 2rem;
-    --sp-12: 3rem;
+  /* Mood (D2) */
+  --mood-pos: var(--g-600);
+  --mood-neg: var(--loss);
+  --mood-neutral: var(--ink-3);
 
-    --radius-sm: 4px;
-    --radius-md: 8px;
-    --radius-lg: 14px;
-    --shadow-1: 0 1px 2px rgba(0,0,0,.24);
-    --shadow-2: 0 4px 12px rgba(0,0,0,.28);
+  /* Type */
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", "Hoefler Text", Georgia, "Times New Roman", serif;
+  --font-text: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --t-eyebrow: 0.6875rem;
+  --t-cap: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-base: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.75rem;
+  --t-2xl: 2.5rem;
+  --t-hero: clamp(2.75rem, 11vw, 4rem);
+  --lh-tight: 1.1;
+  --lh-snug: 1.35;
+  --lh-body: 1.55;
+  --measure: 66ch;
+
+  /* Space & radius */
+  --s-1: 0.25rem; --s-2: 0.5rem; --s-3: 0.75rem; --s-4: 1rem;
+  --s-6: 1.5rem; --s-8: 2rem; --s-12: 3rem; --s-16: 4rem;
+  --r-sm: 2px; --r-md: 3px;
+  --row-y: 0.75rem;
+  --row-y-lg: 0.5rem;
+  --page-max: 1040px;
+
+  /* Rules — the depth system. One 1px solid shadow, no blur anywhere. */
+  --hairline: 1px solid var(--rule);
+  --hairline-2: 1px solid var(--rule-strong);
+  --double-rule: 3px double var(--rule-strong);
+  --plate-lift: 0 1px 0 var(--rule);
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 var(--t-base)/var(--lh-body) var(--font-text);
+}
+/* Paper grain — CSS only, ~2% alpha, felt not seen. */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 5;
+  background:
+    repeating-linear-gradient(0deg, rgba(23,34,28,.020) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(23,34,28,.014) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(23,34,28,.05) 100%);
+}
+@media (forced-colors: active) { body::before { display: none; } }
+
+a { color: var(--g-700); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a.plain { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--g-600); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; line-height: var(--lh-tight); letter-spacing: -0.01em; margin: 0; }
+h1 { font-size: var(--t-2xl); }
+h2 { font-size: var(--t-xl); }
+h3 { font-size: var(--t-lg); }
+p { margin: 0 0 var(--s-3); }
+ul { margin: 0 0 var(--s-3); padding-left: 1.2em; }
+li { margin-bottom: var(--s-2); }
+code { font-size: .9em; background: var(--card-alt); border: var(--hairline); border-radius: var(--r-sm); padding: 0 3px; }
+.num { font-variant-numeric: tabular-nums lining; font-feature-settings: "tnum" 1; }
+.serif { font-family: var(--font-display); }
+.smallcaps { font-variant-caps: all-small-caps; letter-spacing: 0.06em; }
+
+/* ---------- Eyebrow: the system's signature label ---------- */
+.eyebrow {
+  font: 650 var(--t-eyebrow)/1.2 var(--font-text);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: var(--hairline-2);
+  padding-bottom: var(--s-2);
+  margin: 0 0 var(--s-3);
+  display: block;
+}
+.section-break { border-top: var(--double-rule); margin-top: var(--s-8); padding-top: var(--s-6); }
+
+/* ---------- Prototype chrome (not part of the system) ---------- */
+.proto-note {
+  background: var(--g-800); color: #E9F0EB;
+  border-bottom: 3px solid var(--gold-500);
+  font-size: var(--t-cap); padding: var(--s-2) var(--s-4);
+  position: relative; z-index: 6;
+}
+.proto-note strong { color: #fff; }
+.proto-note summary { cursor: pointer; color: var(--gold-300); }
+.proto-note p { margin: var(--s-2) 0 0; max-width: 92ch; }
+
+/* ---------- Masthead ---------- */
+.masthead {
+  background: var(--g-900);
+  border-bottom: 3px solid var(--gold-500);
+  color: var(--paper);
+  position: relative; z-index: 6;
+}
+.masthead__in { max-width: var(--page-max); margin: 0 auto; padding: var(--s-4) var(--s-4) var(--s-3); }
+.masthead__word { font-family: var(--font-display); font-size: var(--t-xl); font-weight: 600; letter-spacing: -0.01em; }
+.masthead__strap { color: var(--gold-300); font-size: var(--t-cap); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+
+/* ---------- Index tabs (nav + era filters) ---------- */
+.tabs { max-width: var(--page-max); margin: 0 auto; padding: var(--s-3) var(--s-4) 0; display: flex; gap: 2px; overflow-x: auto; }
+.tab {
+  font: 650 var(--t-eyebrow)/1 var(--font-text);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--ink-2); background: var(--card-alt);
+  border: var(--hairline-2); border-bottom: none;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  padding: var(--s-3); white-space: nowrap; text-decoration: none;
+  cursor: pointer;
+}
+.tab:hover { background: var(--card); }
+.tab[aria-current="page"], .tab.is-active {
+  background: var(--card); color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--gold-700);
+}
+.tabs-underline { max-width: var(--page-max); margin: 0 auto; border-bottom: var(--hairline-2); }
+
+main { max-width: var(--page-max); margin: 0 auto; padding: var(--s-6) var(--s-4) var(--s-12); position: relative; z-index: 1; }
+.lede { color: var(--ink-2); max-width: var(--measure); }
+.prose { max-width: var(--measure); }
+.prose h2 { margin-bottom: var(--s-3); }
+
+/* ---------- Plates ---------- */
+.plate {
+  background: var(--card); border: var(--hairline); border-radius: var(--r-md);
+  box-shadow: var(--plate-lift); padding: var(--s-4);
+}
+.plate--headed { padding-top: 0; }
+.plate__head {
+  background: var(--g-800); color: var(--gold-300);
+  border-bottom: 3px solid var(--gold-500);
+  margin: 0 calc(var(--s-4) * -1) var(--s-4);
+  padding: var(--s-2) var(--s-4);
+  font: 650 var(--t-eyebrow)/1.4 var(--font-text);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  display: flex; justify-content: space-between; gap: var(--s-3); flex-wrap: wrap;
+}
+.plate__head .hd-right { color: var(--gold-500); }
+.grid-2 { display: grid; gap: var(--s-4); align-items: start; }
+@media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+
+.figure { border: var(--hairline-2); background: var(--card); padding: var(--s-4); margin: 0; }
+.figure > figcaption {
+  border-top: var(--hairline); margin-top: var(--s-3); padding-top: var(--s-2);
+  font: 400 var(--t-cap)/1.45 var(--font-text); color: var(--ink-3);
+}
+.count-caption { font-size: var(--t-cap); color: var(--ink-3); margin: var(--s-2) 0 0; }
+
+/* ---------- Ledger ---------- */
+.ledger { border-collapse: collapse; width: 100%; background: var(--card); font-size: var(--t-sm); }
+.ledger caption { text-align: left; font-size: var(--t-cap); color: var(--ink-3); padding-bottom: var(--s-2); }
+.ledger thead th {
+  background: var(--g-800); color: var(--gold-300);
+  border-bottom: 3px solid var(--gold-500);
+  font: 650 var(--t-eyebrow)/1.2 var(--font-text);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  text-align: left; padding: var(--s-2) var(--s-3); white-space: nowrap;
+}
+.ledger tbody td { border-bottom: var(--hairline); padding: var(--row-y-lg) var(--s-3); vertical-align: top; }
+.ledger tbody tr:nth-child(even) { background: var(--card-alt); }
+.ledger tbody tr.linky:hover { background: var(--g-100); cursor: pointer; }
+.ledger .n { text-align: right; font-variant-numeric: tabular-nums lining; }
+
+/* Mobile collapse (J3): below 720px a ledger row becomes a stacked card.
+   Never a sideways-scrolling data table — that is the friction this product
+   exists to remove. One grid, four lines, driven by data-c on each cell. */
+@media (max-width: 719px) {
+  .ledger--stack thead { display: none; }
+  .ledger--stack tbody tr,
+  .ledger--stack tbody tr:nth-child(even) {
+    display: grid; grid-template-columns: 1fr auto;
+    grid-template-areas: "date res" "opp opp" "comp comp" "score venue";
+    gap: var(--s-1) var(--s-3);
+    background: var(--card); border: var(--hairline); border-radius: var(--r-md);
+    margin-bottom: var(--s-2); padding: var(--s-3); box-shadow: var(--plate-lift);
   }
+  .ledger--stack tbody td { display: block; border: none; padding: 0; text-align: left; }
+  .ledger--stack tbody [data-c="date"] { grid-area: date; font-variant-numeric: tabular-nums lining; color: var(--ink-2); }
+  .ledger--stack tbody [data-c="res"] { grid-area: res; justify-self: end; }
+  .ledger--stack tbody [data-c="opp"] { grid-area: opp; font-family: var(--font-display); font-size: var(--t-lg); }
+  .ledger--stack tbody [data-c="comp"] { grid-area: comp; font-size: var(--t-cap); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ledger--stack tbody [data-c="score"] { grid-area: score; font-family: var(--font-display); font-variant-numeric: tabular-nums lining; }
+  .ledger--stack tbody [data-c="venue"] { grid-area: venue; justify-self: end; text-align: right; font-size: var(--t-cap); color: var(--ink-3); }
+  .ledger--stack tbody [data-c="kickoff"] { grid-area: res; justify-self: end; font-size: var(--t-cap); font-variant-numeric: tabular-nums lining; }
+  .ledger--stack caption { padding-bottom: var(--s-3); }
+}
 
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    background: var(--c-ink-950);
-    color: var(--c-ink-100);
-    font-family: var(--font-sans);
-    font-size: var(--fs-300);
-    line-height: 1.45;
-  }
-  a { color: var(--c-gold-400); }
-  a.plain { color: inherit; text-decoration: none; }
+/* ---------- Chips & marks ---------- */
+.chip {
+  display: inline-block; font: 600 var(--t-cap)/1.4 var(--font-text);
+  border-radius: var(--r-sm); padding: 2px var(--s-2);
+  border: var(--hairline-2); color: var(--ink-2); background: var(--card);
+}
+.chip--tbd { border-style: dashed; }
+.chip--sel { background: var(--g-700); color: var(--card); border-color: var(--g-700); }
+.chip--win { background: var(--win); color: var(--card); border-color: var(--win); }
+.chip--loss { background: var(--loss); color: var(--card); border-color: var(--loss); }
+.chip--draw { background: var(--draw); color: var(--card); border-color: var(--draw); }
 
-  .proto-banner {
-    background: var(--c-gold-500);
-    color: var(--c-ink-950);
-    font-size: var(--fs-100);
-    font-weight: 700;
-    text-align: center;
-    padding: var(--sp-2) var(--sp-3);
-  }
+/* Result mark: the shared W/L/D square used by form guide + head-to-head */
+.mark {
+  display: grid; place-items: center; width: 2.75rem; height: 2.75rem;
+  border-radius: var(--r-sm); font-family: var(--font-display); font-weight: 700;
+  font-size: var(--t-lg); line-height: 1; color: var(--card); text-decoration: none;
+}
+.mark--w { background: var(--win); }
+.mark--l { background: var(--loss); }
+.mark--d { background: var(--draw); }
+.mark--none { background: var(--card); color: var(--ink-4); border: 1px dashed var(--ink-4); }
+.mark--loading { background: var(--card); border: 1px solid var(--rule); position: relative; overflow: hidden; }
+.mark--loading::after {
+  content: ""; position: absolute; inset: 30% 12%; border-radius: var(--r-sm);
+  background: var(--ink-4); opacity: .55; animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer { 0%,100% { opacity: .3; } 50% { opacity: .65; } }
+.mark--sm { width: 2rem; height: 2rem; font-size: var(--t-sm); }
 
-  nav.tabs {
-    display: flex;
-    gap: var(--sp-2);
-    padding: var(--sp-3) var(--sp-4);
-    background: var(--c-ink-900);
-    border-bottom: 1px solid var(--c-ink-700);
-    overflow-x: auto;
-  }
-  nav.tabs a {
-    text-decoration: none;
-    color: var(--c-ink-300);
-    padding: var(--sp-2) var(--sp-3);
-    border-radius: var(--radius-md);
-    font-size: var(--fs-200);
-    white-space: nowrap;
-  }
-  nav.tabs a.active {
-    background: var(--c-green-700);
-    color: var(--c-ink-100);
-  }
+.form-strip { display: flex; gap: var(--s-2); list-style: none; margin: 0; padding: 0; flex-wrap: wrap; }
+.form-strip li { text-align: center; margin: 0; }
+.form-strip .mm { display: block; font-size: var(--t-cap); color: var(--ink-3); margin-top: var(--s-1); font-variant-numeric: tabular-nums; }
+.form-summary { font-family: var(--font-display); font-size: var(--t-xl); font-variant-numeric: tabular-nums lining; }
+.form-wrap { display: flex; gap: var(--s-6); flex-wrap: wrap; align-items: flex-start; justify-content: space-between; }
 
-  main { max-width: 900px; margin: 0 auto; padding: var(--sp-4); }
-  h1 { font-size: var(--fs-500); margin: 0 0 var(--sp-4); }
-  h2 { font-size: var(--fs-400); margin: var(--sp-8) 0 var(--sp-3); color: var(--c-ink-100); }
-  h3 { font-size: var(--fs-300); margin: 0 0 var(--sp-2); color: var(--c-ink-300); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; font-size: var(--fs-100); }
-  p.lede { color: var(--c-ink-300); font-size: var(--fs-200); }
+/* ---------- Honesty states (D16) ---------- */
+.absent { color: var(--state-absent); font-style: italic; }
+.skel { display: inline-block; height: 0.7em; width: 8ch; border-radius: var(--r-sm); background: var(--ink-4); opacity: .5; animation: shimmer 1.6s ease-in-out infinite; vertical-align: middle; }
+.loading-note { color: var(--state-loading); background: var(--loading-tint); border: 1px solid var(--state-loading); border-radius: var(--r-sm); font-size: var(--t-cap); padding: 2px var(--s-2); display: inline-block; }
+.failed {
+  display: inline-block; font-size: var(--t-cap); font-weight: 600;
+  color: var(--loss); background: var(--loss-tint);
+  border: 1px solid var(--state-failed); border-radius: var(--r-sm); padding: 1px var(--s-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .skel, .mark--loading::after { animation: none; opacity: .45; }
+}
 
-  .card {
-    background: var(--c-ink-900);
-    border: 1px solid var(--c-ink-700);
-    border-radius: var(--radius-lg);
-    padding: var(--sp-4);
-    box-shadow: var(--shadow-1);
-    margin-bottom: var(--sp-4);
-  }
-  .card-row { display: flex; gap: var(--sp-4); flex-wrap: wrap; }
-  .card-row > .card { flex: 1 1 260px; }
+/* ---------- Sources differ (D14) ---------- */
+.differ { font: 600 var(--t-cap)/1.4 var(--font-text); color: var(--gold-ink); background: var(--card); border: 1px solid var(--gold-700); border-radius: var(--r-sm); padding: 1px var(--s-2); cursor: pointer; }
+.differ-body { margin-top: var(--s-2); font-size: var(--t-cap); }
+.differ-body table { border-collapse: collapse; font-size: var(--t-cap); }
+.differ-body td { border: var(--hairline); padding: 2px var(--s-2); }
 
-  .result-bar { height: 4px; border-radius: 2px; margin-bottom: var(--sp-3); }
-  .result-bar.win { background: var(--c-win); }
-  .result-bar.loss { background: var(--c-loss); }
-  .result-bar.draw { background: var(--c-draw); }
+/* ---------- Computed stamp (D5/D23) ---------- */
+.stamp-row { display: flex; gap: var(--s-3); align-items: flex-start; flex-wrap: wrap; }
+.stamp {
+  flex: 0 0 auto;
+  background: var(--g-800); color: var(--gold-300);
+  border: 2px solid var(--gold-500); border-radius: var(--r-sm);
+  font: 650 var(--t-eyebrow)/1 var(--font-text);
+  letter-spacing: 0.18em; text-transform: uppercase;
+  padding: var(--s-2) var(--s-3); white-space: nowrap;
+}
+.stamp-text { font-size: var(--t-cap); color: var(--ink-2); }
 
-  .badge {
-    display: inline-flex; align-items: center; gap: var(--sp-1);
-    font-size: var(--fs-100);
-    padding: 2px var(--sp-2);
-    border-radius: var(--radius-sm);
-    white-space: nowrap;
-  }
-  .badge.computed { background: var(--c-ink-800); color: var(--c-gold-400); border: 1px solid var(--c-gold-500); }
-  .badge.differ { background: rgba(212,175,55,0.12); color: var(--c-gold-400); border: 1px solid var(--c-gold-500); cursor: help; }
-  .badge.tbd { background: var(--c-ink-700); color: var(--c-ink-300); border: 1px solid var(--c-ink-500); }
-  .badge.failed { background: rgba(181,69,63,0.15); color: #e08a85; border: 1px solid var(--c-state-failed); }
-  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; background: currentColor; }
+/* ---------- Detail masthead ---------- */
+.match-head { background: var(--g-900); color: var(--paper); border-bottom: 3px solid var(--gold-500); border-radius: var(--r-md) var(--r-md) 0 0; padding: var(--s-4); }
+.match-head__meta { color: var(--gold-300); font-size: var(--t-cap); letter-spacing: 0.08em; text-transform: uppercase; }
+.score-line { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--s-3); margin: var(--s-3) 0 var(--s-2); }
+.score-line .team { font-family: var(--font-display); font-size: var(--t-lg); line-height: 1.15; }
+.score-line .team--away { text-align: right; }
+.score-hero { font-family: var(--font-display); font-size: var(--t-hero); font-weight: 600; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums lining; }
+.match-head__venue { font-size: var(--t-sm); color: #D8E2DA; }
 
-  .field-absent { color: var(--c-state-absent); font-style: italic; }
-  .field-loading {
-    display: inline-block; width: 90px; height: 10px; border-radius: 4px;
-    background: linear-gradient(90deg, var(--c-ink-700) 25%, var(--c-state-loading) 50%, var(--c-ink-700) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-  }
-  @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-  .field-failed { color: #e08a85; }
+/* ---------- Head-to-head strip ---------- */
+.h2h { background: var(--g-100); border: var(--hairline); border-top: none; padding: var(--s-4); }
+.h2h__zones { display: grid; gap: var(--s-4); }
+@media (min-width: 720px) {
+  .h2h__zones { grid-template-columns: 0.9fr 1.2fr 1.1fr; }
+  .h2h__zones > div + div { border-left: var(--hairline-2); padding-left: var(--s-4); }
+}
+.h2h .big { font-family: var(--font-display); font-size: var(--t-xl); font-variant-numeric: tabular-nums lining; color: var(--ink); }
+.rec-line { font-variant-numeric: tabular-nums lining; font-size: var(--t-sm); color: var(--ink-2); }
 
-  .chips { display: flex; gap: var(--sp-2); overflow-x: auto; padding-bottom: var(--sp-2); margin-bottom: var(--sp-3); }
-  .chip {
-    background: var(--c-ink-800); border: 1px solid var(--c-ink-700); color: var(--c-ink-300);
-    border-radius: 999px; padding: var(--sp-1) var(--sp-3); font-size: var(--fs-200);
-    white-space: nowrap; cursor: pointer; user-select: none;
-  }
-  .chip.selected { background: var(--c-green-700); border-color: var(--c-green-500); color: var(--c-ink-100); }
+/* ---------- Era strip ---------- */
+.eras { display: grid; gap: var(--s-4); }
+@media (min-width: 480px) { .eras { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 720px) { .eras { grid-template-columns: repeat(4, 1fr); } .eras > .era + .era { border-left: var(--hairline); padding-left: var(--s-4); } }
+.era { text-align: left; background: none; border: none; font: inherit; cursor: pointer; padding: 0; color: inherit; display: block; }
+.era:hover .era__pct { color: var(--g-700); }
+.era__label { font-family: var(--font-display); font-size: var(--t-lg); display: block; }
+.era__pct { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums lining; line-height: 1; display: block; margin: var(--s-1) 0; }
+.era__pct small { font-size: var(--t-sm); color: var(--ink-3); }
+.bar { display: flex; height: 10px; border: 1px solid var(--rule-strong); border-radius: var(--r-sm); overflow: hidden; margin: var(--s-2) 0; }
+.bar i { display: block; height: 100%; }
+.bar .w { background: var(--g-600); }
+.bar .d { background: var(--draw); }
+.bar .l { background: var(--loss); }
+.bar .u { background: repeating-linear-gradient(45deg, var(--ink-4) 0 3px, var(--card) 3px 6px); }
+.era__counts { font-size: var(--t-cap); color: var(--ink-2); font-variant-numeric: tabular-nums lining; display: block; }
+.legend { font-size: var(--t-cap); color: var(--ink-3); display: flex; gap: var(--s-3); flex-wrap: wrap; margin-top: var(--s-3); }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 4px; border: 1px solid var(--rule-strong); vertical-align: -1px; }
+.legend .lw::before { background: var(--g-600); }
+.legend .ld::before { background: var(--draw); }
+.legend .ll::before { background: var(--loss); }
+.legend .lu::before { background: repeating-linear-gradient(45deg, var(--ink-4) 0 3px, var(--card) 3px 6px); }
 
-  table.history { width: 100%; border-collapse: collapse; font-size: var(--fs-200); }
-  table.history th, table.history td { text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--c-ink-700); }
-  table.history th { color: var(--c-ink-300); font-weight: 600; font-size: var(--fs-100); text-transform: uppercase; }
-  table.history tr.row-link:hover { background: var(--c-ink-800); cursor: pointer; }
-  .wld { font-weight: 700; }
-  .wld.W { color: var(--c-win); }
-  .wld.L { color: var(--c-loss); }
-  .wld.D { color: var(--c-draw); }
+/* ---------- Events list ---------- */
+.events { list-style: none; margin: 0; padding: 0; font-size: var(--t-sm); }
+.events li { display: grid; grid-template-columns: 5ch 1fr auto; gap: var(--s-3); padding: var(--row-y) var(--s-2); border-bottom: var(--hairline); align-items: baseline; margin: 0; }
+.events li.sa { background: var(--g-100); }
+.events .min { font-variant-numeric: tabular-nums lining; color: var(--ink-3); }
+.events .run { font-family: var(--font-display); font-variant-numeric: tabular-nums lining; }
+.events .kind { color: var(--ink-3); font-size: var(--t-cap); text-transform: uppercase; letter-spacing: 0.06em; }
 
-  /* Mobile collapse for history: below 720px, table -> stacked cards */
-  @media (max-width: 720px) {
-    table.history thead { display: none; }
-    table.history, table.history tbody, table.history tr, table.history td { display: block; width: 100%; }
-    table.history tr {
-      border: 1px solid var(--c-ink-700);
-      border-radius: var(--radius-md);
-      margin-bottom: var(--sp-3);
-      padding: var(--sp-2) var(--sp-3);
-      background: var(--c-ink-900);
-    }
-    table.history td { border: none; padding: 2px 0; }
-    table.history td[data-label]::before {
-      content: attr(data-label) ": ";
-      color: var(--c-ink-500);
-      font-size: var(--fs-100);
-    }
-    table.history td.mob-hide-label::before { content: ""; }
-  }
+/* ---------- Timeline ---------- */
+.mood-buckets { display: grid; gap: var(--s-3); grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 720px) { .mood-buckets { grid-template-columns: repeat(4, 1fr); } }
+.mood { border: var(--hairline); background: var(--card); padding: var(--s-3); border-top: 3px solid var(--mood-neutral); }
+.mood--pos { border-top-color: var(--mood-pos); }
+.mood--neg { border-top-color: var(--mood-neg); }
+.mood__b { font-size: var(--t-cap); color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.mood__l { font-family: var(--font-display); font-size: var(--t-lg); }
+.mood__s { font-variant-numeric: tabular-nums lining; font-size: var(--t-sm); color: var(--ink-2); }
 
-  .detail-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-4); align-items: baseline; }
-  .score-hero { font-size: var(--fs-600); font-weight: 800; }
-  .meta-row { color: var(--c-ink-300); font-size: var(--fs-200); }
-  .meta-row span:not(:last-child)::after { content: " · "; }
+/* ---------- Colophon (D26) ---------- */
+.colophon {
+  background: var(--g-900); color: var(--paper);
+  border-top: 3px solid var(--gold-500);
+  margin-top: var(--s-8); padding: var(--s-4);
+  font-size: var(--t-cap); border-radius: 0 0 var(--r-md) var(--r-md);
+}
+.colophon a { color: var(--gold-300); }
+.colophon__cols { display: grid; gap: var(--s-3); }
+@media (min-width: 720px) { .colophon__cols { grid-template-columns: 1.4fr 1fr; } }
+.colophon .eyebrow { color: var(--gold-300); border-bottom-color: rgba(255,184,28,.5); }
 
-  .lineups { display: flex; gap: var(--sp-6); flex-wrap: wrap; }
-  .lineups .col { flex: 1 1 240px; }
-  .lineups ol { padding-left: 1.2rem; margin: 0; }
-  .lineups li { padding: 2px 0; font-size: var(--fs-200); }
+/* ---------- Charts ---------- */
+.chart { width: 100%; height: auto; display: block; }
+.chart-keys { display: flex; gap: var(--s-4); font-size: var(--t-cap); color: var(--ink-2); margin-top: var(--s-2); flex-wrap: wrap; }
+.key-sa::before, .key-opp::before { content: ""; display: inline-block; width: 22px; height: 0; vertical-align: 3px; margin-right: 6px; }
+.key-sa::before { border-top: 3px solid var(--g-600); }
+.key-opp::before { border-top: 3px dashed var(--loss); }
+.degraded { font-size: var(--t-cap); color: var(--ink-3); font-style: italic; max-width: var(--measure); }
 
-  .events-list { list-style: none; padding: 0; margin: 0; }
-  .events-list li { padding: var(--sp-2) 0; border-bottom: 1px solid var(--c-ink-700); font-size: var(--fs-200); display: flex; gap: var(--sp-3); }
-  .events-list .min { color: var(--c-gold-400); font-family: var(--font-mono); width: 3.2rem; flex-shrink: 0; }
+/* ---------- Screens ---------- */
+.screen { display: none; }
+.screen.is-on { display: block; }
+.btn {
+  font: 600 var(--t-sm)/1.2 var(--font-text); cursor: pointer;
+  background: var(--g-700); color: var(--card); border: 1px solid var(--g-700);
+  border-radius: var(--r-sm); padding: var(--s-2) var(--s-3); text-decoration: none; display: inline-block;
+}
+.btn--ghost { background: var(--card); color: var(--ink-2); border-color: var(--rule-strong); }
+.spread { display: flex; gap: var(--s-3); flex-wrap: wrap; align-items: center; }
+.mt2 { margin-top: var(--s-2); } .mt4 { margin-top: var(--s-4); } .mt6 { margin-top: var(--s-6); }
 
-  .axis-wrap { position: relative; padding: var(--sp-8) var(--sp-2) var(--sp-4); }
-  .axis-line { position: relative; height: 2px; background: var(--c-ink-700); margin: var(--sp-8) 0; }
-  .axis-marker { position: absolute; top: -8px; width: 2px; height: 18px; background: var(--c-gold-400); }
-  .axis-marker .label {
-    position: absolute; top: -1.6rem; left: 50%; transform: translateX(-50%);
-    font-size: var(--fs-100); color: var(--c-ink-300); white-space: nowrap;
-  }
-  .curve-svg { width: 100%; height: 140px; display: block; }
-  .curve-point-label { font-size: var(--fs-100); fill: var(--c-ink-300); }
-
-  .footer-attrib {
-    margin-top: var(--sp-8);
-    padding-top: var(--sp-3);
-    border-top: 1px solid var(--c-ink-700);
-    font-size: var(--fs-100);
-    color: var(--c-ink-500);
-  }
-  .footer-attrib a { color: var(--c-ink-300); }
-
-  .toggle-btn {
-    background: var(--c-ink-800); color: var(--c-ink-100); border: 1px solid var(--c-ink-500);
-    border-radius: var(--radius-md); padding: var(--sp-2) var(--sp-3); font-size: var(--fs-100);
-    cursor: pointer;
-  }
-  .toggle-btn:hover { border-color: var(--c-gold-400); }
-
-  .note { font-size: var(--fs-200); color: var(--c-ink-300); font-style: italic; }
+@media print {
+  body::before, .proto-note, .tabs, .tabs-underline, .btn { display: none !important; }
+  body, .plate, .ledger, .figure { background: #fff !important; }
+  .masthead, .match-head, .colophon, .plate__head, .ledger thead th, .h2h { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+  .colophon a::after { content: " (" attr(href) ")"; }
+}
 </style>
+</head>
+<body>
 
-<div class="proto-banner">PROTOTYPE — for design sign-off only (task #70). Sample &amp; illustrative data throughout, not the live app.</div>
-<nav class="tabs" id="tabs">
-  <a href="#/home" data-route="home">Home</a>
-  <a href="#/history" data-route="history">History</a>
-  <a href="#/match/rc2024" data-route="match">Game detail (sample)</a>
-  <a href="#/match/rc2024/timeline" data-route="timeline">Match timeline (sample)</a>
+<div class="proto-note">
+  <details>
+    <summary><strong>Prototype &mdash; design v2 (#89).</strong> Not the live app. What is real and what is illustrative &rarr;</summary>
+    <p>Match facts here are the real record: the 1995 and 2023 World Cup finals (scorers, minutes, referees, cards, lineups), South Africa&rsquo;s first test on 30 July 1891, the confirmed 2026 New Zealand series and the 43&ndash;0 win over Wales on 18 July 2026. <strong>Illustrative:</strong> the era aggregate counts, kickoff clock times not yet published, and the sentiment scores (no sentiment ingestion has run). Two form marks render in the &ldquo;history still loading&rdquo; state because those tests genuinely are not in the dataset yet &mdash; that is the D16 state doing its job, not a placeholder.</p>
+  </details>
+</div>
+
+<header class="masthead">
+  <div class="masthead__in">
+    <div class="masthead__word">Springbok Tracking</div>
+    <div class="masthead__strap">Every Springbok test &middot; 1891&ndash;</div>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Prototype screens">
+  <a class="tab" href="#/home" data-screen="home">J0&ndash;J2 &middot; Home</a>
+  <a class="tab" href="#/history" data-screen="history">J3 &middot; History</a>
+  <a class="tab" href="#/match/2023-nzl" data-screen="m2023">J4 &middot; 2023 final</a>
+  <a class="tab" href="#/match/1995-nzl" data-screen="m1995">J4 &middot; 1995 final</a>
+  <a class="tab" href="#/match/1891-bil" data-screen="m1891">J4 &middot; 1891 sparse</a>
+  <a class="tab" href="#/match/2023-nzl/timeline" data-screen="timeline">J5 &middot; Timeline</a>
+  <a class="tab" href="#/method" data-screen="method">Method</a>
 </nav>
-<main id="app"></main>
+<div class="tabs-underline"></div>
+
+<main>
+
+<!-- ================================================================= HOME -->
+<section class="screen" id="s-home" aria-labelledby="h-home">
+  <h1 id="h-home">The record</h1>
+  <p class="lede">Every test South Africa has played since 1891, and the next one. Every fact carries its source; every gap says so.</p>
+
+  <div class="grid-2 mt6">
+    <!-- NEXT TEST (J1) -->
+    <div class="plate plate--headed" id="next-plate">
+      <div class="plate__head"><span>Next test</span><span class="hd-right">in 21 days</span></div>
+      <div class="serif" style="font-size:var(--t-2xl);line-height:1.05">New&nbsp;Zealand</div>
+      <div class="smallcaps" style="color:var(--ink-2);margin-top:var(--s-1)">Rugby&rsquo;s Greatest Rivalry &middot; test 1 of 4</div>
+      <div class="mt4 num" style="font-size:var(--t-lg)">Sat 22 Aug 2026 &middot; 17:05 SAST</div>
+      <div style="color:var(--ink-2)">Ellis Park, Johannesburg</div>
+      <p class="count-caption">Fixtures via API-Sports, fetched 1 Aug 2026 06:12 SAST.</p>
+      <div class="mt2"><button class="btn btn--ghost" id="offseason-btn" type="button">Show the off-season variant (D8/D30)</button></div>
+    </div>
+
+    <!-- LATEST RESULT (J2) + FORM GUIDE (§7.1) -->
+    <div class="plate plate--headed">
+      <div class="plate__head"><span>Latest result</span><span class="hd-right">18 Jul 2026</span></div>
+      <div class="spread" style="align-items:flex-end;gap:var(--s-4)">
+        <div>
+          <div class="serif" style="font-size:var(--t-lg)">vs Wales</div>
+          <div class="serif num" style="font-size:var(--t-2xl);line-height:1.05">43&ndash;0</div>
+        </div>
+        <span class="chip chip--win" style="font-size:var(--t-sm)">W &middot; Win</span>
+      </div>
+      <div class="smallcaps" style="color:var(--ink-2);margin-top:var(--s-1)">Nations Championship</div>
+      <div style="color:var(--ink-2);font-size:var(--t-sm)">Kings Park, Durban</div>
+
+      <div class="section-break" style="margin-top:var(--s-6);padding-top:var(--s-4)">
+        <span class="eyebrow" id="form-eyebrow">Form &middot; last five tests</span>
+        <div class="form-wrap">
+          <ol class="form-strip" id="form-strip"></ol>
+          <div>
+            <div class="form-summary" id="form-summary"></div>
+            <div class="count-caption" id="form-caption"></div>
+          </div>
+        </div>
+      </div>
+      <div class="mt4"><a class="btn" href="#/match/2023-nzl">Open a game detail &rarr;</a></div>
+    </div>
+  </div>
+
+  <!-- UPCOMING -->
+  <div class="section-break">
+    <span class="eyebrow">Upcoming tests</span>
+    <table class="ledger ledger--stack">
+      <thead><tr><th>Date</th><th>Opponent</th><th>Competition</th><th>Venue</th><th>Kickoff</th></tr></thead>
+      <tbody>
+        <tr><td data-c="date" class="num">Sat 22 Aug 2026</td><td data-c="opp">New Zealand</td><td data-c="comp">Greatest Rivalry</td><td data-c="venue">Ellis Park, Johannesburg</td><td data-c="kickoff" class="num">17:05 SAST</td></tr>
+        <tr><td data-c="date" class="num">Sat 29 Aug 2026</td><td data-c="opp">New Zealand</td><td data-c="comp">Greatest Rivalry</td><td data-c="venue">Cape Town Stadium</td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+        <tr><td data-c="date" class="num">Sat 5 Sep 2026</td><td data-c="opp">New Zealand</td><td data-c="comp">Greatest Rivalry</td><td data-c="venue">FNB Stadium, Johannesburg</td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+        <tr><td data-c="date" class="num">Sat 12 Sep 2026</td><td data-c="opp">New Zealand</td><td data-c="comp">Greatest Rivalry</td><td data-c="venue">M&amp;T Bank Stadium, Baltimore</td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+        <tr><td data-c="date" class="num">Nov 2026</td><td data-c="opp">Italy <span class="chip chip--tbd">date TBD</span></td><td data-c="comp">Nations Championship</td><td data-c="venue"><span class="chip chip--tbd">venue TBD</span></td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+        <tr><td data-c="date" class="num">Nov 2026</td><td data-c="opp">France <span class="chip chip--tbd">date TBD</span></td><td data-c="comp">Nations Championship</td><td data-c="venue"><span class="chip chip--tbd">venue TBD</span></td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+        <tr><td data-c="date" class="num">Sat 21 Nov 2026</td><td data-c="opp">Ireland</td><td data-c="comp">Nations Championship</td><td data-c="venue"><span class="chip chip--tbd">venue TBD</span></td><td data-c="kickoff"><span class="chip chip--tbd">kickoff TBD</span></td></tr>
+      </tbody>
+    </table>
+    <p class="count-caption">A TBD chip is a fact we do not have. Nothing on this table is predicted (D8, D30).</p>
+  </div>
+
+  <!-- EDGE STATES -->
+  <div class="section-break">
+    <span class="eyebrow">Edge states (D8) &mdash; shown together for sign-off</span>
+    <div class="grid-2">
+      <div class="plate plate--headed">
+        <div class="plate__head"><span>Next test &middot; match day</span></div>
+        <div class="serif" style="font-size:var(--t-lg)">Match under way</div>
+        <p style="color:var(--ink-2);margin-top:var(--s-2)">No live coverage here &mdash; the result appears after full time.</p>
+        <p class="count-caption">South Africa v New Zealand, Ellis Park. Kickoff was 17:05 SAST.</p>
+      </div>
+      <div class="plate plate--headed">
+        <div class="plate__head"><span>Result known, detail absent</span></div>
+        <div class="serif num" style="font-size:var(--t-xl)">0&ndash;3 <span style="font-size:var(--t-sm);font-family:var(--font-text);color:var(--ink-2)">vs British Isles</span></div>
+        <div style="color:var(--ink-2);font-size:var(--t-sm)">29 Aug 1891 &middot; Eclectic Cricket Ground, Kimberley</div>
+        <p class="mt2"><span class="absent">Lineups not recorded</span> &middot; <span class="failed">&#9888; scoring detail temporarily unavailable</span></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches">&ldquo;List of South Africa rugby union test matches&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div>Fixtures via API-Sports, fetched 1 Aug 2026 06:12 SAST. <a href="#/method">How this site works &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== HISTORY -->
+<section class="screen" id="s-history" aria-labelledby="h-history">
+  <h1 id="h-history">History</h1>
+  <p class="lede">Every cap-awarded test South Africa has played (D12). Newest first.</p>
+
+  <!-- ERA STRIP (§7.2) -->
+  <figure class="figure mt6">
+    <span class="eyebrow">The record by era</span>
+    <div class="eras" id="eras"></div>
+    <div class="legend"><span class="lw">Won</span><span class="ld">Drawn</span><span class="ll">Lost</span><span class="lu">No recorded result</span></div>
+    <figcaption>Win&nbsp;% of the tests in each era with a recorded result; tests without one are hatched and excluded from the percentage. The four era buckets are the same ones the coverage evidence uses (D29). Counted from 572 tests. <em>Counts illustrative in this prototype.</em></figcaption>
+  </figure>
+
+  <div class="section-break">
+    <span class="eyebrow">Filter</span>
+    <div class="spread" id="era-tabs">
+      <span class="tab is-active" role="button" tabindex="0">All eras</span>
+      <span class="tab" role="button" tabindex="0">Pre-1950</span>
+      <span class="tab" role="button" tabindex="0">1950&ndash;1995</span>
+      <span class="tab" role="button" tabindex="0">1996&ndash;2010</span>
+      <span class="tab" role="button" tabindex="0">2011&ndash;</span>
+    </div>
+    <div class="spread mt4">
+      <span class="chip chip--sel">All opponents &times;</span>
+      <span class="chip">New Zealand</span>
+      <span class="chip">British &amp; Irish Lions</span>
+      <span class="chip">Wales</span>
+      <span class="chip">England</span>
+      <span class="chip">Scotland</span>
+    </div>
+  </div>
+
+  <table class="ledger ledger--stack mt4">
+    <caption>10 of 572 tests shown in this prototype.</caption>
+    <thead><tr><th>Date</th><th>Opponent</th><th class="n">Score</th><th>Res</th><th>Venue</th><th>Competition</th></tr></thead>
+    <tbody>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">18 Jul 2026</td><td data-c="opp">Wales</td><td data-c="score" class="n num">43&ndash;0</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Kings Park, Durban</td><td data-c="comp">Nations Championship</td></tr>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">11 Jul 2026</td><td data-c="opp">Scotland</td><td data-c="score" class="n num">42&ndash;28</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Loftus Versfeld, Pretoria</td><td data-c="comp">Nations Championship</td></tr>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">4 Jul 2026</td><td data-c="opp">England</td><td data-c="score" class="n num">45&ndash;21</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Ellis Park, Johannesburg</td><td data-c="comp">Nations Championship</td></tr>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">13 Sep 2025</td><td data-c="opp">New Zealand</td><td data-c="score" class="n num">43&ndash;10</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Sky Stadium, Wellington</td><td data-c="comp">Rugby Championship</td></tr>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">28 Oct 2023</td><td data-c="opp">New Zealand</td><td data-c="score" class="n num">12&ndash;11</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Stade de France, Saint-Denis</td><td data-c="comp">World Cup final</td></tr>
+      <tr class="linky" data-go="#/match/2023-nzl"><td data-c="date" class="num">16 Sep 2017</td><td data-c="opp">New Zealand</td><td data-c="score" class="n num">0&ndash;57</td><td data-c="res"><span class="chip chip--loss">L</span></td><td data-c="venue">North Harbour Stadium, Albany</td><td data-c="comp">Rugby Championship</td></tr>
+      <tr class="linky" data-go="#/match/1995-nzl"><td data-c="date" class="num">24 Jun 1995</td><td data-c="opp">New Zealand</td><td data-c="score" class="n num">15&ndash;12</td><td data-c="res"><span class="chip chip--win">W</span></td><td data-c="venue">Ellis Park, Johannesburg</td><td data-c="comp">World Cup final</td></tr>
+      <tr><td data-c="date" class="num">5 Sep 1891</td><td data-c="opp">British Isles</td><td data-c="score" class="n num">0&ndash;4</td><td data-c="res"><span class="chip chip--loss">L</span></td><td data-c="venue">Newlands, Cape Town</td><td data-c="comp"><span class="absent">not recorded</span></td></tr>
+      <tr><td data-c="date" class="num">29 Aug 1891</td><td data-c="opp">British Isles</td><td data-c="score" class="n num">0&ndash;3</td><td data-c="res"><span class="chip chip--loss">L</span></td><td data-c="venue">Eclectic Cricket Ground, Kimberley</td><td data-c="comp"><span class="absent">not recorded</span></td></tr>
+      <tr class="linky" data-go="#/match/1891-bil"><td data-c="date" class="num">30 Jul 1891</td><td data-c="opp">British Isles</td><td data-c="score" class="n num">0&ndash;4</td><td data-c="res"><span class="chip chip--loss">L</span></td><td data-c="venue">Crusaders Ground, Port Elizabeth</td><td data-c="comp"><span class="absent">not recorded</span></td></tr>
+    </tbody>
+  </table>
+  <p class="count-caption">Sparse rows leave the cell honestly empty. Below 720px this table becomes a stacked card list &mdash; nothing scrolls sideways (J3).</p>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches">&ldquo;List of South Africa rugby union test matches&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div><a href="#/method">How this site works &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= 2023 DETAIL -->
+<section class="screen" id="s-m2023" aria-labelledby="h-m2023">
+  <div class="match-head">
+    <div class="match-head__meta">Sat 28 Oct 2023 &middot; <span class="smallcaps">Rugby World Cup final</span></div>
+    <div class="score-line">
+      <div class="team">South<br>Africa</div>
+      <div class="score-hero" id="h-m2023">12&ndash;11</div>
+      <div class="team team--away">New<br>Zealand</div>
+    </div>
+    <div class="match-head__venue">Stade de France, Saint-Denis &middot; <span class="num">80,065</span> &middot; Referee Wayne Barnes (England)</div>
+  </div>
+
+  <!-- HEAD-TO-HEAD (§7.3) -->
+  <div class="h2h">
+    <span class="eyebrow">South Africa v New Zealand &middot; all time</span>
+    <div class="h2h__zones">
+      <div>
+        <div class="big">39%<span style="font-size:var(--t-sm);color:var(--ink-3)"> won</span></div>
+        <div class="rec-line">P 110 &middot; W 43 &middot; L 63 &middot; D 4</div>
+        <p class="count-caption">From the 110 tests played to 13 Sep 2025.</p>
+      </div>
+      <div>
+        <div class="rec-line">Biggest win <a href="#/history">43&ndash;10</a> &middot; Wellington 2025</div>
+        <div class="rec-line mt2">Biggest defeat <a href="#/history">0&ndash;57</a> &middot; Albany 2017</div>
+        <p class="count-caption">Margins from the 108 meetings with both scores recorded.</p>
+      </div>
+      <div>
+        <div class="serif" style="font-size:var(--t-lg)">The 106th meeting</div>
+        <div class="rec-line">Before this match: P 105 &middot; W 40 &middot; L 61 &middot; D 4</div>
+        <ol class="form-strip mt2" id="h2h-strip"></ol>
+        <p class="count-caption">The five previous meetings, oldest first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCORE PROGRESSION (§7.4) -->
+  <div class="section-break">
+    <span class="eyebrow">Score progression</span>
+    <div id="prog-2023"></div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Officials</span>
+    <div class="grid-2">
+      <div class="plate">
+        <div><strong>Referee</strong> Wayne Barnes (England)</div>
+        <div class="mt2">Assistant referees Matthew Carley (England), Karl Dickson (England)</div>
+        <div class="mt2">TMO Tom Foley (England)</div>
+      </div>
+      <div class="plate">
+        <span class="eyebrow">Cards</span>
+        <div><span class="chip chip--draw">YC</span> Shannon Frizell (NZL) <span class="num">2&prime;</span></div>
+        <div class="mt2"><span class="chip chip--loss">RC</span> Sam Cane (NZL) <span class="num">27&prime;</span></div>
+        <div class="mt2"><span class="chip chip--draw">YC</span> Siya Kolisi (RSA) <span class="num">45&prime;</span></div>
+        <div class="mt2"><span class="chip chip--draw">YC</span> Cheslin Kolbe (RSA) <span class="num">73&prime;</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Lineups &middot; starting XV</span>
+    <div class="grid-2">
+      <table class="ledger">
+        <thead><tr><th class="n">#</th><th>South Africa</th></tr></thead>
+        <tbody>
+          <tr><td class="n num">1</td><td>Steven Kitshoff</td></tr>
+          <tr><td class="n num">2</td><td>Bongi Mbonambi</td></tr>
+          <tr><td class="n num">3</td><td>Frans Malherbe</td></tr>
+          <tr><td class="n num">4</td><td>Eben Etzebeth</td></tr>
+          <tr><td class="n num">5</td><td>Franco Mostert</td></tr>
+          <tr><td class="n num">6</td><td>Siya Kolisi <span class="chip">capt</span></td></tr>
+          <tr><td class="n num">7</td><td>Pieter-Steph du Toit</td></tr>
+          <tr><td class="n num">8</td><td>Duane Vermeulen</td></tr>
+          <tr><td class="n num">9</td><td>Faf de Klerk</td></tr>
+          <tr><td class="n num">10</td><td>Handr&eacute; Pollard</td></tr>
+          <tr><td class="n num">11</td><td>Cheslin Kolbe</td></tr>
+          <tr><td class="n num">12</td><td>Damian de Allende</td></tr>
+          <tr><td class="n num">13</td><td>Jesse Kriel</td></tr>
+          <tr><td class="n num">14</td><td>Kurt-Lee Arendse</td></tr>
+          <tr><td class="n num">15</td><td>Damian Willemse</td></tr>
+        </tbody>
+      </table>
+      <table class="ledger">
+        <thead><tr><th class="n">#</th><th>New Zealand</th></tr></thead>
+        <tbody>
+          <tr><td class="n num">1</td><td>Ethan de Groot</td></tr>
+          <tr><td class="n num">2</td><td>Codie Taylor</td></tr>
+          <tr><td class="n num">3</td><td>Tyrel Lomax</td></tr>
+          <tr><td class="n num">4</td><td>Brodie Retallick</td></tr>
+          <tr><td class="n num">5</td><td>Scott Barrett</td></tr>
+          <tr><td class="n num">6</td><td>Shannon Frizell</td></tr>
+          <tr><td class="n num">7</td><td>Sam Cane <span class="chip">capt</span></td></tr>
+          <tr><td class="n num">8</td><td>Ardie Savea</td></tr>
+          <tr><td class="n num">9</td><td>Aaron Smith</td></tr>
+          <tr><td class="n num">10</td><td>Richie Mo&rsquo;unga</td></tr>
+          <tr><td class="n num">11</td><td>Mark Tele&rsquo;a</td></tr>
+          <tr><td class="n num">12</td><td>Jordie Barrett</td></tr>
+          <tr><td class="n num">13</td><td>Rieko Ioane</td></tr>
+          <tr><td class="n num">14</td><td>Will Jordan</td></tr>
+          <tr><td class="n num">15</td><td>Beauden Barrett</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Scoring &amp; card events</span>
+    <ol class="events" id="events-2023"></ol>
+    <p class="count-caption">Attendance <span class="num">80,065</span> <button class="differ" type="button" data-differ="differ-att">sources differ</button></p>
+    <div class="differ-body" id="differ-att" hidden>
+      <table>
+        <tr><td>Displayed</td><td class="num">80,065</td><td><a href="https://en.wikipedia.org/wiki/2023_Rugby_World_Cup_final">Wikipedia, match article</a></td></tr>
+        <tr><td>Alternate</td><td class="num">80,000</td><td><a href="https://en.wikipedia.org/wiki/2023_Rugby_World_Cup">Wikipedia, tournament article</a></td></tr>
+      </table>
+      <p class="count-caption">The precedent source (D14) is the one displayed; both are linked. Nothing is silently picked.</p>
+    </div>
+    <div class="mt4"><a class="btn" href="#/match/2023-nzl/timeline">How did the match feel? Open the timeline &rarr;</a></div>
+  </div>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/2023_Rugby_World_Cup_final">&ldquo;2023 Rugby World Cup final&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div>The derived figures on this page (head-to-head totals, score progression) are arithmetic over tests listed on this site &mdash; <a href="#/method">how the derived figures are computed &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= 1995 DETAIL -->
+<section class="screen" id="s-m1995" aria-labelledby="h-m1995">
+  <div class="match-head">
+    <div class="match-head__meta">Sat 24 Jun 1995 &middot; <span class="smallcaps">Rugby World Cup final</span></div>
+    <div class="score-line">
+      <div class="team">South<br>Africa</div>
+      <div class="score-hero" id="h-m1995">15&ndash;12</div>
+      <div class="team team--away">New<br>Zealand</div>
+    </div>
+    <div class="match-head__venue">Ellis Park, Johannesburg &middot; after extra time &middot; Referee Ed Morrison (England)</div>
+  </div>
+
+  <div class="h2h">
+    <span class="eyebrow">South Africa v New Zealand &middot; all time</span>
+    <div class="h2h__zones">
+      <div>
+        <div class="big">39%<span style="font-size:var(--t-sm);color:var(--ink-3)"> won</span></div>
+        <div class="rec-line">P 110 &middot; W 43 &middot; L 63 &middot; D 4</div>
+        <p class="count-caption">From the 110 tests played to 13 Sep 2025.</p>
+      </div>
+      <div>
+        <div class="rec-line">Biggest win <a href="#/history">43&ndash;10</a> &middot; Wellington 2025</div>
+        <div class="rec-line mt2">Biggest defeat <a href="#/history">0&ndash;57</a> &middot; Albany 2017</div>
+        <p class="count-caption">Margins from the 108 meetings with both scores recorded.</p>
+      </div>
+      <div>
+        <div class="serif" style="font-size:var(--t-lg)">The 39th meeting</div>
+        <div class="rec-line">Before this match: P 38 &middot; W 11 &middot; L 24 &middot; D 3</div>
+        <p class="count-caption"><span class="absent">No form strip: the previous meeting was in 1981, so five &ldquo;recent&rdquo; meetings would be misleading.</span> <em>Illustrative counts.</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Score progression</span>
+    <div id="prog-1995"></div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Scoring events</span>
+    <ol class="events" id="events-1995"></ol>
+    <p class="count-caption">Every point in this final was kicked: Joel Stransky scored all 15 for South Africa, Andrew Mehrtens all 12 for New Zealand.</p>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Lineups</span>
+    <p><span class="skel" aria-hidden="true"></span> <span class="skel" style="width:11ch" aria-hidden="true"></span> <span class="skel" style="width:6ch" aria-hidden="true"></span></p>
+    <p><span class="loading-note">History still loading &mdash; this match&rsquo;s detail fetch has not run yet.</span></p>
+    <p class="count-caption">One note per section, not one per field &mdash; D16 <code>not_yet_fetched</code>.</p>
+  </div>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/1995_Rugby_World_Cup_final">&ldquo;1995 Rugby World Cup final&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div><a href="#/method">How the derived figures are computed &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= 1891 DETAIL -->
+<section class="screen" id="s-m1891" aria-labelledby="h-m1891">
+  <div class="match-head">
+    <div class="match-head__meta">Thu 30 Jul 1891 &middot; <span class="smallcaps">First test</span></div>
+    <div class="score-line">
+      <div class="team">South<br>Africa</div>
+      <div class="score-hero" id="h-m1891">0&ndash;4</div>
+      <div class="team team--away">British<br>Isles</div>
+    </div>
+    <div class="match-head__venue">Crusaders Ground, Port Elizabeth &middot; <span class="num">6,000</span> &middot; Referee J. Griffin</div>
+  </div>
+
+  <div class="h2h">
+    <span class="eyebrow">South Africa v British &amp; Irish Lions &middot; all time</span>
+    <div class="h2h__zones">
+      <div>
+        <div class="big">40%<span style="font-size:var(--t-sm);color:var(--ink-3)"> won</span></div>
+        <div class="rec-line">P 50 &middot; W 20 &middot; L 26 &middot; D 4</div>
+        <p class="count-caption">From 50 tests, 1891&ndash;2021. <em>Illustrative counts.</em></p>
+      </div>
+      <div>
+        <div class="rec-line">Biggest win <span class="num">34&ndash;14</span> &middot; Cape Town 1962</div>
+        <div class="rec-line mt2">Biggest defeat <span class="num">9&ndash;28</span> &middot; Pretoria 1974</div>
+        <p class="count-caption">Margins from the 50 meetings with both scores recorded.</p>
+      </div>
+      <div>
+        <div class="serif" style="font-size:var(--t-lg)">The first meeting</div>
+        <p class="count-caption">No previous meetings, so no prior record and no form strip &mdash; rendered as absent, never as zeroes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Score progression</span>
+    <div id="prog-1891"></div>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Scoring events</span>
+    <ol class="events" id="events-1891"></ol>
+    <p class="count-caption">The source gives the order of scoring, not the clock, and the points values of 1891 cannot be pinned per fixture &mdash; so no minute and no running total is shown (D11, D16 <code>absent_in_source</code>).</p>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">Officials &amp; lineups</span>
+    <div class="grid-2">
+      <div class="plate">
+        <div><strong>Referee</strong> J. Griffin</div>
+        <div class="mt2">Assistant referees <span class="absent">not recorded</span></div>
+        <div class="mt2">TMO <span class="absent">not recorded</span></div>
+        <p class="count-caption">Not an error, and deliberately not styled like one: in 1891 there were no assistant referees to record.</p>
+      </div>
+      <div class="plate">
+        <span class="eyebrow">South Africa &middot; XV</span>
+        <p><span class="failed">&#9888; temporarily unavailable</span></p>
+        <p class="count-caption">The last ingestion attempt for this field failed. The site knows, and says so &mdash; deliberately alarmed, unlike &ldquo;not recorded&rdquo; beside it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/1891_British_Lions_tour_to_South_Africa">&ldquo;1891 British Lions tour to South Africa&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div><a href="#/method">How this site works &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TIMELINE -->
+<section class="screen" id="s-timeline" aria-labelledby="h-timeline">
+  <h1 id="h-timeline">Match timeline</h1>
+  <p class="lede">South Africa 12&ndash;11 New Zealand &middot; 28 Oct 2023 &middot; World Cup final. Events plot first and never wait for the mood layer.</p>
+
+  <figure class="figure mt6">
+    <span class="eyebrow">Events on the match clock</span>
+    <div id="timeline-axis"></div>
+    <figcaption>Eleven scoring and card events, every one with a recorded minute. Half time at 40&prime;. South Africa above the axis, New Zealand below. Solid marks are scores, outlined marks are cards; codes are P penalty, T try, C conversion, DG drop goal, YC/RC cards.</figcaption>
+  </figure>
+
+  <div class="section-break">
+    <span class="eyebrow">Fan mood</span>
+    <div class="stamp-row">
+      <span class="stamp">&#9679; Computed</span>
+      <span class="stamp-text">Fan mood &mdash; computed by this site from r/rugbyunion match thread.
+        <a href="#/method">method</a> &middot; <a href="https://www.reddit.com/r/rugbyunion/">source thread</a></span>
+    </div>
+    <div class="mood-buckets mt4">
+      <div class="mood mood--pos"><div class="mood__b">Pre-match</div><div class="mood__l">Upbeat</div><div class="mood__s">+0.34 &middot; 412 comments</div></div>
+      <div class="mood mood--neg"><div class="mood__b">1st half</div><div class="mood__l">Grumbling</div><div class="mood__s">&minus;0.28 &middot; 1,864 comments</div></div>
+      <div class="mood mood--neg"><div class="mood__b">2nd half</div><div class="mood__l">Despair</div><div class="mood__s">&minus;0.61 &middot; 2,930 comments</div></div>
+      <div class="mood mood--pos"><div class="mood__b">Post-match</div><div class="mood__l">Euphoric</div><div class="mood__s">+0.78 &middot; 3,551 comments</div></div>
+    </div>
+    <p class="count-caption">Five labels only (Despair / Grumbling / Mixed / Upbeat / Euphoric), mapped from the score bands in D2. Scores illustrative &mdash; no sentiment ingestion has run.</p>
+  </div>
+
+  <div class="section-break">
+    <span class="eyebrow">The other three mood states &mdash; shown together for sign-off</span>
+    <div class="grid-2">
+      <div class="plate">
+        <div class="stamp-row"><span class="stamp">&#9679; Computed</span></div>
+        <p class="mt2"><span class="stamp-text">Fan mood &mdash; computed by this site from news headlines. <a href="#/method">method</a> &middot; <a href="https://www.theguardian.com/sport/rugby-union">source articles</a></span></p>
+        <div class="mood mood--pos mt2"><div class="mood__b">Whole match</div><div class="mood__l">Upbeat</div><div class="mood__s">+0.41 &middot; 9 articles</div></div>
+        <p class="count-caption">Guardian fallback: one whole-match score, never a curve &mdash; headlines have no match clock (D2, D4).</p>
+      </div>
+      <div class="plate">
+        <span class="eyebrow">Thin thread &amp; pre-source eras</span>
+        <p class="absent">Too little discussion to score.</p>
+        <p class="count-caption">Under 25 comments in the thread, so no number is shown at all (D2 volume floor).</p>
+        <p class="absent mt4">No sentiment sources for this era.</p>
+        <p class="count-caption">Reddit match threads start around 2012, the Guardian around 1999. Before that the timeline is events only &mdash; and still worth opening (D3, D7).</p>
+      </div>
+    </div>
+  </div>
+
+  <p class="mt6"><a class="btn btn--ghost" href="#/match/2023-nzl">&larr; Back to game detail</a></p>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia: <a href="https://en.wikipedia.org/wiki/2023_Rugby_World_Cup_final">&ldquo;2023 Rugby World Cup final&rdquo;</a> &middot; <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a> &middot; Modified: parsed and normalised from wikitext.</div>
+      <div>Fan mood is computed by this site, not quoted from anyone. <a href="#/method">Method &rarr;</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== METHOD -->
+<section class="screen" id="s-method" aria-labelledby="h-method">
+  <h1 id="h-method">How this site works</h1>
+  <div class="prose mt6">
+    <h2>Match facts</h2>
+    <p>Every result, venue, lineup, official and scoring event comes from Wikipedia and is attributed on the page that shows it, with a link to the exact article, the CC BY-SA 4.0 licence, and a note that we parsed and normalised it from wikitext. Nothing is inferred. Where the source has no value, the page says <span class="absent">not recorded</span> rather than showing a blank.</p>
+
+    <div class="section-break">
+      <h2>The four honesty states</h2>
+      <p>A fact is either present, absent from the source, not yet fetched, or its last fetch failed &mdash; and the four look different on purpose:</p>
+      <ul>
+        <li><strong>Present:</strong> plain type.</li>
+        <li><strong>Absent from the source:</strong> <span class="absent">not recorded</span> &mdash; calm, because a gap in 1891&rsquo;s records is not our fault.</li>
+        <li><strong>Not yet fetched:</strong> <span class="skel" aria-hidden="true"></span> plus <span class="loading-note">history still loading</span>.</li>
+        <li><strong>Fetch failed:</strong> <span class="failed">&#9888; temporarily unavailable</span> &mdash; alarmed, because something is actually wrong.</li>
+      </ul>
+    </div>
+
+    <div class="section-break">
+      <h2>How the derived figures are computed</h2>
+      <p>Four figures on this site are arithmetic we do over facts already shown here. They are not inferences, so they carry a plain count caption stating the denominator rather than the &ldquo;computed&rdquo; stamp &mdash; that stamp is reserved for genuine inference.</p>
+      <ul>
+        <li><strong>Form &mdash; last five tests:</strong> the five most recent completed tests. A test with no recorded result is shown as such and excluded from the tally.</li>
+        <li><strong>The record by era:</strong> wins as a share of the tests with a recorded result, in four era buckets. Tests without a recorded result are hatched and excluded from the percentage.</li>
+        <li><strong>Head-to-head:</strong> played, won, lost and drawn against one opponent, plus the biggest win and defeat among meetings where both scores are recorded.</li>
+        <li><strong>Score progression:</strong> a running total built from the timed scoring events using the points values of the era. It is drawn only when every scoring event has a recorded minute <em>and</em> the running total reconciles exactly to the final score. If it does not reconcile, no chart is drawn and the page says so &mdash; we would rather show nothing than a chart that disagrees with the score. Matches before 1894 are never charted, because the points values changed three times between 1890 and 1894 and we will not encode values we cannot verify.</li>
+      </ul>
+    </div>
+
+    <div class="section-break">
+      <h2>Fan mood (computed)</h2>
+      <p>Fan mood is the one thing on this site we infer. It is a lexicon score over a match thread&rsquo;s comments &mdash; or, where no thread exists, over news headlines &mdash; bucketed pre-match / first half / second half / post-match wherever a kickoff time exists. It always carries the computed stamp, a link to this page, and a link to what it was computed from. It is never phrased as anyone else&rsquo;s opinion. Under 25 comments we show no number at all.</p>
+    </div>
+
+    <div class="section-break">
+      <h2>What we do not do</h2>
+      <p>No live scores. No predictions. No standings. No bulk download. No accounts.</p>
+    </div>
+  </div>
+
+  <div class="colophon">
+    <span class="eyebrow">Sources</span>
+    <div class="colophon__cols">
+      <div>Match data adapted from Wikipedia under <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>; modified: parsed and normalised from wikitext. Fixtures via API-Sports.</div>
+      <div>Prototype for design v2 sign-off (#89).</div>
+    </div>
+  </div>
+</section>
+
+</main>
 
 <script>
-(function () {
-  "use strict";
+'use strict';
+/* ===========================================================================
+   Prototype behaviour. Three algorithms are implemented rather than faked,
+   because their DEGRADATION is what needs signing off:
+     1. the form guide (D16 states inside the marks)
+     2. the era points table + reconciliation gate for score progression
+     3. the timed/untimed split in the events list
+   =========================================================================== */
 
-  // ---------------------------------------------------------------------
-  // Sample data. Historical anchors (1896 4th test, 1995 & 2007 RWC finals,
-  // 2015 RWC semi-final) use real, well-documented dates/venues/scorelines.
-  // Anything about the *next* fixture, the 2024/2026 fixtures, and the drawn
-  // match are explicitly fictional sample data for demonstration purposes.
-  // ---------------------------------------------------------------------
+/* ---------- Era points table (design.md §7.4). Pre-1894: never charted. ---------- */
+function pointsFor(type, year) {
+  if (year < 1894) return null;                 /* values moved 3x, 1890-94 */
+  var era = year < 1948 ? 0 : year < 1971 ? 1 : year < 1992 ? 2 : 3;
+  var table = {
+    'try':        [3, 3, 4, 5],
+    conversion:   [2, 2, 2, 2],
+    penalty:      [3, 3, 3, 3],
+    drop_goal:    [4, 3, 3, 3],
+    goal_from_mark: [4, 3, 3, null]
+  };
+  var row = table[type];
+  return row ? row[era] : 0;   /* cards and other events score nothing */
+}
+var SCORING = { 'try': 1, conversion: 1, penalty: 1, drop_goal: 1, goal_from_mark: 1 };
+var LABEL = {
+  'try': 'Try', conversion: 'Conversion', penalty: 'Penalty', drop_goal: 'Drop goal',
+  goal_from_mark: 'Goal from mark', yellow_card: 'Yellow card', red_card: 'Red card'
+};
+/* Short codes so the timeline axis never relies on colour alone. */
+var CODE = {
+  'try': 'T', conversion: 'C', penalty: 'P', drop_goal: 'DG',
+  goal_from_mark: 'GM', yellow_card: 'YC', red_card: 'RC'
+};
 
-  var F = {
-    present: "present", absent: "absent_in_source", loading: "not_yet_fetched", failed: "fetch_failed"
+/* ---------- Matches (the real record; see the prototype note) ---------- */
+var MATCHES = {
+  '2023-nzl': {
+    year: 2023, sa: 12, opp: 11, oppName: 'New Zealand', extra: 0,
+    events: [
+      { m: 2,  side: 'opp', type: 'yellow_card', who: 'Shannon Frizell' },
+      { m: 3,  side: 'sa',  type: 'penalty',     who: 'Handré Pollard' },
+      { m: 13, side: 'sa',  type: 'penalty',     who: 'Handré Pollard' },
+      { m: 17, side: 'opp', type: 'penalty',     who: 'Richie Mo’unga' },
+      { m: 19, side: 'sa',  type: 'penalty',     who: 'Handré Pollard' },
+      { m: 27, side: 'opp', type: 'red_card',    who: 'Sam Cane' },
+      { m: 34, side: 'sa',  type: 'penalty',     who: 'Handré Pollard' },
+      { m: 38, side: 'opp', type: 'penalty',     who: 'Richie Mo’unga' },
+      { m: 45, side: 'sa',  type: 'yellow_card', who: 'Siya Kolisi' },
+      { m: 58, side: 'opp', type: 'try',         who: 'Beauden Barrett' },
+      { m: 73, side: 'sa',  type: 'yellow_card', who: 'Cheslin Kolbe' }
+    ]
+  },
+  '1995-nzl': {
+    year: 1995, sa: 15, opp: 12, oppName: 'New Zealand', extra: 20,
+    events: [
+      { m: 5,  side: 'opp', type: 'penalty',   who: 'Andrew Mehrtens' },
+      { m: 10, side: 'sa',  type: 'penalty',   who: 'Joel Stransky' },
+      { m: 13, side: 'opp', type: 'penalty',   who: 'Andrew Mehrtens' },
+      { m: 22, side: 'sa',  type: 'penalty',   who: 'Joel Stransky' },
+      { m: 31, side: 'sa',  type: 'drop_goal', who: 'Joel Stransky' },
+      { m: 55, side: 'opp', type: 'drop_goal', who: 'Andrew Mehrtens' },
+      { m: 83, side: 'opp', type: 'penalty',   who: 'Andrew Mehrtens' },
+      { m: 90, side: 'sa',  type: 'penalty',   who: 'Joel Stransky' },
+      { m: 92, side: 'sa',  type: 'drop_goal', who: 'Joel Stransky' }
+    ]
+  },
+  '1891-bil': {
+    year: 1891, sa: 0, opp: 4, oppName: 'British Isles', extra: 0,
+    events: [   /* order only - the source records no minutes */
+      { m: null, side: 'opp', type: 'try',        who: 'Randolph Aston' },
+      { m: null, side: 'opp', type: 'try',        who: 'Thomas Whittaker' },
+      { m: null, side: 'opp', type: 'conversion', who: 'Alfred Rotherham' }
+    ]
+  }
+};
+
+/* ---------- 7.4 progression + reconciliation gate ---------- */
+function progression(match) {
+  var scoring = match.events.filter(function (e) { return SCORING[e.type]; });
+  if (!scoring.length) return { ok: false, why: 'none' };
+  if (match.year < 1894) return { ok: false, why: 'pre1894' };
+  if (scoring.some(function (e) { return e.m == null; })) return { ok: false, why: 'untimed' };
+
+  var sa = 0, opp = 0, pts = [{ m: 0, sa: 0, opp: 0 }], leads = 0, lead = 0;
+  for (var i = 0; i < scoring.length; i++) {
+    var e = scoring[i], v = pointsFor(e.type, match.year);
+    if (v == null) return { ok: false, why: 'pre1894' };
+    if (e.side === 'sa') { sa += v; } else { opp += v; }
+    pts.push({ m: e.m, sa: sa, opp: opp });
+    var now = sa > opp ? 1 : sa < opp ? -1 : 0;
+    /* A lead CHANGE needs a previous leader — taking the first lead is not one. */
+    if (now !== 0 && now !== lead) {
+      if (lead !== 0) { leads++; }
+      lead = now;
+    }
+  }
+  if (sa !== match.sa || opp !== match.opp) {
+    return { ok: false, why: 'mismatch', got: sa + '–' + opp };
+  }
+  return { ok: true, pts: pts, leads: leads, n: scoring.length };
+}
+
+function chartSvg(match, p) {
+  var W = 640, H = 250, PL = 42, PR = 58, PT = 16, PB = 30;
+  var maxMin = 80 + match.extra;
+  var yTop = Math.max(3, Math.ceil((Math.max(match.sa, match.opp) + 1) / 3) * 3);
+  var x = function (m) { return PL + (m / maxMin) * (W - PL - PR); };
+  var y = function (v) { return H - PB - (v / yTop) * (H - PT - PB); };
+
+  var step = function (key) {
+    var d = 'M ' + x(0) + ' ' + y(0);
+    for (var i = 1; i < p.pts.length; i++) {
+      d += ' L ' + x(p.pts[i].m) + ' ' + y(p.pts[i - 1][key]) +
+           ' L ' + x(p.pts[i].m) + ' ' + y(p.pts[i][key]);
+    }
+    d += ' L ' + x(maxMin) + ' ' + y(p.pts[p.pts.length - 1][key]);
+    return d;
   };
 
-  function field(value, state) { return { value: value, state: state || F.present }; }
-
-  var matches = {
-    era1896: {
-      id: "era1896",
-      date: "1896-08-05",
-      opponent: "British Isles",
-      competition: "Test match",
-      venue: field("Newlands, Cape Town", F.present),
-      decade: "1890s",
-      scoreFor: 5, scoreAgainst: 0, result: "W",
-      note: "South Africa's first-ever test win, 4th Test of the 1896 British Isles tour.",
-      referee: field(null, F.absent),
-      kickoff: field(null, F.absent),
-      lineups: {
-        sa: [
-          field("Barry Heatlie (capt.)", F.present),
-          field("A. Frew", F.present),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent), field(null, F.absent)
-        ],
-        opp: [
-          field("Johnny Hammond (capt.)", F.present),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent),
-          field(null, F.absent), field(null, F.absent), field(null, F.absent), field(null, F.absent), field(null, F.absent)
-        ]
-      },
-      events: [
-        { minute: "?", desc: "Try, South Africa (scorer not recorded)", state: F.absent }
-      ],
-      sentiment: null, // pre-dates any sentiment source (D3)
-      wikipediaUrl: "https://en.wikipedia.org/wiki/1896_British_Isles_tour_to_South_Africa",
-      sourcesDiffer: null
-    },
-
-    rwc1995: {
-      id: "rwc1995",
-      date: "1995-06-24",
-      opponent: "New Zealand",
-      competition: "Rugby World Cup Final",
-      venue: field("Ellis Park, Johannesburg", F.present),
-      decade: "1990s",
-      scoreFor: 15, scoreAgainst: 12, result: "W",
-      note: "Extra-time win; Joel Stransky's drop goal settled it.",
-      referee: field("Ed Morrison (England)", F.present),
-      kickoff: {
-        value: "15:00 SAST", state: F.present,
-        sourcesDiffer: {
-          precedent: "15:00 SAST",
-          values: [
-            { source: "Wikipedia", value: "15:00 SAST" },
-            { source: "Kaggle cross-check dataset", value: "14:30 SAST" }
-          ]
-        }
-      },
-      lineups: {
-        sa: [
-          field("Andre Joubert", F.present), field("Gavin Johnson", F.present), field("Japie Mulder", F.present),
-          field("Hennie le Roux", F.present), field("Chester Williams", F.present), field("Joel Stransky", F.present),
-          field("Joost van der Westhuizen", F.present), field("Francois Pienaar (capt.)", F.present),
-          field("Ruben Kruger", F.present), field("Mark Andrews", F.present), field("Kobus Wiese", F.present),
-          field("Hannes Strydom", F.present), field("Balie Swart", F.present), field("Chris Rossouw", F.present),
-          field("Os du Randt", F.present)
-        ],
-        opp: [
-          field("Glen Osborne", F.present), field("Jeff Wilson", F.present), field("Frank Bunce", F.present),
-          field("Walter Little", F.present), field("Jonah Lomu", F.present), field("Andrew Mehrtens", F.present),
-          field("Graeme Bachop", F.present), field("Josh Kronfeld", F.present), field("Mike Brewer (capt.)", F.present),
-          field("Jamie Joseph", F.present), field("Ian Jones", F.present), field("Robin Brooke", F.present),
-          field("Olo Brown", F.present), field("Sean Fitzpatrick", F.present), field("Craig Dowd", F.present)
-        ]
-      },
-      events: [
-        { minute: "8", desc: "Penalty, Stransky (SA)", state: F.present },
-        { minute: "23", desc: "Penalty, Mehrtens (NZ)", state: F.present },
-        { minute: "34", desc: "Penalty, Stransky (SA)", state: F.present },
-        { minute: "43", desc: "Penalty, Mehrtens (NZ)", state: F.present },
-        { minute: "60", desc: "Penalty, Stransky (SA)", state: F.present },
-        { minute: "70", desc: "Penalty, Mehrtens (NZ)", state: F.present },
-        { minute: "100", desc: "Drop goal, Stransky (SA) — extra time winner", state: F.present }
-      ],
-      sentiment: null, // 1995 pre-dates Reddit (~2012+) and the Guardian archive window (D3)
-      sentimentNote: "no sentiment sources for this era",
-      wikipediaUrl: "https://en.wikipedia.org/wiki/1995_Rugby_World_Cup_Final"
-    },
-
-    rwc2007: {
-      id: "rwc2007",
-      date: "2007-10-20",
-      opponent: "England",
-      competition: "Rugby World Cup Final",
-      venue: field("Stade de France, Saint-Denis", F.present),
-      decade: "2000s",
-      scoreFor: 15, scoreAgainst: 6, result: "W",
-      note: "Percy Montgomery and Frans Steyn penalties/drop goal saw South Africa home.",
-      referee: field("Alain Rolland (Ireland)", F.present),
-      kickoff: field("21:00 CEST", F.present),
-      lineups: {
-        sa: [
-          field("Percy Montgomery", F.present), field("JP Pietersen", F.present), field("Jaque Fourie", F.present),
-          field("Frans Steyn", F.present), field("Bryan Habana", F.present), field("Butch James", F.present),
-          field("Fourie du Preez", F.present), field("Schalk Burger", F.present), field("Danie Rossouw", F.present),
-          field("Victor Matfield", F.present), field("Bakkies Botha", F.present), field("Os du Randt", F.present),
-          field("John Smit (capt.)", F.present), field("Bismarck du Plessis", F.present), field("CJ van der Linde", F.present)
-        ],
-        opp: [
-          field("Jason Robinson", F.present), field("Mark Cueto", F.present), field("Mathew Tait", F.present),
-          field("Toby Flood", F.present), field("Paul Sackey", F.present), field("Jonny Wilkinson", F.present),
-          field("Andy Gomarsall", F.present), field("Nick Easter", F.present), field("Lewis Moody", F.present),
-          field("Martin Corry", F.present), field("Ben Kay", F.present), field("Simon Shaw", F.present),
-          field("Phil Vickery (capt.)", F.present), field("Mark Regan", F.present), field("Andrew Sheridan", F.present)
-        ]
-      },
-      events: [
-        { minute: "5", desc: "Penalty, Montgomery (SA)", state: F.present },
-        { minute: "20", desc: "Penalty, Wilkinson (Eng)", state: F.present },
-        { minute: "35", desc: "Penalty, Montgomery (SA)", state: F.present },
-        { minute: "48", desc: "Penalty, Montgomery (SA)", state: F.present },
-        { minute: "58", desc: "Penalty, Wilkinson (Eng)", state: F.present },
-        { minute: "63", desc: "Penalty, Steyn (SA)", state: F.present },
-        { minute: "70", desc: "Penalty, Montgomery (SA)", state: F.present }
-      ],
-      sentiment: {
-        source: "guardian",
-        badgeText: "Fan mood — computed by this site from news headlines",
-        // Guardian fallback = ONE whole-match score, no per-bucket curve (PRD D2)
-        buckets: [
-          { name: "Whole match", label: "Upbeat", score: 0.45 }
-        ]
-      },
-      wikipediaUrl: "https://en.wikipedia.org/wiki/2007_Rugby_World_Cup_Final"
-    },
-
-    y2015semi: {
-      id: "y2015semi",
-      date: "2015-10-24",
-      opponent: "New Zealand",
-      competition: "Rugby World Cup Semi-final",
-      venue: field("Twickenham Stadium, London", F.present),
-      decade: "2010s",
-      scoreFor: 18, scoreAgainst: 20, result: "L",
-      note: "",
-      referee: field("Jerome Garces (France)", F.present),
-      kickoff: field("16:00 BST", F.present),
-      lineups: {
-        sa: [ field("Willie le Roux", F.present), field("JP Pietersen", F.present), field("Jesse Kriel", F.present),
-          field("Damian de Allende", F.present), field("Bryan Habana", F.present), field("Handre Pollard", F.present),
-          field("Fourie du Preez", F.present), field("Schalk Burger", F.present), field("Duane Vermeulen", F.present),
-          field("Victor Matfield (capt.)", F.present), field("Eben Etzebeth", F.present), field("Frans Malherbe", F.present),
-          field("Bismarck du Plessis", F.present), field("Tendai Mtawarira", F.present), field("Adriaan Strauss", F.present) ],
-        opp: [ field("Nehe Milner-Skudder", F.present), field("Julian Savea", F.present), field("Conrad Smith", F.present),
-          field("Ma'a Nonu", F.present), field("Waisake Naholo", F.present), field("Dan Carter", F.present),
-          field("Aaron Smith", F.present), field("Richie McCaw (capt.)", F.present), field("Jerome Kaino", F.present),
-          field("Brodie Retallick", F.present), field("Sam Whitelock", F.present), field("Owen Franks", F.present),
-          field("Dane Coles", F.present), field("Joe Moody", F.present), field("Kieran Read", F.present) ]
-      },
-      events: [
-        { minute: "3", desc: "Try, Milner-Skudder (NZ)", state: F.present },
-        { minute: "18", desc: "Try, Vermeulen (SA)", state: F.present },
-        { minute: "52", desc: "Penalty, Pollard (SA)", state: F.present },
-        { minute: "62", desc: "Penalty, Carter (NZ)", state: F.present },
-        { minute: "73", desc: "Drop goal, Carter (NZ)", state: F.present }
-      ],
-      sentiment: {
-        source: "reddit",
-        badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
-        // Labels come from the closed five-label vocabulary (PRD D2):
-        // Despair / Grumbling / Mixed / Upbeat / Euphoric, banded by score
-        buckets: [
-          { name: "Pre-match", label: "Mixed", score: 0.1 },
-          { name: "1st half", label: "Mixed", score: 0.2 },
-          { name: "2nd half", label: "Grumbling", score: -0.5 },
-          { name: "Post-match", label: "Mixed", score: -0.1 }
-        ]
-      },
-      wikipediaUrl: "https://en.wikipedia.org/wiki/2015_Rugby_World_Cup_knockout_stage"
-    },
-
-    rc2024: {
-      id: "rc2024",
-      date: "2024-09-07",
-      opponent: "Argentina",
-      competition: "The Rugby Championship",
-      venue: field("Ellis Park, Johannesburg", F.present),
-      decade: "2020s",
-      scoreFor: 48, scoreAgainst: 7, result: "W",
-      note: "(sample data — illustrative recent match)",
-      referee: field("Nika Amashukeli (Georgia)", F.present),
-      kickoff: field("17:10 SAST", F.present),
-      lineups: {
-        sa: [ field("Damian Willemse", F.present), field("Kurt-Lee Arendse", F.present), field("Jesse Kriel", F.present),
-          field("Andre Esterhuizen", F.present), field("Canan Moodie", F.present), field("Manie Libbok", F.present),
-          field("Grant Williams", F.present), field("Pieter-Steph du Toit", F.present), field("Kwagga Smith", F.present),
-          field("Eben Etzebeth (capt.)", F.present), field("Franco Mostert", F.present), field("Wilco Louw", F.present),
-          field("Malcolm Marx", F.present), field("Ox Nche", F.present), field("RG Snyman", F.present) ],
-        opp: [ field("Rodrigo Isgro", F.present), field("Mateo Carreras", F.present), field("Lucio Cinti", F.present),
-          field("Santiago Chocobares", F.present), field("Bautista Delguy", F.present), field("Santiago Carreras", F.present),
-          field("Gonzalo Garcia", F.present), field("Pablo Matera (capt.)", F.present), field("Juan Martin Gonzalez", F.present),
-          field("Guido Petti", F.present), field("Pedro Rubiolo", F.present), field("Joel Sclavi", F.present),
-          field("Julian Montoya", F.present), field("Mayco Vivas", F.present), field(null, F.loading) ]
-      },
-      events: [
-        { minute: "6", desc: "Try, Arendse (SA)", state: F.present },
-        { minute: "15", desc: "Try, Kriel (SA)", state: F.present },
-        { minute: "29", desc: "Try, Moodie (SA)", state: F.present },
-        { minute: "41", desc: "Penalty, S. Carreras (Arg)", state: F.present },
-        { minute: "55", desc: "Try, Smith (SA)", state: F.present },
-        { minute: "68", desc: "Try, Snyman (SA)", state: F.present },
-        { minute: "77", desc: "Try, Marx (SA)", state: F.present }
-      ],
-      sentiment: {
-        source: "reddit",
-        badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
-        buckets: [
-          { name: "Pre-match", label: "Upbeat", score: 0.3 },
-          { name: "1st half", label: "Euphoric", score: 0.8 },
-          { name: "2nd half", label: "Euphoric", score: 0.75 },
-          { name: "Post-match", label: "Euphoric", score: 0.85 }
-        ]
-      },
-      wikipediaUrl: "https://en.wikipedia.org/wiki/2024_Rugby_Championship",
-      methodUrl: "#/method",
-      sourceThreadUrl: "https://www.reddit.com/r/rugbyunion/"
-    },
-
-    drawSample: {
-      id: "drawSample",
-      date: "2019-11-02",
-      opponent: "Wales",
-      competition: "Test match",
-      venue: field("Principality Stadium, Cardiff", F.present),
-      decade: "2010s",
-      scoreFor: 19, scoreAgainst: 19, result: "D",
-      note: "(sample data — fabricated for demonstrating the draw colour/state; not a real result)",
-      referee: field(null, F.failed),
-      kickoff: field("14:00 GMT", F.present),
-      lineups: { sa: [field(null, F.loading)], opp: [field(null, F.loading)] },
-      events: [{ minute: "—", desc: "Event feed temporarily unavailable", state: F.failed }],
-      // D2 minimum-volume floor: below 25 comments the mood layer refuses to score
-      sentiment: {
-        source: "reddit",
-        badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
-        tooFew: true, commentCount: 11
-      },
-      wikipediaUrl: "https://en.wikipedia.org/wiki/History_of_South_Africa_national_rugby_union_team"
+  var g = '';
+  for (var m = 10; m <= maxMin; m += 10) {
+    g += '<line x1="' + x(m) + '" y1="' + PT + '" x2="' + x(m) + '" y2="' + (H - PB) +
+         '" stroke="#D9CFB8" stroke-width="1"/>' +
+         '<text x="' + x(m) + '" y="' + (H - PB + 16) + '" text-anchor="middle" font-size="11" fill="#5D6B62">' + m + '′</text>';
+  }
+  g += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - PR) + '" y2="' + (H - PB) + '" stroke="#B9AC8E"/>';
+  g += '<line x1="' + PL + '" y1="' + PT + '" x2="' + PL + '" y2="' + (H - PB) + '" stroke="#B9AC8E"/>';
+  g += '<text x="' + (PL - 6) + '" y="' + (y(0) + 4) + '" text-anchor="end" font-size="11" fill="#5D6B62">0</text>';
+  g += '<text x="' + (PL - 6) + '" y="' + (y(yTop) + 4) + '" text-anchor="end" font-size="11" fill="#5D6B62">' + yTop + '</text>';
+  g += '<line x1="' + x(40) + '" y1="' + PT + '" x2="' + x(40) + '" y2="' + (H - PB) + '" stroke="#B57E10" stroke-width="2"/>' +
+       '<text x="' + (x(40) + 4) + '" y="' + (PT + 11) + '" font-size="11" fill="#6B4B0C">HT</text>';
+  if (match.extra) {
+    g += '<line x1="' + x(80) + '" y1="' + PT + '" x2="' + x(80) + '" y2="' + (H - PB) + '" stroke="#B57E10" stroke-width="2" stroke-dasharray="3 3"/>' +
+         '<text x="' + (x(80) + 4) + '" y="' + (PT + 11) + '" font-size="11" fill="#6B4B0C">80′ · extra time</text>';
+  }
+  var lead = 0;
+  for (var j = 1; j < p.pts.length; j++) {
+    var pt = p.pts[j], now = pt.sa > pt.opp ? 1 : pt.sa < pt.opp ? -1 : 0;
+    if (now !== 0 && now !== lead) {
+      if (lead !== 0) {
+        g += '<circle cx="' + x(pt.m) + '" cy="' + y(Math.max(pt.sa, pt.opp)) + '" r="4" fill="#B57E10"/>';
+      }
+      lead = now;
     }
-  };
-
-  var historyRows = ["era1896", "rwc1995", "rwc2007", "y2015semi", "rc2024", "drawSample"];
-
-  var upcomingFixtures = [
-    { opponent: "Wales", competition: "Autumn internationals", date: "2026-11-14", venue: "Principality Stadium, Cardiff", status: "postponed" },
-    { opponent: "Italy", competition: "Autumn internationals", date: "2026-11-21", venue: "Stadio Olimpico, Rome (TBD)", status: "tbd" }
-  ];
-
-  var nextFixtureInSeason = {
-    opponent: "All Blacks", competition: "Rugby Championship", date: "2026-08-15",
-    kickoff: "17:10 SAST", venue: "Twickenham Stadium, London",
-    note: "vs All Blacks — (sample data)"
-  };
-  // Off-season card shows last result ONLY — no predictive "next window"
-  // note (PRD D30: an unsourced prediction is what this site exists to not do)
-  var nextFixtureOffSeasonNote = {
-    lastResult: "SA 27–13 NZ"
-  };
-
-  // ---------------------------------------------------------------------
-  // Rendering helpers
-  // ---------------------------------------------------------------------
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
   }
+  g += '<path d="' + step('opp') + '" fill="none" stroke="#9B2226" stroke-width="2.5" stroke-dasharray="6 3"/>';
+  g += '<path d="' + step('sa') + '" fill="none" stroke="#007749" stroke-width="2.5"/>';
+  g += '<text x="' + (W - PR + 8) + '" y="' + (y(match.sa) + 4) + '" font-size="16" font-family="Georgia,serif" fill="#005A38">' + match.sa + '</text>';
+  g += '<text x="' + (W - PR + 8) + '" y="' + (y(match.opp) + 4) + '" font-size="16" font-family="Georgia,serif" fill="#9B2226">' + match.opp + '</text>';
 
-  function renderField(f, fallbackLabel) {
-    if (!f) return '<span class="field-absent">not recorded</span>';
-    if (f.state === F.present) return escapeHtml(f.value);
-    if (f.state === F.absent) return '<span class="field-absent">' + (fallbackLabel || "not recorded") + "</span>";
-    if (f.state === F.loading) return '<span class="field-loading" title="not yet fetched"></span>';
-    if (f.state === F.failed) return '<span class="badge failed">&#9888; temporarily unavailable</span>';
-    return "";
-  }
+  var alt = 'Score progression. Final score South Africa ' + match.sa + ', ' + match.oppName + ' ' +
+    match.opp + ', built from ' + p.n + ' timed scoring events, with ' + p.leads + ' lead changes.';
+  return '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + alt + '">' + g + '</svg>';
+}
 
-  function wldClass(result) { return result === "W" ? "win" : result === "L" ? "loss" : "draw"; }
-
-  function attributionFooter(m) {
-    return '<div class="footer-attrib">' +
-      "Match data adapted from " +
-      '<a href="' + m.wikipediaUrl + '" target="_blank" rel="noopener">Wikipedia</a>, ' +
-      'licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>. ' +
-      "Modified: parsed and normalised from wikitext." +
-      "</div>";
-  }
-
-  function computedBadge(sentiment) {
-    if (!sentiment) return "";
-    return '<div class="badge computed" style="margin-bottom:var(--sp-2)">' +
-      '<span class="dot"></span> computed</div>' +
-      '<p class="note" style="margin-top:0">' + escapeHtml(sentiment.badgeText) +
-      ' &middot; <a href="#/method">method</a> &middot; <a href="' +
-      (sentiment.source === "reddit" ? "https://www.reddit.com/r/rugbyunion/" : "https://www.theguardian.com/sport/rugby-union") +
-      '" target="_blank" rel="noopener">source</a></p>';
-  }
-
-  // ---------------------------------------------------------------------
-  // Page: Home (J1, J2)
-  // ---------------------------------------------------------------------
-
-  var seasonMode = "in-season"; // toggled by button, demonstrates D8 off-season variant
-
-  function renderHome() {
-    var fixtureCardHtml;
-    if (seasonMode === "in-season") {
-      fixtureCardHtml =
-        '<h3>Next fixture</h3>' +
-        '<div style="font-size:var(--fs-400);font-weight:700">South Africa vs ' + nextFixtureInSeason.opponent + '</div>' +
-        '<div class="meta-row"><span>' + nextFixtureInSeason.competition + '</span><span>' + nextFixtureInSeason.date + '</span><span>' + nextFixtureInSeason.kickoff + '</span><span>' + nextFixtureInSeason.venue + '</span></div>' +
-        '<p class="note">' + nextFixtureInSeason.note + '</p>';
-    } else {
-      fixtureCardHtml =
-        '<h3>Next fixture</h3>' +
-        '<div style="font-size:var(--fs-400);font-weight:700">No test scheduled</div>' +
-        '<div class="meta-row"><span>Last result: ' + nextFixtureOffSeasonNote.lastResult + '</span></div>';
+/* Record-book voice: state the lead story rather than "0 lead changes". */
+function leadStory(match, p) {
+  if (p.leads > 0) { return p.leads + ' lead change' + (p.leads === 1 ? '' : 's') + '.'; }
+  for (var i = 1; i < p.pts.length; i++) {
+    var pt = p.pts[i];
+    if (pt.sa !== pt.opp) {
+      var who = pt.sa > pt.opp ? 'South Africa' : match.oppName;
+      return who + ' led from the ' + pt.m + 'th minute and never lost the lead.';
     }
-
-    var latest = matches.rc2024;
-    var upcomingHtml = upcomingFixtures.map(function (f) {
-      var chip = f.status === "postponed"
-        ? '<span class="badge tbd">postponed</span>'
-        : f.status === "tbd" ? '<span class="badge tbd">TBD</span>' : "";
-      return '<div class="meta-row" style="margin-bottom:var(--sp-2)">' +
-        '<span>' + f.date + '</span><span>vs ' + f.opponent + '</span><span>' + f.competition + '</span> ' + chip + '</div>';
-    }).join("");
-
-    document.getElementById("app").innerHTML =
-      '<h1>Springbok Tracking</h1>' +
-      '<p class="lede">J1 &amp; J2 — the next fixture and the latest result should answer themselves above the fold.</p>' +
-      '<div class="card-row">' +
-        '<div class="card">' + fixtureCardHtml +
-          '<button class="toggle-btn" id="season-toggle" style="margin-top:var(--sp-3)">Toggle off-season variant (D8)</button>' +
-        '</div>' +
-        '<div class="card">' +
-          '<div class="result-bar ' + wldClass(latest.result) + '"></div>' +
-          '<h3>Latest result</h3>' +
-          '<div style="font-size:var(--fs-400);font-weight:700">South Africa ' + latest.scoreFor + '&ndash;' + latest.scoreAgainst + ' ' + latest.opponent + '</div>' +
-          '<div class="meta-row"><span>' + latest.competition + '</span><span>' + latest.date + '</span></div>' +
-          '<p class="note">' + latest.note + '</p>' +
-          '<a class="plain" href="#/match/' + latest.id + '"><button class="toggle-btn">Open game detail &rarr;</button></a>' +
-        '</div>' +
-      '</div>' +
-
-      '<h2>Upcoming fixtures</h2>' +
-      '<div class="card">' + upcomingHtml + '</div>' +
-
-      '<h2>Match under way (edge state, D8)</h2>' +
-      '<div class="card">' +
-        '<div style="font-size:var(--fs-400);font-weight:700">South Africa vs Wales</div>' +
-        '<p class="note">Match under way — no live coverage here; result appears after full time.</p>' +
-      '</div>';
-
-    var btn = document.getElementById("season-toggle");
-    if (btn) btn.addEventListener("click", function () {
-      seasonMode = seasonMode === "in-season" ? "off-season" : "in-season";
-      renderHome();
-    });
   }
+  return 'Neither side ever led.';
+}
 
-  // ---------------------------------------------------------------------
-  // Page: History (J3)
-  // ---------------------------------------------------------------------
+function renderProgression(id, key) {
+  var match = MATCHES[key], p = progression(match), el = document.getElementById(id);
+  if (!el) { return; }
+  if (p.ok) {
+    el.innerHTML =
+      '<figure class="figure">' + chartSvg(match, p) +
+      '<div class="chart-keys"><span class="key-sa"><b>South Africa</b></span>' +
+      '<span class="key-opp"><b>' + match.oppName + '</b></span>' +
+      '<span>&#9679; lead change</span></div>' +
+      '<figcaption>Built from the ' + p.n + ' timed scoring events recorded in the source article; the running totals reconcile exactly to the final score ' +
+      match.sa + '&ndash;' + match.opp + '. ' + leadStory(match, p) +
+      ' The scoring list below is the accessible equivalent and is never replaced by this chart.</figcaption></figure>';
+    return;
+  }
+  var why = {
+    untimed: 'Scoring times aren&rsquo;t recorded for this match &mdash; the sequence below is the order the source gives, without clock positions.',
+    pre1894: 'No progression is drawn for matches before 1894: the points values changed three times between 1890 and 1894, and we will not encode values we cannot verify per fixture. The order the source gives is below.',
+    mismatch: 'The recorded scoring events don&rsquo;t add up to the final score (they total ' + p.got + '), so no progression is drawn.',
+    none: 'No scoring events are recorded for this match.'
+  }[p.why];
+  el.innerHTML = '<p class="degraded">' + why + '</p>';
+}
 
-  var historyFilters = { opponent: "all", decade: "all" };
+/* ---------- Events list (timed and untimed) ---------- */
+function renderEvents(id, key) {
+  var match = MATCHES[key], sa = 0, opp = 0, out = '', known = match.year >= 1894;
+  match.events.forEach(function (e) {
+    var v = SCORING[e.type] ? (pointsFor(e.type, match.year) || 0) : 0;
+    if (e.side === 'sa') { sa += v; } else { opp += v; }
+    out += '<li class="' + (e.side === 'sa' ? 'sa' : '') + '">' +
+      '<span class="min">' + (e.m != null ? e.m + '&prime;' : '<span class="absent">&mdash;</span>') + '</span>' +
+      '<span>' + e.who + ' <span class="kind">' + LABEL[e.type] + '</span></span>' +
+      /* Pre-1894: no running total is derivable, so the column is left empty
+         and the caption below the list explains it once. */
+      '<span class="run">' + (known ? sa + '&ndash;' + opp : '') + '</span></li>';
+  });
+  document.getElementById(id).innerHTML = out;
+}
 
-  function renderHistory() {
-    var opponents = ["all"].concat(uniq(historyRows.map(function (id) { return matches[id].opponent; })));
-    var decades = ["all"].concat(uniq(historyRows.map(function (id) { return matches[id].decade; })));
-
-    function uniq(arr) { var seen = {}; var out = []; arr.forEach(function (x) { if (!seen[x]) { seen[x] = 1; out.push(x); } }); return out; }
-
-    function chipRow(items, key) {
-      return items.map(function (v) {
-        var sel = historyFilters[key] === v ? "selected" : "";
-        return '<span class="chip ' + sel + '" data-filter="' + key + '" data-value="' + escapeHtml(v) + '">' + (v === "all" ? "All " + key + "s" : escapeHtml(v)) + '</span>';
-      }).join("");
+/* ---------- 7.1 Form guide ---------- */
+var FORM = [   /* oldest first */
+  { state: 'not_yet_fetched' },
+  { state: 'not_yet_fetched' },
+  { state: 'present', result: 'W', opp: 'ENG', sa: 45, os: 21, date: '4 Jul 2026', full: 'England' },
+  { state: 'present', result: 'W', opp: 'SCO', sa: 42, os: 28, date: '11 Jul 2026', full: 'Scotland' },
+  { state: 'present', result: 'W', opp: 'WAL', sa: 43, os: 0,  date: '18 Jul 2026', full: 'Wales' }
+];
+function renderForm() {
+  var html = '', w = 0, l = 0, d = 0, pending = 0, pf = 0, pa = 0, scored = 0;
+  FORM.forEach(function (f) {
+    if (f.state !== 'present') {
+      pending++;
+      html += '<li><span class="mark mark--loading" role="img" aria-label="Result not yet loaded"></span>' +
+              '<span class="mm">&mdash;</span></li>';
+      return;
     }
+    if (f.result === 'W') { w++; } else if (f.result === 'L') { l++; } else { d++; }
+    pf += f.sa; pa += f.os; scored++;
+    html += '<li><a class="mark mark--' + f.result.toLowerCase() + '" href="#/history" ' +
+      'aria-label="' + (f.result === 'W' ? 'Win' : f.result === 'L' ? 'Loss' : 'Draw') +
+      ' — South Africa ' + f.sa + ' ' + f.full + ' ' + f.os + ', ' + f.date + '">' + f.result + '</a>' +
+      '<span class="mm">' + f.opp + '</span><span class="mm">' + f.sa + '&ndash;' + f.os + '</span></li>';
+  });
+  document.getElementById('form-strip').innerHTML = html;
+  document.getElementById('form-summary').innerHTML = w + 'W &middot; ' + l + 'L &middot; ' + d + 'D';
+  var diff = pf - pa;
+  document.getElementById('form-caption').innerHTML =
+    'Points ' + pf + '&ndash;' + pa + ' (' + (diff >= 0 ? '+' : '') + diff + ') from ' + scored + ' of ' +
+    FORM.length + ' tests. ' + (pending ? pending + ' still loading &mdash; excluded from the tally, not counted as anything.' : '');
+}
 
-    var rows = historyRows.filter(function (id) {
-      var m = matches[id];
-      if (historyFilters.opponent !== "all" && m.opponent !== historyFilters.opponent) return false;
-      if (historyFilters.decade !== "all" && m.decade !== historyFilters.decade) return false;
-      return true;
-    });
+/* head-to-head mini strip: the five previous SA v NZ meetings, oldest first */
+var H2H_PREV = [
+  { r: 'L', s: '23–35', label: 'Loss, South Africa 23 New Zealand 35' },
+  { r: 'L', s: '17–19', label: 'Loss, South Africa 17 New Zealand 19' },
+  { r: 'L', s: '26–35', label: 'Loss, South Africa 26 New Zealand 35' },
+  { r: 'W', s: '23–20', label: 'Win, South Africa 23 New Zealand 20' },
+  { r: 'W', s: '35–20', label: 'Win, South Africa 35 New Zealand 20' }
+];
+function renderH2H() {
+  var el = document.getElementById('h2h-strip');
+  if (!el) { return; }
+  el.innerHTML = H2H_PREV.map(function (m) {
+    return '<li><span class="mark mark--sm mark--' + m.r.toLowerCase() + '" role="img" aria-label="' + m.label + '">' + m.r + '</span>' +
+      '<span class="mm">' + m.s + '</span></li>';
+  }).join('');
+}
 
-    var tableRows = rows.map(function (id) {
-      var m = matches[id];
-      return '<tr class="row-link" data-id="' + id + '">' +
-        '<td data-label="Date">' + m.date + '</td>' +
-        '<td data-label="Opponent">vs ' + escapeHtml(m.opponent) + '</td>' +
-        '<td data-label="Score">' + m.scoreFor + '&ndash;' + m.scoreAgainst + '</td>' +
-        '<td data-label="W/D/L"><span class="wld ' + m.result + '">' + m.result + '</span></td>' +
-        '<td data-label="Venue">' + renderField(m.venue) + '</td>' +
-        '<td data-label="Competition">' + escapeHtml(m.competition) + '</td>' +
-        '</tr>';
-    }).join("");
+/* ---------- 7.2 Era strip ---------- */
+var ERAS = [
+  { label: 'Pre-1950',        w: 61,  l: 33, d: 6,  u: 2 },
+  { label: '1950–1995',  w: 122, l: 62, d: 11, u: 0 },
+  { label: '1996–2010',  w: 105, l: 55, d: 5,  u: 0 },
+  { label: '2011–',      w: 74,  l: 32, d: 4,  u: 0 }
+];
+function renderEras() {
+  document.getElementById('eras').innerHTML = ERAS.map(function (e) {
+    var p = e.w + e.l + e.d, total = p + e.u, pct = Math.round((e.w / p) * 100);
+    var seg = function (n, c) { return n ? '<i class="' + c + '" style="width:' + (n / total * 100) + '%"></i>' : ''; };
+    return '<button class="era" type="button" aria-label="' + e.label + ': ' + pct + ' per cent won, ' +
+      p + ' played, ' + e.w + ' won, ' + e.l + ' lost, ' + e.d + ' drawn' +
+      (e.u ? ', ' + e.u + ' with no recorded result' : '') + '">' +
+      '<span class="era__label">' + e.label + '</span>' +
+      '<span class="era__pct">' + pct + '%<small> won</small></span>' +
+      '<span class="bar" aria-hidden="true">' + seg(e.w, 'w') + seg(e.d, 'd') + seg(e.l, 'l') + seg(e.u, 'u') + '</span>' +
+      '<span class="era__counts">P ' + p + ' &middot; W ' + e.w + ' &middot; L ' + e.l + ' &middot; D ' + e.d +
+      (e.u ? ' &middot; ' + e.u + ' not recorded' : '') + '</span></button>';
+  }).join('');
+}
 
-    document.getElementById("app").innerHTML =
-      '<h1>History</h1>' +
-      '<p class="lede">J3 — find any historic game in a filter and a scroll. Sparse eras (e.g. 1896) render honestly rather than padding columns.</p>' +
-      '<div class="chips">' + chipRow(opponents, "opponent") + '</div>' +
-      '<div class="chips">' + chipRow(decades, "decade") + '</div>' +
-      '<table class="history"><thead><tr><th>Date</th><th>Opponent</th><th>Score</th><th>W/D/L</th><th>Venue</th><th>Competition</th></tr></thead>' +
-      '<tbody>' + tableRows + '</tbody></table>' +
-      '<div class="footer-attrib">Match data adapted from Wikipedia’s <a href="https://en.wikipedia.org/wiki/List_of_South_Africa_rugby_union_test_matches" target="_blank" rel="noopener">List of South Africa rugby union test matches</a>, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</div>';
-
-    document.querySelectorAll(".chip").forEach(function (chip) {
-      chip.addEventListener("click", function () {
-        historyFilters[chip.dataset.filter] = chip.dataset.value;
-        renderHistory();
-      });
-    });
-    document.querySelectorAll("tr.row-link").forEach(function (tr) {
-      tr.addEventListener("click", function () { location.hash = "#/match/" + tr.dataset.id; });
-    });
+/* ---------- Timeline axis ---------- */
+function renderTimelineAxis() {
+  var match = MATCHES['2023-nzl'], W = 640, H = 130, PL = 78, PR = 20, PB = 30;
+  var x = function (m) { return PL + (m / 80) * (W - PL - PR); };
+  var g = '';
+  for (var m = 10; m <= 80; m += 10) {
+    g += '<line x1="' + x(m) + '" y1="14" x2="' + x(m) + '" y2="' + (H - PB) + '" stroke="#D9CFB8"/>' +
+         '<text x="' + x(m) + '" y="' + (H - PB + 16) + '" text-anchor="middle" font-size="11" fill="#5D6B62">' + m + '′</text>';
   }
+  g += '<line x1="' + x(40) + '" y1="8" x2="' + x(40) + '" y2="' + (H - PB) + '" stroke="#B57E10" stroke-width="2"/>' +
+       '<text x="' + (x(40) + 4) + '" y="16" font-size="11" fill="#6B4B0C">HT</text>';
+  g += '<line x1="' + PL + '" y1="' + (H - PB) + '" x2="' + (W - PR) + '" y2="' + (H - PB) + '" stroke="#B9AC8E"/>';
+  match.events.forEach(function (e) {
+    var isSa = e.side === 'sa', card = e.type === 'yellow_card' || e.type === 'red_card';
+    var col = card ? (e.type === 'red_card' ? '#9B2226' : '#7A5B12') : (isSa ? '#007749' : '#9B2226');
+    var yTop = isSa ? 26 : 62;
+    /* Cards are outlined, scores are solid: shape as well as colour (a11y). */
+    g += card
+      ? '<rect x="' + (x(e.m) - 3.5) + '" y="' + yTop + '" width="7" height="16" rx="1" fill="none" stroke="' + col + '" stroke-width="2"/>'
+      : '<rect x="' + (x(e.m) - 3) + '" y="' + yTop + '" width="6" height="16" rx="1" fill="' + col + '"/>';
+    g += '<text x="' + x(e.m) + '" y="' + (yTop + 30) + '" text-anchor="middle" font-size="10" fill="#5D6B62">' +
+         e.m + '′ ' + CODE[e.type] + '</text>';
+  });
+  g += '<text x="4" y="38" font-size="11" fill="#3C4A43">South Africa</text>';
+  g += '<text x="4" y="74" font-size="11" fill="#3C4A43">New Zealand</text>';
+  document.getElementById('timeline-axis').innerHTML =
+    '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Event timeline: eleven scoring and card events between the 2nd and 73rd minute. The scoring list on the game detail page is the accessible equivalent.">' + g + '</svg>';
+}
 
-  // ---------------------------------------------------------------------
-  // Page: Game detail (J4)
-  // ---------------------------------------------------------------------
+/* ---------- Router ---------- */
+var ROUTES = {
+  '#/home': 'home', '#/history': 'history',
+  '#/match/2023-nzl': 'm2023', '#/match/1995-nzl': 'm1995', '#/match/1891-bil': 'm1891',
+  '#/match/2023-nzl/timeline': 'timeline', '#/method': 'method'
+};
+function show() {
+  var screen = ROUTES[location.hash];
+  if (!screen) { screen = /^#\/match\//.test(location.hash) ? 'm2023' : 'home'; }
+  Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) {
+    if (s.id === 's-' + screen) { s.classList.add('is-on'); } else { s.classList.remove('is-on'); }
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs .tab'), function (t) {
+    if (t.getAttribute('data-screen') === screen) { t.setAttribute('aria-current', 'page'); }
+    else { t.removeAttribute('aria-current'); }
+  });
+  window.scrollTo(0, 0);
+}
 
-  function renderDetail(id) {
-    var m = matches[id] || matches.rc2024;
-
-    var kickoffHtml = renderField(m.kickoff);
-    if (m.kickoff && m.kickoff.sourcesDiffer) {
-      var sd = m.kickoff.sourcesDiffer;
-      kickoffHtml += ' <span class="badge differ" title="' +
-        sd.values.map(function (v) { return v.source + ": " + v.value; }).join(" | ") +
-        '">sources differ</span>';
-    }
-
-    var lineupsHtml = '<div class="lineups">' +
-      '<div class="col"><h3>South Africa</h3><ol>' +
-        m.lineups.sa.map(function (p) { return "<li>" + renderField(p) + "</li>"; }).join("") +
-      '</ol></div>' +
-      '<div class="col"><h3>' + escapeHtml(m.opponent) + '</h3><ol>' +
-        m.lineups.opp.map(function (p) { return "<li>" + renderField(p) + "</li>"; }).join("") +
-      '</ol></div>' +
-    '</div>';
-
-    var eventsHtml = '<ul class="events-list">' +
-      m.events.map(function (e) {
-        var desc = e.state === F.failed
-          ? '<span class="field-failed">&#9888; ' + escapeHtml(e.desc) + '</span>'
-          : e.state === F.absent
-            ? '<span class="field-absent">' + escapeHtml(e.desc) + '</span>'
-            : escapeHtml(e.desc);
-        return '<li><span class="min">' + escapeHtml(e.minute) + "'</span>" + desc + "</li>";
-      }).join("") +
-    '</ul>';
-
-    document.getElementById("app").innerHTML =
-      '<div class="detail-header">' +
-        '<div>' +
-          '<div class="result-bar ' + wldClass(m.result) + '" style="width:80px"></div>' +
-          '<div class="score-hero">South Africa ' + m.scoreFor + '&ndash;' + m.scoreAgainst + ' ' + escapeHtml(m.opponent) + '</div>' +
-          '<div class="meta-row"><span>' + escapeHtml(m.competition) + '</span><span>' + m.date + '</span><span>' + renderField(m.venue) + '</span></div>' +
-        '</div>' +
-        '<a class="plain" href="#/match/' + m.id + '/timeline"><button class="toggle-btn">Open timeline &rarr;</button></a>' +
-      '</div>' +
-      (m.note ? '<p class="note">' + escapeHtml(m.note) + '</p>' : "") +
-
-      '<h2>Officials</h2>' +
-      '<div class="card"><h3>Referee</h3>' + renderField(m.referee) + '<h3 style="margin-top:var(--sp-3)">Kickoff time</h3>' + kickoffHtml + '</div>' +
-
-      '<h2>Lineups</h2>' +
-      '<div class="card">' + lineupsHtml + '</div>' +
-
-      '<h2>Scoring events</h2>' +
-      '<div class="card">' + eventsHtml + '</div>' +
-
-      attributionFooter(m);
+/* ---------- Interactions ---------- */
+document.addEventListener('click', function (ev) {
+  var t = ev.target;
+  if (!t || !t.closest) { return; }
+  var row = t.closest('tr.linky');
+  if (row) { location.hash = row.getAttribute('data-go'); return; }
+  var d = t.closest('[data-differ]');
+  if (d) {
+    var body = document.getElementById(d.getAttribute('data-differ'));
+    body.hidden = !body.hidden;
+    return;
   }
-
-  // ---------------------------------------------------------------------
-  // Page: Match timeline (J5)
-  // ---------------------------------------------------------------------
-
-  function renderTimeline(id) {
-    var m = matches[id] || matches.rc2024;
-
-    var maxMinute = Math.max.apply(null, m.events.map(function (e) { return parseInt(e.minute, 10) || 0; }).concat([80]));
-    var axisMarkers = m.events.map(function (e) {
-      var min = parseInt(e.minute, 10) || 0;
-      var pct = Math.min(100, (min / maxMinute) * 100);
-      return '<div class="axis-marker" style="left:' + pct + '%"><div class="label">' + escapeHtml(e.minute) + "'</div></div>";
-    }).join("");
-
-    var curveHtml;
-    if (m.sentiment && m.sentiment.tooFew) {
-      curveHtml =
-        computedBadge(m.sentiment) +
-        '<p class="note">Too little discussion to score &mdash; ' + m.sentiment.commentCount +
-        ' comments in the match thread (minimum 25). Events above still tell the story.</p>';
-    } else if (m.sentiment) {
-      var w = 560, h = 120, pad = 40;
-      var n = m.sentiment.buckets.length;
-      var pts = m.sentiment.buckets.map(function (b, i) {
-        var x = pad + (i * (w - 2 * pad)) / Math.max(1, n - 1);
-        var y = h / 2 - b.score * (h / 2 - 10);
-        return { x: x, y: y, b: b };
-      });
-      var poly = pts.map(function (p) { return p.x + "," + p.y; }).join(" ");
-      var circles = pts.map(function (p) {
-        var color = p.b.score > 0.15 ? "var(--c-mood-pos)" : p.b.score < -0.15 ? "var(--c-mood-neg)" : "var(--c-mood-neutral)";
-        return '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="' + color + '" />' +
-          '<text x="' + p.x + '" y="' + (h - 4) + '" text-anchor="middle" class="curve-point-label">' + escapeHtml(p.b.name) + '</text>';
-      }).join("");
-      var labels = pts.map(function (p) {
-        return '<div style="flex:1 1 0;text-align:center;font-size:var(--fs-100);color:var(--c-ink-300);padding:0 4px">' + escapeHtml(p.b.label) + '</div>';
-      }).join("");
-
-      curveHtml =
-        computedBadge(m.sentiment) +
-        '<svg class="curve-svg" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMid meet">' +
-          '<line x1="' + pad + '" y1="' + (h / 2) + '" x2="' + (w - pad) + '" y2="' + (h / 2) + '" stroke="var(--c-ink-700)" stroke-dasharray="2,3" />' +
-          '<polyline points="' + poly + '" fill="none" stroke="var(--c-gold-500)" stroke-width="2" />' +
-          circles +
-        '</svg>' +
-        '<div style="display:flex">' + labels + '</div>';
-    } else {
-      curveHtml = '<p class="note">No sentiment sources for this era — events-only timeline.</p>';
-    }
-
-    document.getElementById("app").innerHTML =
-      '<h1>Match timeline</h1>' +
-      '<p class="lede">South Africa ' + m.scoreFor + '&ndash;' + m.scoreAgainst + ' ' + escapeHtml(m.opponent) + ' &middot; ' + m.date + '</p>' +
-
-      '<h2>Events</h2>' +
-      '<div class="card axis-wrap"><div class="axis-line">' + axisMarkers + '</div></div>' +
-
-      '<h2>Fan mood</h2>' +
-      '<div class="card">' + curveHtml + '</div>' +
-
-      '<p><a class="plain" href="#/match/' + m.id + '"><button class="toggle-btn">&larr; Back to game detail</button></a></p>' +
-
-      attributionFooter(m);
+  var eraTab = t.closest('#era-tabs .tab');
+  if (eraTab) {
+    Array.prototype.forEach.call(document.querySelectorAll('#era-tabs .tab'), function (x) { x.classList.remove('is-active'); });
+    eraTab.classList.add('is-active');
+    return;
   }
+  if (t.closest('#offseason-btn')) { toggleOffSeason(); }
+});
+document.addEventListener('keydown', function (ev) {
+  if (ev.key !== 'Enter' && ev.key !== ' ') { return; }
+  var t = ev.target;
+  if (t && t.closest && t.closest('#era-tabs .tab')) { ev.preventDefault(); t.click(); }
+});
 
-  // ---------------------------------------------------------------------
-  // Page: /method (PRD §2.5 — the D5 method-link destination)
-  // ---------------------------------------------------------------------
+/* Off-season variant (D8/D30). One delegated handler, both directions. */
+var OFF_SEASON = false, NEXT_HTML = null;
+var OFF_HTML =
+  '<div class="plate__head"><span>No test scheduled</span></div>' +
+  '<p style="color:var(--ink-2)">There is no Springbok test on the calendar right now.</p>' +
+  '<div class="section-break" style="margin-top:var(--s-4);padding-top:var(--s-3)">' +
+  '<span class="eyebrow">Last result</span>' +
+  '<div class="serif num" style="font-size:var(--t-2xl);line-height:1.05">43&ndash;0 ' +
+  '<span style="font-size:var(--t-sm);font-family:var(--font-text);color:var(--ink-2)">vs Wales</span></div>' +
+  '<div style="color:var(--ink-2);font-size:var(--t-sm)">18 Jul 2026 &middot; Kings Park, Durban</div></div>' +
+  '<p class="count-caption">No &ldquo;next likely window&rdquo; note: an unsourced prediction is exactly what this site exists to not do (D30).</p>' +
+  '<div class="mt2"><button class="btn btn--ghost" id="offseason-btn" type="button">Back to the scheduled variant</button></div>';
+function toggleOffSeason() {
+  var plate = document.getElementById('next-plate');
+  if (NEXT_HTML === null) { NEXT_HTML = plate.innerHTML; }
+  OFF_SEASON = !OFF_SEASON;
+  plate.innerHTML = OFF_SEASON ? OFF_HTML : NEXT_HTML;
+}
 
-  function renderMethod() {
-    document.getElementById("app").innerHTML =
-      '<h1>How this site works</h1>' +
-      '<p class="lede">Every fact links to where it came from. Two bounded exceptions exist, and this page is their explanation.</p>' +
-      '<h2>Match facts</h2>' +
-      '<div class="card"><p class="note">Scores, lineups, referees and events are parsed from Wikipedia articles ' +
-      '(CC BY-SA 4.0) — each page footer links the exact source article. Where history is thin we say ' +
-      '&ldquo;not recorded&rdquo; rather than guessing. Fixtures come via API-Sports (named + fetch date shown).</p></div>' +
-      '<h2>Fan mood (computed)</h2>' +
-      '<div class="card"><p class="note">Mood scores are computed by this site with a public sentiment lexicon over ' +
-      'r/rugbyunion match-thread comments (or news headlines where no thread exists). Scores map to five labels: ' +
-      'Despair &middot; Grumbling &middot; Mixed &middot; Upbeat &middot; Euphoric. Threads with fewer than 25 comments are not scored. ' +
-      'Mood is our inference, never the source&rsquo;s own words &mdash; that&rsquo;s why it always carries the &ldquo;computed&rdquo; badge.</p></div>' +
-      '<p><a class="plain" href="#/home"><button class="toggle-btn">&larr; Home</button></a></p>';
-  }
-
-  // ---------------------------------------------------------------------
-  // Router
-  // ---------------------------------------------------------------------
-
-  function setActiveTab(route) {
-    document.querySelectorAll("#tabs a").forEach(function (a) {
-      a.classList.toggle("active", a.dataset.route === route);
-    });
-  }
-
-  function route() {
-    var hash = location.hash || "#/home";
-    var parts = hash.replace(/^#\//, "").split("/");
-
-    if (parts[0] === "home" || parts[0] === "") { setActiveTab("home"); renderHome(); return; }
-    if (parts[0] === "method") { setActiveTab("method"); renderMethod(); return; }
-    if (parts[0] === "history") { setActiveTab("history"); renderHistory(); return; }
-    if (parts[0] === "match" && parts[1] && parts[2] === "timeline") { setActiveTab("timeline"); renderTimeline(parts[1]); return; }
-    if (parts[0] === "match" && parts[1]) { setActiveTab("match"); renderDetail(parts[1]); return; }
-    setActiveTab("home"); renderHome();
-  }
-
-  window.addEventListener("hashchange", route);
-  route();
-})();
+/* ---------- Boot ---------- */
+renderForm();
+renderH2H();
+renderEras();
+renderProgression('prog-2023', '2023-nzl');
+renderProgression('prog-1995', '1995-nzl');
+renderProgression('prog-1891', '1891-bil');
+renderEvents('events-2023', '2023-nzl');
+renderEvents('events-1995', '1995-nzl');
+renderEvents('events-1891', '1891-bil');
+renderTimelineAxis();
+window.addEventListener('hashchange', show);
+if (!location.hash) { location.hash = '#/home'; }
+show();
 </script>
+</body>
+</html>
