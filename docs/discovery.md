@@ -61,9 +61,27 @@ Rule: per AGENTS.md 1.4, every source needs its terms of service and
 robots.txt read **before the first data fetch**, and the conclusion recorded
 here. Ambiguous terms = prohibited.
 
+Research method note: this session's network egress policy blocked all
+direct page fetches (403 for every host, including a control fetch), so the
+verdicts below rest on search-engine reads of the named policy pages, not
+verbatim first-hand reads. **Before the first data fetch, re-read the
+primary source's terms verbatim from an unblocked environment and confirm
+the verdicts below.** No sports data was fetched during research.
+
 | Source | Access | Cost | Terms verdict | Decision |
 |---|---|---|---|---|
-| (pending research) | | | | |
+| API-Sports Rugby (api-sports.io) | REST/JSON API: games, results, standings for Rugby Championship, World Cup, internationals | Free 100 req/day (limited seasons); Pro $19/mo | Allowed with conditions — API access is the product; stay within rate limits; free-plan scope is mutable | **Build — primary source.** Confirm current season is on the free plan and re-read terms verbatim before first fetch |
+| Wikipedia (MediaWiki API) | Action/REST API over team + competition articles | Free | Allowed with conditions — polite serial reads, descriptive User-Agent, CC BY-SA 4.0 attribution with link to source article | **Build — cross-check + fallback.** Not primary: hand-edited wikitext tables are fragile to parse |
+| Wikidata | SPARQL / dumps | Free | Allowed — CC0 | Optional for team/competition entities; match-level data too sparse to rely on |
+| TheSportsDB | JSON API (Rugby Championship league 4986 etc.) | Free–$9/mo | Allowed with conditions — must credit as source; paid key for production/app-store | **Defer — runner-up** if API-Sports free plan proves insufficient; community-maintained results less dependable |
+| Sportradar / Stats Perform / Goalserve | Licensed enterprise feeds | ~$550–$10,000+/mo | Allowed but enterprise contracts | **Reject — economically prohibitive** for this project |
+| springboks.rugby / sarugby.co.za (scrape) | HTML scraping | Free | **Ambiguous → prohibited** — terms/robots unreadable from this environment; snippets suggest content-reuse restrictions | Not used unless a future verbatim terms read clears it |
+| world.rugby (scrape) | HTML scraping | Free | **Ambiguous → prohibited** — terms unreadable; sister site reportedly bans automated collection | Not used |
+| supersport.com (scrape) | HTML scraping | Free | **Ambiguous → prohibited** — nothing verified either way | Not used |
+| espn.co.uk / espn.com (scrape) | HTML scraping | Free | **Prohibited (leaning explicit)** — Disney/ESPN ToU reportedly ban robots/scrapers without written permission | Not used |
+
+Standing rule from these verdicts: the product is built on **APIs and
+licensed-open data only**; no HTML scraping of rugby sites is in scope.
 
 ## Feedback loop (UAT)
 
