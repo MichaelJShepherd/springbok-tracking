@@ -130,7 +130,7 @@ Guardian says".
 | Events list | Game detail, Timeline (J4/J5) | Single source of truth per PRD D7; rendered plain on detail, plotted on an axis on timeline |
 | Timeline axis + mood curve overlay | Timeline (J5) | Axis renders events immediately; mood curve is a deferred overlay (never blocks event paint, PRD §2.4). Bucket labels come from D2's closed five-label vocabulary (Despair / Grumbling / Mixed / Upbeat / Euphoric); Guardian-fallback matches render ONE whole-match point, not a curve; threads under 25 comments render "too little discussion to score" |
 | Sources-differ badge | Game detail (J4) | Small inline badge next to the disputed field, links both source values (D14) — never silently picks one visually without the badge |
-| Attribution footer | Game detail, History (J3/J4) | CC BY-SA + exact article link + "modified: parsed and normalised from wikitext" (D26); History carries one site-level footer, detail carries one per page |
+| Attribution footer | Home, Game detail, History (J0/J3/J4) | CC BY-SA + exact article link + "modified: parsed and normalised from wikitext" (D26); Home and History each carry one site-level footer (Home's per journeys.md J0 also links /method), detail carries one per page |
 
 ## 3. Mobile-first
 
