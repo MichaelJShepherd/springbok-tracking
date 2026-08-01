@@ -167,7 +167,32 @@ implementation do not pass. The reviewer checks that tests:
 If any gate fails, fix and re-run **all** gates that the fix could have
 invalidated before merging.
 
-## 5. Project state
+## 5. Choosing a model for sub-agents
+
+Dispatching a sub-agent costs tokens; the model must fit the task. The rule:
+**use the cheapest model that does the job well**, and don't spawn an agent
+at all for something the current session can do with one or two tool calls.
+
+| Task type | Model |
+|---|---|
+| Mechanical, well-specified work: bulk renames/moves, formatting, running commands and reporting output, simple targeted lookups | Haiku (e.g. `haiku`) |
+| The default workhorse: feature implementation, web/codebase research, drafting docs, summarising, most fan-out work | Sonnet (e.g. `sonnet`) |
+| Heavy judgment: architecture and planning, gnarly debugging, security-sensitive review, cross-cutting design | Opus (e.g. `opus`) |
+| Top tier (Fable/Mythos class) | Only when a cheaper model has demonstrably failed at the task, or the task is the hardest kind of cross-cutting reasoning. Justify it on the task. |
+
+Supporting rules:
+
+- Review agents (gates 2 and 3) need a **fresh context**, not necessarily a
+  bigger model. Sonnet reviews small diffs and short docs fine; step up to
+  Opus when the diff is large, subtle, or security-relevant.
+- Fan-outs multiply cost: ten Sonnet agents cost more than one Opus agent.
+  Size the fan-out and the model together.
+- Match reasoning effort to the task where the dispatch mechanism allows it
+  (low for mechanical stages, high only for the hardest verify/judge steps).
+- When in doubt between two tiers, take the cheaper one and escalate only if
+  its output fails review.
+
+## 6. Project state
 
 - **Code:** none yet — this repo currently holds only its agent setup.
 - **Stack:** not yet decided. When it is, record the decision and the local
