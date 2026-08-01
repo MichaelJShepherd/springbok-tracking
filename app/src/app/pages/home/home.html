@@ -1,0 +1,18 @@
+<section class="hero">
+  <h1>Springbok Tracking</h1>
+  <p class="tagline">Every Springbok test, tracked from the record — not from memory.</p>
+
+  <div class="matches-count" data-testid="matches-count">
+    @switch (state()) {
+      @case ('loading') {
+        <p class="state-loading">Loading seeded matches…</p>
+      }
+      @case ('error') {
+        <p class="state-failed">⚠ Matches count temporarily unavailable — is local Supabase running?</p>
+      }
+      @case ('loaded') {
+        <p class="count">{{ matchesCount() }} match{{ matchesCount() === 1 ? '' : 'es' }} in the local database</p>
+      }
+    }
+  </div>
+</section>

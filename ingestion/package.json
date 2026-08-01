@@ -1,0 +1,27 @@
+{
+  "name": "springbok-tracking-ingestion",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local ingestion scripts for Springbok Tracking (docs/prd.md §3). Run via npm, write to local Supabase with the service-role key. No live fetching yet — see AGENTS.md 1.4 and task #73.",
+  "type": "module",
+  "scripts": {
+    "ingest:backfill": "tsx src/scripts/backfill.ts",
+    "ingest:refresh": "tsx src/scripts/refresh.ts",
+    "ingest:fixtures": "tsx src/scripts/fixtures.ts",
+    "ingest:sentiment": "tsx src/scripts/sentiment.ts",
+    "test": "vitest run",
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.38.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.111.0"
+  }
+}

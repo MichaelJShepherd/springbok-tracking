@@ -1,0 +1,21 @@
+{
+  "name": "springbok-tracking",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Root wrapper scripts for the Springbok Tracking local skeleton (task #73). See AGENTS.md §7 for the full local command reference.",
+  "scripts": {
+    "install:all": "npm install --prefix app && npm install --prefix ingestion",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "app:serve": "npm run start --prefix app",
+    "app:build": "npm run build --prefix app",
+    "app:test": "npm run test --prefix app",
+    "app:lint": "npm run lint --prefix app",
+    "ingestion:test": "npm run test --prefix ingestion",
+    "ingestion:lint": "npm run lint --prefix ingestion",
+    "test": "npm run app:test && npm run ingestion:test",
+    "lint": "npm run app:lint && npm run ingestion:lint",
+    "build": "npm run app:build"
+  }
+}
