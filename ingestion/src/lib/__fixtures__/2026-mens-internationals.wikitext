@@ -1,0 +1,111 @@
+== July ==
+{{rugbybox
+|date = 20 June 2026
+|time = 12:00 [[South African Standard Time|SAST]] ([[UTC+2]])
+|team1 = {{ruA-rt|RSA}}
+|score = 40–0
+|team2 = {{ru|ZIM}}
+|stadium = [[Nelson Mandela Bay Stadium]], [[Gqeberha]]<ref name="Springboks A v Zimbabwe">{{Cite web |title=SA 'A' to face Zimbabwe |url=https://example.com/x |access-date=15 April 2026 |website=SA Rugby}}</ref>
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 11 July 2026
+|time = 15:00 [[Central Africa Time|CAT]] ([[UTC+02]])
+|team1 = {{ru-rt|NAM}}
+|score = 47–50
+|team2 = {{flagicon|RSA}} [[Bulls (rugby union)|Blue Bulls]]
+|stadium = [[Hage Geingob Rugby Stadium]], [[Windhoek]]
+|attendance =
+|referee =
+}}
+----
+{{Rugbybox
+|date = 18 July 2026
+|time = 15:00
+|home = {{Ru-rt|RSA}}
+|score = 43–0
+|away = {{Ru|WAL}}
+|stadium = [[Kings Park Stadium]], [[Durban]]
+|attendance = 40,299
+|referee = [[Andrew Brace]] ([[Irish Rugby Football Union|Ireland]])
+}}
+
+== August ==
+{{rugbybox
+|date = 8 August 2026
+|time = 16:00 [[Time in Argentina|ART]] ([[UTC-03]])
+|team1 = {{ru-rt|ARG}}
+|score =
+|team2 = {{ru|RSA}}
+|stadium = [[José Amalfitani Stadium]], [[Buenos Aires]]<ref name="Argentina">{{cite web|url=https://example.com/pumas|title=Los Pumas' headquarters}}</ref>
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 22 August 2026
+|time = 17:05 [[South African Standard Time|SAST]] ([[UTC+2]])
+|team1 = {{ru-rt|RSA}}
+|score =
+|team2 = {{ru|NZL}}
+|stadium = [[Ellis Park Stadium]], [[Johannesburg]]<ref name="Springboks v All Blacks">{{cite web|url=https://example.com/rivalry|title=Rugby's Greatest Rivalry Announced}}</ref>
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 5 September 2026
+|time = TBC [[South African Standard Time|SAST]] ([[UTC+2]])
+|team1 = {{ru-rt|RSA}}
+|score =
+|team2 = {{ru|NZL}}
+|stadium = TBC
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 12 September 2026
+|time =
+|team1 = {{ru-rt|RSA}}
+|score = Postponed
+|team2 = {{ru|NZL}}
+|stadium = [[M&T Bank Stadium]], [[Baltimore]]
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 27 September 2026
+|time =
+|team1 = {{ru-rt|RSA}}
+|score = Cancelled
+|team2 = {{ru|NZL}}
+|stadium = [[Perth Stadium]], [[Perth]]
+|attendance =
+|referee =
+}}
+----
+{{rugbybox
+|date = 3 October 2026
+|time = 15:00
+|team1 = {{ru-rt|RSA}}
+|score =
+|team2 = Some Unrecognised Touring Side With No Markup
+|stadium = [[DHL Stadium]], [[Cape Town]]
+|attendance =
+|referee =
+}}
+----
+{{Rugbybox
+|date = 10 October 2026
+|time = 19:10 [[Time in New Zealand|NZDT]] ([[UTC+13]])
+|team1 = {{ru-rt|NZL}}
+|score =
+|team2 = {{ru|AUS}}
+|stadium = [[Eden Park]], [[Auckland]]
+|attendance =
+|referee =
+}}
