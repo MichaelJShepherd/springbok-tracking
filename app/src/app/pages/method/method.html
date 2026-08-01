@@ -1,2 +1,96 @@
-<h1>Method</h1>
-<p>Placeholder — sourcing and derived-facts explainer (PRD §2.5) lands in a later slice.</p>
+<section class="method" data-testid="method-page">
+  <h1>How this site works</h1>
+  <p class="lede">
+    Every fact links to where it came from. Two bounded exceptions exist, and this page is their
+    explanation.
+  </p>
+
+  <h2>Match facts</h2>
+  <div class="card">
+    <p class="note">
+      Scores, lineups, referees and scoring events are parsed from Wikipedia articles (<a
+        href="https://creativecommons.org/licenses/by-sa/4.0/"
+        target="_blank"
+        rel="noopener"
+        >CC BY-SA 4.0</a
+      >) — each match-detail page footer links the exact source article and notes that the data
+      was "parsed and normalised from wikitext". Where the historical record is thin we say "not
+      recorded" rather than guessing (principle 6: no invented facts).
+    </p>
+    <p class="note">
+      Future fixtures come via API-Sports. There is no public per-record page for an API fact, so
+      the "viewable source" is a provenance note instead: the named source and the fetch
+      timestamp, e.g. "Fixtures via API-Sports, fetched 2026-08-01".
+    </p>
+  </div>
+
+  <h2>Sources that disagree</h2>
+  <div class="card">
+    <p class="note">
+      When two display-cleared sources disagree on a fact, both values are stored and the
+      precedent value is shown with a "sources differ" badge linking both — never silently picked.
+      Kaggle is logged as a cross-check only until its licence clears, and is never displayed.
+    </p>
+  </div>
+
+  <h2>The two exceptions to "every fact is sourced"</h2>
+  <div class="card">
+    <p class="note">
+      <strong>Derived facts</strong> — values this site computes itself (sentiment scores). They
+      carry a distinct "computed" badge plus a pair of links: a method link (this page) and a
+      source link (the thread or articles it was computed from). Inference is allowed only inside
+      this badged class, never in match facts.
+    </p>
+    <p class="note">
+      <strong>API-provided facts</strong> — fixtures with no public per-record page to link. Their
+      "viewable source" is the provenance note described above: named source + fetch timestamp.
+    </p>
+  </div>
+
+  <h2>Fan mood (computed)</h2>
+  <div class="card">
+    <p class="note">
+      Mood scores are computed by this site with a public sentiment lexicon, scored over
+      r/rugbyunion match-thread comments where a thread exists, or news headlines where it doesn't.
+      Scores map to a closed five-label vocabulary:
+    </p>
+    <ul class="vocab" data-testid="vocabulary">
+      <li><strong>Despair</strong> — score in [-1, -0.6)</li>
+      <li><strong>Grumbling</strong> — score in [-0.6, -0.2)</li>
+      <li><strong>Mixed</strong> — score in [-0.2, 0.2]</li>
+      <li><strong>Upbeat</strong> — score in (0.2, 0.6]</li>
+      <li><strong>Euphoric</strong> — score in (0.6, 1]</li>
+    </ul>
+    <p class="note">
+      <strong>Minimum volume:</strong> fewer than 25 comments (Reddit) or 5 articles (Guardian)
+      renders "too little discussion to score" instead of a number — a thin thread is not enough
+      evidence for an inference.
+    </p>
+    <p class="note">
+      Mood is our inference, never the source's own words — that's why it always carries the
+      "computed" badge and is phrased as "computed by this site from X", never "Reddit says" or
+      "the Guardian says".
+    </p>
+    <p class="note">
+      Sentiment is explicitly a modern-era feature: older matches predate any mood source and show
+      an honest "no sentiment sources for this era" note on the timeline instead of a padded
+      guess.
+    </p>
+  </div>
+
+  <h2>Attribution</h2>
+  <div class="card">
+    <p class="note">
+      Wikipedia-derived match data is carried and displayed under
+      <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
+        >CC BY-SA 4.0</a
+      >
+      with per-page attribution: the exact source article link, the licence link, and a note that
+      it was modified (parsed and normalised from wikitext). The history list page carries one
+      site-level attribution to the source list article. This site offers no bulk data download,
+      which keeps the licence question contained to what pages display.
+    </p>
+  </div>
+
+  <p><a class="plain" routerLink="/">&larr; Home</a></p>
+</section>

@@ -1,2 +1,145 @@
-<h1>Match timeline</h1>
-<p>Placeholder — events + sentiment timeline (PRD §2.4) lands in a later slice.</p>
+@switch (state()) {
+  @case ('loading') {
+    <p class="state-loading" data-testid="timeline-loading">Loading…</p>
+  }
+  @case ('error') {
+    <p class="state-failed" data-testid="timeline-error">
+      &#9888; Match timeline temporarily unavailable — is local Supabase running?
+    </p>
+  }
+  @case ('not_found') {
+    <p class="state-failed" data-testid="timeline-not-found">Match not found.</p>
+  }
+  @case ('loaded') {
+    @if (match(); as m) {
+      <section class="timeline" data-testid="match-timeline">
+        <h1>Match timeline</h1>
+        <p class="lede">
+          South Africa {{ m.springboks_score }}&ndash;{{ m.opponent_score }} {{ opponentName(m) }} &middot;
+          {{ m.match_date }}
+        </p>
+
+        <h2>Events</h2>
+        <div class="card">
+          @if (hasTimedAxis()) {
+            <div class="axis-wrap" data-testid="events-axis">
+              <div class="axis-line">
+                @for (e of timedEvents(); track e.sequence_no) {
+                  <div class="axis-marker" [style.left.%]="((e.minute ?? 0) / maxMinute()) * 100">
+                    <div class="label">{{ e.minute }}'</div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (sortedEvents().length) {
+            <ul class="events-list" data-testid="events-strip">
+              @for (e of sortedEvents(); track e.sequence_no) {
+                <li>
+                  @if (isTimed(e)) {
+                    <span class="min" data-testid="event-clock">{{ e.minute }}'</span>
+                  }
+                  <span>
+                    {{ eventTypeLabel(e.event_type) }} &mdash; {{ e.description || 'not recorded' }}
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="note" data-testid="events-empty">No scoring events recorded for this match.</p>
+          }
+        </div>
+
+        <h2>Fan mood</h2>
+        <div class="card" data-testid="mood-card">
+          @switch (sentimentState()) {
+            @case ('loading') {
+              <p class="note" data-testid="mood-loading">Loading mood&hellip;</p>
+            }
+            @case ('error') {
+              <p class="note state-failed" data-testid="mood-error">
+                &#9888; Fan mood temporarily unavailable &mdash; events above are unaffected.
+              </p>
+            }
+            @case ('loaded') {
+              @if (noSentimentSources()) {
+                <p class="note" data-testid="mood-no-sources">No sentiment sources for this era.</p>
+              } @else if (tooFew()) {
+                <div data-testid="mood-too-few">
+                  <div class="badge computed">
+                    <span class="dot"></span> computed
+                  </div>
+                  <p class="note">{{ sentimentBadgeText() }}</p>
+                  <p class="note">
+                    Too little discussion to score
+                    @if (tooFewSample() !== null) {
+                      &mdash; {{ tooFewSample() }} recorded
+                    }. Events above still tell the story.
+                  </p>
+                </div>
+              } @else if (isSinglePoint()) {
+                <div data-testid="mood-single-point">
+                  <div class="badge computed">
+                    <span class="dot"></span> computed
+                  </div>
+                  <p class="note">{{ sentimentBadgeText() }}</p>
+                  @if (singlePoint(); as p) {
+                    <p class="mood-single" [class]="p.label ? p.label.toLowerCase() : ''">
+                      {{ p.label }}
+                    </p>
+                  }
+                  <p class="method-link">
+                    <a routerLink="/method">Method</a>
+                    @if (sentimentSourceUrl(); as url) {
+                      &middot; <a [href]="url" target="_blank" rel="noopener">Source</a>
+                    }
+                  </p>
+                </div>
+              } @else {
+                <div data-testid="mood-curve">
+                  <div class="badge computed">
+                    <span class="dot"></span> computed
+                  </div>
+                  <p class="note">{{ sentimentBadgeText() }}</p>
+                  <svg class="curve-svg" [attr.viewBox]="curveViewBox" preserveAspectRatio="xMidYMid meet">
+                    <line
+                      [attr.x1]="curveLeft"
+                      [attr.y1]="curveMidY"
+                      [attr.x2]="curveRight"
+                      [attr.y2]="curveMidY"
+                      stroke="var(--c-ink-700)"
+                      stroke-dasharray="2,3"
+                    />
+                    <polyline [attr.points]="curvePolyline()" fill="none" stroke="var(--c-gold-500)" stroke-width="2" />
+                    @for (p of curvePoints(); track p.label) {
+                      <circle
+                        [attr.cx]="p.x"
+                        [attr.cy]="p.y"
+                        r="5"
+                        [attr.fill]="'var(--c-mood-' + p.colorClass + ')'"
+                      />
+                    }
+                  </svg>
+                  <div class="curve-labels">
+                    @for (p of curvePoints(); track p.label) {
+                      <div class="curve-label" data-testid="mood-label">{{ p.label }}: {{ p.moodLabel }}</div>
+                    }
+                  </div>
+                  <p class="method-link">
+                    <a routerLink="/method">Method</a>
+                    @if (sentimentSourceUrl(); as url) {
+                      &middot; <a [href]="url" target="_blank" rel="noopener">Source</a>
+                    }
+                  </p>
+                </div>
+              }
+            }
+          }
+        </div>
+
+        <p><a class="plain" [routerLink]="['/match', m.match_id]">&larr; Back to game detail</a></p>
+      </section>
+    }
+  }
+}
