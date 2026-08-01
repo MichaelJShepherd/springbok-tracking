@@ -1,0 +1,159 @@
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.tagline {
+  color: var(--c-ink-300);
+}
+
+.state-loading {
+  color: var(--c-state-loading);
+}
+
+.state-failed {
+  color: var(--c-state-failed);
+}
+
+.note {
+  color: var(--c-ink-300);
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.chips {
+  display: flex;
+  gap: var(--sp-2);
+  overflow-x: auto;
+  padding-bottom: var(--sp-1);
+}
+
+.chip {
+  flex: 0 0 auto;
+  font: inherit;
+  font-size: var(--fs-100);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 999px;
+  border: 1px solid var(--c-ink-700);
+  background: transparent;
+  color: var(--c-ink-300);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chip.selected {
+  border-color: var(--c-gold-500);
+  color: var(--c-gold-400);
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-200);
+}
+
+.history-table th,
+.history-table td {
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--c-ink-700);
+}
+
+.history-table th {
+  color: var(--c-ink-300);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: var(--fs-100);
+}
+
+.row-link {
+  cursor: pointer;
+}
+
+.row-link:hover {
+  background: var(--c-ink-900);
+}
+
+.wld {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: var(--fs-100);
+  color: var(--c-ink-950);
+}
+
+.wld.win {
+  background: var(--c-win);
+}
+
+.wld.loss {
+  background: var(--c-loss);
+}
+
+.wld.draw {
+  background: var(--c-draw);
+}
+
+.field-absent {
+  color: var(--c-state-absent);
+  font-style: italic;
+}
+
+.footer-attrib {
+  color: var(--c-ink-500);
+  font-size: var(--fs-100);
+  border-top: 1px solid var(--c-ink-700);
+  padding-top: var(--sp-3);
+}
+
+/* Mobile collapse (docs/design.md §3.1): below 720px the dense table
+   becomes a stacked card list — nothing scrolls sideways except the one
+   intentional exception, the filter chip rows above. */
+@media (max-width: 719px) {
+  .history-table thead {
+    display: none;
+  }
+
+  .history-table,
+  .history-table tbody,
+  .history-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .history-table tr {
+    margin-bottom: var(--sp-4);
+    border: 1px solid var(--c-ink-700);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .history-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-2);
+    border-bottom: 1px solid var(--c-ink-800);
+  }
+
+  .history-table tr td:last-child {
+    border-bottom: none;
+  }
+
+  .history-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--c-ink-300);
+    font-size: var(--fs-100);
+  }
+}

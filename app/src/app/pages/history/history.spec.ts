@@ -1,23 +1,211 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { provideRouter } from '@angular/router';
 import { History } from './history';
+import { SupabaseService } from '../../core/supabase.service';
+import {
+  createSupabaseStub,
+  createUnreachableSupabaseStub,
+  QueryMatcher,
+} from '../../shared/testing/supabase-stub';
+import { MatchRow } from '../../shared/match-models';
+
+function match(overrides: Partial<MatchRow>): MatchRow {
+  return {
+    match_id: 'm-1',
+    match_date: '2015-10-24',
+    competition: 'Rugby World Cup Semi-Final',
+    competition_provenance: 'present',
+    venue: 'Twickenham Stadium, London',
+    venue_provenance: 'present',
+    kickoff_time: null,
+    kickoff_time_provenance: 'not_yet_fetched',
+    springboks_score: 18,
+    springboks_score_provenance: 'present',
+    opponent_score: 20,
+    opponent_score_provenance: 'present',
+    result: 'loss',
+    source_article_url: null,
+    teams: { canonical_name: 'New Zealand' },
+    ...overrides,
+  };
+}
+
+function matchesMatcher(rows: MatchRow[]): QueryMatcher {
+  return { table: 'matches', match: () => true, result: { data: rows, error: null } };
+}
+
+async function renderWith(rows: MatchRow[]): Promise<{
+  component: History;
+  fixture: ComponentFixture<History>;
+  html: HTMLElement;
+}> {
+  await TestBed.configureTestingModule({
+    imports: [History],
+    providers: [
+      provideRouter([]),
+      { provide: SupabaseService, useValue: createSupabaseStub([matchesMatcher(rows)]) },
+    ],
+  }).compileComponents();
+
+  const fixture = TestBed.createComponent(History);
+  const component = fixture.componentInstance;
+  fixture.detectChanges();
+  await fixture.whenStable();
+  fixture.detectChanges();
+
+  return { component, fixture, html: fixture.nativeElement as HTMLElement };
+}
+
+function clickChip(html: HTMLElement, label: string): void {
+  const chip = Array.from(html.querySelectorAll<HTMLButtonElement>('.chip')).find(
+    (el) => el.textContent?.trim() === label,
+  );
+  if (!chip) {
+    throw new Error(`No chip found with label "${label}"`);
+  }
+  chip.click();
+}
 
 describe('History', () => {
-  let component: History;
-  let fixture: ComponentFixture<History>;
+  it('renders every D16 provenance state with its own distinct copy, never a blank cell', async () => {
+    const rows = [
+      match({
+        match_id: 'present-row',
+        match_date: '1995-06-24',
+        venue: 'Ellis Park, Johannesburg',
+        venue_provenance: 'present',
+      }),
+      match({
+        match_id: 'absent-row',
+        match_date: '2016-01-01',
+        venue: null,
+        venue_provenance: 'absent_in_source',
+      }),
+      match({
+        match_id: 'loading-row',
+        match_date: '2017-01-01',
+        venue: null,
+        venue_provenance: 'not_yet_fetched',
+      }),
+      match({
+        match_id: 'failed-row',
+        match_date: '2018-01-01',
+        venue: null,
+        venue_provenance: 'fetch_failed',
+      }),
+    ];
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [History]
-    })
-    .compileComponents();
+    const { html } = await renderWith(rows);
 
-    fixture = TestBed.createComponent(History);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    const rowTextFor = (date: string) =>
+      Array.from(html.querySelectorAll('tbody tr')).find((tr) => tr.textContent?.includes(date))
+        ?.textContent ?? '';
+
+    expect(rowTextFor('1995-06-24')).toContain('Ellis Park, Johannesburg');
+    expect(rowTextFor('2016-01-01')).toContain('not recorded');
+    expect(rowTextFor('2018-01-01')).toContain('temporarily unavailable');
+
+    // not_yet_fetched renders a shimmer element with no literal copy — assert
+    // the element exists rather than asserting on absent text.
+    const loadingRow = Array.from(html.querySelectorAll('tbody tr')).find((tr) =>
+      tr.textContent?.includes('2017-01-01'),
+    );
+    expect(loadingRow?.querySelector('.field-loading')).toBeTruthy();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('filters the table by opponent, competition, and era, combined with AND', async () => {
+    const rows = [
+      match({
+        match_id: 'nz-1995',
+        match_date: '1995-06-24',
+        competition: 'Rugby World Cup Final',
+        teams: { canonical_name: 'New Zealand' },
+      }),
+      match({
+        match_id: 'eng-2007',
+        match_date: '2007-10-20',
+        competition: 'Rugby World Cup Final',
+        teams: { canonical_name: 'England' },
+      }),
+      match({
+        match_id: 'nz-2015',
+        match_date: '2015-10-24',
+        competition: 'Rugby World Cup Semi-Final',
+        teams: { canonical_name: 'New Zealand' },
+      }),
+    ];
+
+    const { component, fixture, html } = await renderWith(rows);
+    const rowIds = () => Array.from(html.querySelectorAll('tbody tr')).map((tr) => tr.textContent);
+
+    expect(component.filtered().length).toBe(3);
+
+    clickChip(html, 'New Zealand');
+    fixture.detectChanges();
+    expect(component.filtered().map((m) => m.match_id).sort()).toEqual(['nz-1995', 'nz-2015']);
+    expect(rowIds().length).toBe(2);
+
+    clickChip(html, 'Rugby World Cup Final');
+    fixture.detectChanges();
+    expect(component.filtered().map((m) => m.match_id)).toEqual(['nz-1995']);
+
+    // Toggling the same opponent chip again clears that filter, leaving only
+    // the competition filter applied.
+    clickChip(html, 'New Zealand');
+    fixture.detectChanges();
+    expect(component.filtered().map((m) => m.match_id).sort()).toEqual(['eng-2007', 'nz-1995']);
+  });
+
+  it('shows an honest empty state when the filters exclude every match', async () => {
+    const rows = [
+      match({
+        match_id: 'nz-1995',
+        match_date: '1995-06-24',
+        teams: { canonical_name: 'New Zealand' },
+      }),
+      match({
+        match_id: 'eng-2007',
+        match_date: '2007-10-20',
+        teams: { canonical_name: 'England' },
+      }),
+    ];
+
+    const { fixture, html } = await renderWith(rows);
+
+    expect(html.querySelector('[data-testid="history-empty"]')).toBeNull();
+
+    // New Zealand only played in the 1990s row above, so combining it with
+    // the 2000s era chip must AND down to zero matches, not silently OR them.
+    clickChip(html, 'New Zealand');
+    fixture.detectChanges();
+    clickChip(html, '2000s');
+    fixture.detectChanges();
+
+    expect(html.querySelector('[data-testid="history-table"]')).toBeNull();
+    expect(html.querySelector('[data-testid="history-empty"]')?.textContent).toContain(
+      'No matches found',
+    );
+  });
+
+  it('renders an honest error state instead of throwing when Supabase is unreachable', async () => {
+    await TestBed.configureTestingModule({
+      imports: [History],
+      providers: [
+        provideRouter([]),
+        { provide: SupabaseService, useValue: createUnreachableSupabaseStub() },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(History);
+    const component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(component.state()).toBe('error');
+    const html = fixture.nativeElement as HTMLElement;
+    expect(html.querySelector('[data-testid="history-error"]')?.textContent).toContain(
+      'temporarily unavailable',
+    );
   });
 });

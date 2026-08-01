@@ -1,0 +1,20 @@
+@switch (provenance()) {
+  @case ('present') {
+    <span class="field-present">{{ value() }}</span>
+  }
+  @case ('absent_in_source') {
+    <span class="field-absent">not recorded</span>
+  }
+  @case ('not_yet_fetched') {
+    <span class="field-loading" aria-label="loading"></span>
+  }
+  @case ('fetch_failed') {
+    <span class="field-failed">&#9888; temporarily unavailable</span>
+  }
+  @default {
+    <!-- Defensive only: the DB CHECK constraint enforces one of the four
+         states above, so this never renders today. If it ever loosens,
+         fail honestly rather than silently blank. -->
+    <span class="field-failed">&#9888; temporarily unavailable</span>
+  }
+}
