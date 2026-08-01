@@ -192,7 +192,11 @@ function cardsFromRow(row: string, side: 'home' | 'away'): CardEvent[] {
   const cards: CardEvent[] = [];
   const nameMatch = /'''\d{1,2}'''\s*\|\|\s*\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/.exec(row);
   if (!nameMatch) return cards;
-  const playerName = (nameMatch[2] ?? nameMatch[1]).replace(/\s*\([^)]*\)\s*$/, '').trim();
+  // No trailing-parenthetical strip needed here: the capture groups are bounded by `]`,
+  // so a captaincy/annotation marker living in its own separate `[[...]]` (the real
+  // Wikipedia convention — see e.g. "[[Siya Kolisi]] ([[Captain (sports)|c]])") is
+  // never part of this match in the first place. Confirmed against both fixtures.
+  const playerName = (nameMatch[2] ?? nameMatch[1]).trim();
 
   let m: RegExpExecArray | null;
   CARD_MINUTE_RE.lastIndex = 0;
@@ -220,7 +224,9 @@ function parseLineupTable(tableBody: string, side: 'home' | 'away'): LineupTable
     const rowMatch = /'''(\d{1,2})'''\s*\|\|\s*\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/.exec(row);
     if (rowMatch) {
       const shirtNumber = Number(rowMatch[1]);
-      const playerName = (rowMatch[3] ?? rowMatch[2]).replace(/\s*\([^)]*\)\s*$/, '').trim();
+      // See cardsFromRow's comment above: no strip is needed, the capture is already
+      // bounded to inside the player's own `[[...]]`.
+      const playerName = (rowMatch[3] ?? rowMatch[2]).trim();
       players.push({ shirtNumber, playerName });
     }
     cards.push(...cardsFromRow(row, side));
