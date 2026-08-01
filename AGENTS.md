@@ -296,11 +296,57 @@ page now actually says something. #74
 
 ## 7. Project state
 
-- **Code:** none yet — this repo currently holds only its agent setup.
-- **Stack:** not yet decided. When it is, record the decision and the local
-  build/test/lint commands here so every future agent inherits them.
+- **Code:** local walking skeleton (#73) — Angular app, local Supabase
+  schema, ingestion stubs, all wired end to end.
+- **Stack (decided, #66/#73):**
+  - `app/` — Angular 20 SPA (standalone components, `@angular/build`),
+    talking only to local Supabase via `@supabase/supabase-js` with the
+    public local anon key (PRD D18/D19). Routes: `/`, `/history`,
+    `/match/:id`, `/match/:id/timeline`, `/method`.
+  - `supabase/` — local Supabase project (Postgres + PostgREST). One
+    append-only migration in `supabase/migrations/` implements PRD §3's
+    schema (`teams`, `matches`, `match_officials`, `match_lineups`,
+    `match_events`, `fixtures_upstream`, `sentiment_scores`,
+    `source_snapshots`, `ingestion_runs`) with D16 provenance columns
+    (text + CHECK: `present` / `absent_in_source` / `not_yet_fetched` /
+    `fetch_failed`). RLS: public (`anon`) read on display tables only, via
+    both a `for select` policy and the matching `GRANT SELECT` (recent
+    Supabase CLI versions no longer auto-expose new tables to API roles —
+    the grant is required in addition to the policy). No anon writes
+    anywhere. `supabase/seed.sql` seeds 3 real, documented matches (1995 and
+    2007 RWC finals, 2015 RWC semi-final) for the skeleton proof.
+  - `ingestion/` — plain TypeScript (`tsx` + `vitest`), no framework. The
+    four `npm run ingest:*` scripts are stubs only in this task (print the
+    plan, exit 0, no network calls) per rule 1.4 — real fetching is a later
+    task.
+  - Tests: Angular's experimental `@angular/build:unit-test` builder with
+    the `vitest` runner and jsdom (no Chrome/Karma dependency — this
+    machine's Chrome is the user's real browser, not a disposable test
+    runner). Ingestion tests run directly under `vitest`.
+- **Local commands** (run from the repo root unless noted):
+  - Install everything: `npm run install:all` (or `npm install --prefix app`
+    / `npm install --prefix ingestion` individually).
+  - Start/stop local Supabase: `npm run db:start` / `npm run db:stop`
+    (wraps `supabase start` / `supabase stop`). First run pulls Docker
+    images and is slow; subsequent runs are fast.
+  - Reset the DB (re-applies migrations + seed): `npm run db:reset`
+    (wraps `supabase db reset`).
+  - Serve the app: `npm run app:serve` (`ng serve`, http://localhost:4200).
+  - Build the app: `npm run app:build` / `npm run build` (`ng build`,
+    output in `app/dist/app`).
+  - Tests: `npm test` (app + ingestion) or `npm run app:test` /
+    `npm run ingestion:test` individually.
+  - Lint: `npm run lint` (app + ingestion) or `npm run app:lint` /
+    `npm run ingestion:lint` individually.
+  - Ingestion stubs: `npm run ingest:backfill` / `ingest:refresh` /
+    `ingest:fixtures` / `ingest:sentiment` (run inside `ingestion/`, or via
+    `npm run ingest:<name> --prefix ingestion` from the root).
+  - Local Supabase defaults: API `http://127.0.0.1:54321`, DB port `54322`,
+    anon key is the standard Supabase-CLI local-dev default (same on every
+    machine — see the comment in `app/src/environments/environment.ts`).
 - **Deployment:** merge to `main` will auto-deploy (see section 3), but the
-  pipeline is not wired up yet. Record the deploy target and how to check a
-  deployment's health here once it exists.
+  pipeline is not wired up yet — this task is local-only (PRD D22). Record
+  the deploy target and how to check a deployment's health here once it
+  exists.
 - **Keeping this file alive:** when a convention changes or a new one is
   adopted, update AGENTS.md in the same commit as the change it describes.

@@ -1,0 +1,12 @@
+<header class="app-header">
+  <a class="app-brand" routerLink="/">Springbok Tracking</a>
+  <nav class="app-nav">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a routerLink="/history" routerLinkActive="active">History</a>
+    <a routerLink="/method" routerLinkActive="active">Method</a>
+  </nav>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>

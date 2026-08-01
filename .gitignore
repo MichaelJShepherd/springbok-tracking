@@ -13,3 +13,14 @@
 Thumbs.db
 .idea/
 .vscode/
+
+# Node / Angular / ingestion build output (task #73)
+node_modules/
+dist/
+.angular/
+*.tsbuildinfo
+
+# Supabase local temp files (task #73)
+supabase/.temp/
+supabase/.branches/
+.env.local
