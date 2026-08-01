@@ -113,11 +113,15 @@
         </div>
       }
 
-      <!-- Site-level attribution footer (PRD D26/D31, journeys.md J0). Kept
-           as a duplicate of History's footer markup rather than extracted
-           into a shared component: two lines of markup, and a shared
-           component would add a file + selector + two import sites for less
-           code than it removes (AGENTS.md 1.3 simplicity-first). -->
+      <!-- Site-level attribution footer (PRD D26/D31, journeys.md J0). This
+           duplicates the ~15-line footer template and the .footer-attrib
+           CSS rule already repeated verbatim in history.css and
+           match-detail.css (now three byte-identical copies). Left
+           duplicated for now per AGENTS.md 1.3 (simplicity first; no
+           shared component yet exists to extract into without inventing
+           one). Extraction trigger: if a 4th consumer needs this footer,
+           extract a shared component/partial instead of copying a fourth
+           time. -->
       <footer class="footer-attrib" data-testid="home-footer">
         Match list adapted from
         <a
