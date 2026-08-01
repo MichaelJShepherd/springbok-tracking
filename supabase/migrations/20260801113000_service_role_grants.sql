@@ -15,8 +15,10 @@ grant usage, select
   on all sequences in schema public
   to service_role;
 
-alter default privileges in schema public
+-- Explicit grantor: migrations run as postgres; without FOR ROLE the
+-- default-privilege scope would silently depend on the runner's identity.
+alter default privileges for role postgres in schema public
   grant select, insert, update, delete on tables to service_role;
 
-alter default privileges in schema public
+alter default privileges for role postgres in schema public
   grant usage, select on sequences to service_role;
