@@ -1,0 +1,25 @@
+{
+  "response": {
+    "status": "ok",
+    "results": [
+      {
+        "webTitle": "Springboks brilliant in dominant win over synthetic test opponents",
+        "webUrl": "https://example-guardian-fixture.test/article-1",
+        "webPublicationDate": "2026-07-01T20:00:00Z",
+        "fields": { "standfirst": "A clinical, superb performance sealed a famous victory" }
+      },
+      {
+        "webTitle": "Fans proud despite nervy finish",
+        "webUrl": "https://example-guardian-fixture.test/article-2",
+        "webPublicationDate": "2026-07-01T21:00:00Z",
+        "fields": { "standfirst": "A gritty, spirited display in front of a packed house" }
+      },
+      {
+        "webTitle": "Match report: a solid if unspectacular outing",
+        "webUrl": "https://example-guardian-fixture.test/article-3",
+        "webPublicationDate": "2026-07-02T08:00:00Z",
+        "fields": {}
+      }
+    ]
+  }
+}
