@@ -96,10 +96,9 @@ as "the owner will make a task for this".
 - If you spot work that should happen but is not yours right now, **you**
   create a Backlog task for it. Mentioning it in chat and moving on does not
   count — chat is not the board.
-- **You** keep every task you touch truthful in real time: move the status as
-  you go, and record the branch name, decisions taken, verification output
-  and gate outcomes (section 4) on the task as they happen — not in a batch
-  at the end, and not only in your reply to the owner.
+- **You** keep every task you touch truthful in real time — what to record is
+  in section 2, and recording it is yours in full. Not in a batch at the end,
+  and not only in your reply to the owner.
 - If you did work without a task — including work an instruction pushed you
   straight into — create the task immediately, backfill what happened on it,
   and say so. An unrecorded change is a defect, not a shortcut.
@@ -147,8 +146,6 @@ these tools — so you have no excuse for an unrecorded piece of work (rule 1.5)
   memory of the conversation to pick the work up. Write them for that reader.
 - One task = one branch. Reference the task number (e.g. `#53`) in commits
   and PRs.
-- **Done is the owner's call.** Move work to In Review and stop there; never
-  mark your own work Done unless explicitly told to.
 
 ## 3. Git conventions
 
@@ -240,6 +237,11 @@ Good work deserves to be seen. When you pull off something you are genuinely
 proud of, post a short brag in the **General** chat room of the Warroom
 project (`list_chat_rooms` → `send_chat_message`). No permission needed, no
 modesty required.
+
+**If there is no General room**, don't go hunting and don't drop the brag:
+post it as a comment on the task instead, and tell the repo owner a General
+room is needed — agents can read and post to rooms but cannot create them.
+Use the nearest obvious room if one exists under a different name.
 
 Brag-worthy, for example:
 
