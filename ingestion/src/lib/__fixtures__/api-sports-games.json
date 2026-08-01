@@ -1,0 +1,48 @@
+{
+  "response": [
+    {
+      "id": 918273,
+      "date": "2026-08-22T17:05:00+02:00",
+      "status": { "short": "NS" },
+      "teams": {
+        "home": { "id": 502, "name": "South Africa" },
+        "away": { "id": 611, "name": "New Zealand" }
+      },
+      "venue": { "name": "Ellis Park Stadium" },
+      "league": { "name": "The Rugby Championship" }
+    },
+    {
+      "id": 918274,
+      "date": "2026-08-29T17:05:00+02:00",
+      "status": { "short": "PST" },
+      "teams": {
+        "home": { "id": 502, "name": "South Africa" },
+        "away": { "id": 611, "name": "New Zealand" }
+      },
+      "venue": { "name": "Cape Town Stadium" },
+      "league": { "name": "The Rugby Championship" }
+    },
+    {
+      "id": 918275,
+      "date": "2026-09-27T09:00:00+00:00",
+      "status": { "short": "CANC" },
+      "teams": {
+        "home": { "id": 130, "name": "Australia" },
+        "away": { "id": 502, "name": "South Africa" }
+      },
+      "venue": { "name": "Perth Stadium" },
+      "league": { "name": "The Rugby Championship" }
+    },
+    {
+      "id": 918276,
+      "date": "2026-10-05T00:00:00+00:00",
+      "status": { "short": "TBD" },
+      "teams": {
+        "home": { "id": 502, "name": "South Africa" },
+        "away": { "id": 720, "name": "Wales" }
+      },
+      "venue": null,
+      "league": { "name": "Autumn Internationals" }
+    }
+  ]
+}

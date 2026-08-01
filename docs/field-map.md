@@ -83,6 +83,92 @@ article uses (including duplicate codes for the same country — `NZ`/`NZL`,
 uncoded opponents (British & Irish Lions tours) resolved by wikilink text
 instead, with "British Isles" recorded as an alias.
 
+## Fixtures (task #79) — Wikipedia season/tour articles
+
+Discovering "the list article's season links" (PRD D9's original wording)
+turned out not to work literally: a live check of the list article this
+slice actually parses (`List of South Africa rugby union test matches`)
+showed its year sections carry no hatnote or wikilink pointing at any
+current-season fixtures article at all — every year section is just its own
+match templates. `ingestion/src/lib/wiki-season-discovery.ts` instead tries
+a small, documented ladder of Wikipedia rugby-union title patterns for the
+current year and skips (does not error on) any that don't exist:
+
+1. `<year> Nations Championship`
+2. `<year> Rugby Championship`
+3. `<year> men's rugby union internationals`
+4. `<year> end-of-year rugby union internationals`
+5. `<year> mid-year rugby union internationals`
+
+Confirmed live at the time of writing: both (1) and (3) exist for 2026 and
+both carry genuine upcoming Springboks fixtures (blank `score` field, dates
+after the fetch date). (1)'s future rounds are still largely wikitext
+comments (`<!-- round 4 -->` etc — not yet filled in by editors), so in
+practice (3), the "catch-all" internationals-outside-major-tournaments
+article, is where this slice found its real upcoming fixtures.
+
+### Template shape
+
+Distinct from the list article's `{{#invoke:rugby box collapsible|main}}`
+templates: season/tour articles use a plain `{{rugbybox}}` / `{{Rugbybox}}`
+template (marker case varies even within one page), same field vocabulary
+otherwise (`date`, `time`, `home`/`away` or `team1`/`team2`, `score`,
+`stadium`, `referee`, `try1`/`con1`/... scorer fields). `ingestion/src/lib/
+wiki-fixtures-parser.ts` reuses wiki-list-parser's field-parsing and
+team-resolution helpers rather than re-implementing them.
+
+### What makes a block a fixture (not a played match)
+
+- `score` is blank, or a placeholder the source uses in place of a result
+  (`Postponed`, `Cancelled`) — a clean `NN–NN` value means the match has
+  already been played and belongs to `ingest:backfill`/`ingest:refresh`
+  instead; this script silently excludes it (not an error).
+- Exactly one side must resolve to South Africa (checked via the same
+  coded-template resolution the list parser uses) — pages like "20XX men's
+  rugby union internationals" carry hundreds of other countries' fixtures
+  in the same table shape, all correctly excluded.
+- A-team (`ruA-rt`/`ruA`) and club-side (`{{flagicon|...}}` + a club
+  wikilink) fixtures are excluded the same way: neither of those template
+  forms resolves to the senior national team's code, so neither side
+  matches "South Africa" and the block is skipped.
+
+### Status (D8/#75 gate finding — postponed vs TBD vs cancelled)
+
+`fixtures_upstream.status` (migration
+`20260801140000_fixtures_upstream_status_and_source.sql`) is one of
+`scheduled` / `postponed` / `tbd` / `cancelled`:
+
+- `score` containing "cancel"/"postpone" (case-insensitive) → `cancelled` /
+  `postponed`.
+- Otherwise, a genuinely unknown kickoff time or venue (the source's own
+  `TBC`/`TBD` placeholder, or a blank stadium field) → `tbd`.
+- Otherwise → `scheduled` (the common case — date, kickoff and venue all
+  known).
+
+### Licence separation (D15) and source tracking
+
+The same migration adds `source` (`'wikipedia'` / `'api-sports'`) and
+`source_article_url` (populated for Wikipedia rows only) so `fixtures_upstream`
+can hold both sources side by side without becoming indistinguishable, and
+a `unique (match_date, opponent_team_id, source)` constraint so repeated
+`ingest:fixtures` runs upsert instead of duplicating (there is no natural
+key for a Wikipedia-sourced row the way `api_sports_fixture_id` is one for
+an API-Sports row). When both sources carry a row for the same fixture, the
+API-Sports row wins per D14 and the Wikipedia row for that fixture is
+dropped rather than written twice.
+
+### API-Sports (D9 primary, currently OFF)
+
+`ingestion/src/lib/api-sports-client.ts` is implemented and unit-tested
+against a recorded response fixture (D27) but has never been run against
+the real API-Sports endpoint — no key exists yet (task #67's client
+action). `ingest:fixtures` checks `API_SPORTS_KEY` and cleanly skips this
+source (logged reason, non-error) when it's absent. When a key arrives,
+whoever runs `ingest:fixtures` first with it set must (a) confirm
+`SPRINGBOKS_TEAM_ID` in that module against the real API response, and (b)
+record the D9 trigger's pass/fail outcome (every remaining current-year
+fixture present with date+kickoff) on task #79.
+
 ## Known blocker at time of writing
 
 The full live-write verification run (fetch → parse → write to Postgres)

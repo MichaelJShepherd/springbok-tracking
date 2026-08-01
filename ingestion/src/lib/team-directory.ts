@@ -72,6 +72,25 @@ export function resolveByName(name: string): TeamDirectoryEntry {
   return NAME_DIRECTORY[trimmed] ?? { canonicalName: trimmed, aliases: [] };
 }
 
+/**
+ * Resolves a display name against every canonical name and alias this
+ * directory knows (both CODE_DIRECTORY's entries and NAME_DIRECTORY's),
+ * case-insensitively — for sources (e.g. API-Sports, task #79) that hand
+ * back a plain team name rather than a coded template, which might be
+ * either the canonical name already or a common alias ("All Blacks").
+ * Falls back to the trimmed input unchanged when nothing matches, same
+ * "never invent a name" rule as resolveByCode/resolveByName.
+ */
+export function resolveByAnyKnownName(name: string): TeamDirectoryEntry {
+  const trimmed = name.trim();
+  const needle = trimmed.toLowerCase();
+  for (const entry of [...Object.values(CODE_DIRECTORY), ...Object.values(NAME_DIRECTORY)]) {
+    if (entry.canonicalName.toLowerCase() === needle) return entry;
+    if (entry.aliases.some((alias) => alias.toLowerCase() === needle)) return entry;
+  }
+  return { canonicalName: trimmed, aliases: [] };
+}
+
 /** True if the given code identifies South Africa itself. */
 export function isSouthAfricaCode(code: string): boolean {
   return code.toUpperCase() === 'RSA' || code.toUpperCase() === 'SA';
