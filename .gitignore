@@ -1,0 +1,12 @@
+# Secrets & local config — never committed (see AGENTS.md 1.2)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
