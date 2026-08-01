@@ -1,2 +1,142 @@
-<h1>Match detail</h1>
-<p>Placeholder — game detail view (PRD §2.3) lands in a later slice.</p>
+@switch (state()) {
+  @case ('loading') {
+    <p class="state-loading" data-testid="detail-loading">Loading…</p>
+  }
+  @case ('error') {
+    <p class="state-failed" data-testid="detail-error">
+      &#9888; Match detail temporarily unavailable — is local Supabase running?
+    </p>
+  }
+  @case ('not_found') {
+    <p class="state-failed" data-testid="detail-not-found">Match not found.</p>
+  }
+  @case ('loaded') {
+    @if (match(); as m) {
+      <section class="detail" data-testid="match-detail">
+        <div class="detail-header">
+          <div>
+            @if (m.result) {
+              <div class="result-bar" [class]="m.result"></div>
+            }
+            <div class="score-hero" data-testid="score-hero">
+              South Africa
+              <app-field-value [value]="m.springboks_score" [provenance]="m.springboks_score_provenance" />
+              <app-sources-differ-badge [disagreement]="disagreementFor('springboks_score')" />
+              &ndash;
+              <app-field-value [value]="m.opponent_score" [provenance]="m.opponent_score_provenance" />
+              <app-sources-differ-badge [disagreement]="disagreementFor('opponent_score')" />
+              {{ opponentName(m) }}
+            </div>
+            <div class="meta-row">
+              <span>
+                <app-field-value [value]="m.competition" [provenance]="m.competition_provenance" />
+                <app-sources-differ-badge [disagreement]="disagreementFor('competition')" />
+              </span>
+              <span>{{ m.match_date }}</span>
+              <span>
+                <app-field-value [value]="m.venue" [provenance]="m.venue_provenance" />
+                <app-sources-differ-badge [disagreement]="disagreementFor('venue')" />
+              </span>
+            </div>
+          </div>
+          <a class="plain" [routerLink]="['/match', m.match_id, 'timeline']"
+            ><button type="button" class="toggle-btn" data-testid="open-timeline">Open timeline &rarr;</button></a
+          >
+        </div>
+
+        <h2>Officials</h2>
+        <div class="card">
+          <h3>Referee</h3>
+          <div data-testid="referee-value">
+            @if (referee(); as ref) {
+              <app-field-value [value]="ref.name" [provenance]="ref.name_provenance" />
+            } @else {
+              <span class="field-absent">not recorded</span>
+            }
+          </div>
+
+          <h3>Kickoff time</h3>
+          <app-field-value [value]="m.kickoff_time" [provenance]="m.kickoff_time_provenance" />
+          <app-sources-differ-badge [disagreement]="disagreementFor('kickoff_time')" />
+
+          @if (otherOfficials().length) {
+            <div class="other-officials" data-testid="other-officials">
+              @for (o of otherOfficials(); track $index) {
+                <div class="meta-row">
+                  <span>{{ officialRoleLabel(o.role) }}:</span>
+                  <app-field-value [value]="o.name" [provenance]="o.name_provenance" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <h2>Lineups</h2>
+        <div class="card">
+          @if (springboksLineup().length || opponentLineup().length) {
+            <div class="lineups" data-testid="lineups">
+              <div class="col">
+                <h3>South Africa</h3>
+                <ol>
+                  @for (p of springboksLineup(); track $index) {
+                    <li>
+                      @if (p.shirt_number) {
+                        <span class="shirt">{{ p.shirt_number }}</span>
+                      }
+                      <app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" />
+                    </li>
+                  }
+                </ol>
+              </div>
+              <div class="col">
+                <h3>{{ opponentName(m) }}</h3>
+                <ol>
+                  @for (p of opponentLineup(); track $index) {
+                    <li>
+                      @if (p.shirt_number) {
+                        <span class="shirt">{{ p.shirt_number }}</span>
+                      }
+                      <app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" />
+                    </li>
+                  }
+                </ol>
+              </div>
+            </div>
+          } @else {
+            <p class="note" data-testid="lineups-absent">Lineups not recorded for this match.</p>
+          }
+        </div>
+
+        <h2>Scoring events</h2>
+        <div class="card">
+          @if (sortedEvents().length) {
+            <ul class="events-list" data-testid="events-list">
+              @for (e of sortedEvents(); track e.sequence_no) {
+                <li>
+                  @if (isTimed(e)) {
+                    <span class="min" data-testid="event-clock">{{ e.minute }}'</span>
+                  }
+                  <span>
+                    {{ eventTypeLabel(e.event_type) }},
+                    <app-field-value [value]="e.description" [provenance]="e.description_provenance" />
+                  </span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="note" data-testid="events-absent">No scoring events recorded for this match.</p>
+          }
+        </div>
+
+        <footer class="footer-attrib" data-testid="attribution-footer">
+          Match data adapted from
+          <a [href]="attributionUrl()" target="_blank" rel="noopener">{{ attributionLabel() }}</a>,
+          available under
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
+            >CC BY-SA 4.0</a
+          >; modified: parsed and normalised from wikitext.
+        </footer>
+      </section>
+    }
+  }
+}

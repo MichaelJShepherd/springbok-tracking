@@ -1,0 +1,156 @@
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.state-loading {
+  color: var(--c-state-loading);
+}
+
+.state-failed {
+  color: var(--c-state-failed);
+}
+
+.note {
+  color: var(--c-ink-300);
+}
+
+.lede {
+  color: var(--c-ink-300);
+  font-size: var(--fs-200);
+}
+
+.card {
+  background: var(--c-ink-900);
+  border: 1px solid var(--c-ink-700);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-4);
+}
+
+.axis-wrap {
+  position: relative;
+  padding: var(--sp-8) var(--sp-2) var(--sp-4);
+}
+
+.axis-line {
+  position: relative;
+  height: 2px;
+  background: var(--c-ink-700);
+  margin: var(--sp-8) 0;
+}
+
+.axis-marker {
+  position: absolute;
+  top: -8px;
+  width: 2px;
+  height: 18px;
+  background: var(--c-gold-400);
+}
+
+.axis-marker .label {
+  position: absolute;
+  top: -1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--fs-100);
+  color: var(--c-ink-300);
+  white-space: nowrap;
+}
+
+.events-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--sp-2) 0 0;
+}
+
+.events-list li {
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--c-ink-700);
+  font-size: var(--fs-200);
+  display: flex;
+  gap: var(--sp-3);
+}
+
+.events-list li:last-child {
+  border-bottom: none;
+}
+
+.events-list .min {
+  color: var(--c-gold-400);
+  font-family: var(--font-mono);
+  width: 3.2rem;
+  flex-shrink: 0;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-100);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--sp-2);
+}
+
+.badge.computed {
+  background: var(--c-ink-800);
+  color: var(--c-gold-400);
+  border: 1px solid var(--c-gold-500);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  background: currentColor;
+}
+
+.curve-svg {
+  width: 100%;
+  height: 140px;
+  display: block;
+}
+
+.curve-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+}
+
+.curve-label {
+  flex: 1 1 0;
+  text-align: center;
+  font-size: var(--fs-100);
+  color: var(--c-ink-300);
+}
+
+.mood-single {
+  font-size: var(--fs-400);
+  font-weight: 700;
+}
+
+.mood-single.mood-pos {
+  color: var(--c-mood-pos);
+}
+
+.mood-single.mood-neg {
+  color: var(--c-mood-neg);
+}
+
+.mood-single.mood-neutral {
+  color: var(--c-mood-neutral);
+}
+
+.method-link {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-100);
+}
+
+.plain {
+  color: var(--c-gold-400);
+  text-decoration: none;
+  font-weight: 600;
+}

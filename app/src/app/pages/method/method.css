@@ -1,0 +1,36 @@
+.method {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.lede {
+  color: var(--c-ink-300);
+  font-size: var(--fs-200);
+}
+
+.note {
+  color: var(--c-ink-300);
+}
+
+.card {
+  background: var(--c-ink-900);
+  border: 1px solid var(--c-ink-700);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-1);
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.vocab {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.plain {
+  color: var(--c-gold-400);
+  text-decoration: none;
+  font-weight: 600;
+}

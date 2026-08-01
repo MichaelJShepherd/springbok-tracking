@@ -1,0 +1,20 @@
+@if (disagreement(); as d) {
+  <span class="badge differ" [attr.data-testid]="'sources-differ-' + d.field">
+    sources differ:
+    @if (d.displayedSourceUrl) {
+      <a [href]="d.displayedSourceUrl" target="_blank" rel="noopener"
+        >{{ d.displayedSource }}: {{ d.displayedValue }}</a
+      >
+    } @else {
+      <span>{{ d.displayedSource }}: {{ d.displayedValue }}</span>
+    }
+    vs
+    @if (d.alternateSourceUrl) {
+      <a [href]="d.alternateSourceUrl" target="_blank" rel="noopener"
+        >{{ d.alternateSource }}: {{ d.alternateValue }}</a
+      >
+    } @else {
+      <span>{{ d.alternateSource }}: {{ d.alternateValue }}</span>
+    }
+  </span>
+}
