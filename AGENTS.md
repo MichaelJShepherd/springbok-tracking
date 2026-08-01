@@ -67,15 +67,23 @@ breach that site's terms of service:
 
 - Read the site's terms of service (and `robots.txt`) **before** the first
   fetch, and record on the task which source was checked and the conclusion.
-- If the terms prohibit scraping or automated access, do not scrape it —
-  no workarounds. Flag it on the task and look for an alternative.
 - Prefer official APIs, licensed feeds, or explicitly public data over
   scraping whenever they exist.
 - Never circumvent technical access controls: logins, paywalls, CAPTCHAs,
   IP blocks, or rate limits. Fetch politely (low request rates, identify
   honestly); a block is an answer, not an obstacle.
-- If a source's position is ambiguous, treat it as prohibited and ask the
-  repo owner before proceeding.
+- If the terms are **explicit**, they are final: an explicit prohibition is
+  a no, with no workarounds. Flag it on the task and look for an
+  alternative.
+- If a source's position is **ambiguous** after a genuine attempt to read
+  its terms, proceed politely rather than treating it as prohibited — ask
+  forgiveness, not permission. The repo owner accepted the contractual risk
+  of this posture (2026-08-01, task #64) on the basis that the project is
+  non-commercial. Conditions: record the ambiguity and the
+  proceed-at-owner's-risk decision on the task; fetch politely and identify
+  honestly; stop immediately if the source objects or blocks. If the
+  project ever becomes commercial, this bullet reverts to
+  "ambiguous = prohibited" until the owner re-decides.
 
 ### 1.5 No task, no work — and the task board is the agent's job
 
