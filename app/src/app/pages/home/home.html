@@ -112,6 +112,29 @@
           }
         </div>
       }
+
+      <!-- Site-level attribution footer (PRD D26/D31, journeys.md J0). This
+           duplicates the ~15-line footer template and the .footer-attrib
+           CSS rule already repeated verbatim in history.css and
+           match-detail.css (now three byte-identical copies). Left
+           duplicated for now per AGENTS.md 1.3 (simplicity first; no
+           shared component yet exists to extract into without inventing
+           one). Extraction trigger: if a 4th consumer needs this footer,
+           extract a shared component/partial instead of copying a fourth
+           time. -->
+      <footer class="footer-attrib" data-testid="home-footer">
+        Match list adapted from
+        <a
+          href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches"
+          target="_blank"
+          rel="noopener"
+          >Wikipedia — List of South Africa national rugby union test matches</a
+        >, available under
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
+          >CC BY-SA 4.0</a
+        >; modified: parsed and normalised from wikitext.
+        <a routerLink="/method">Method</a>
+      </footer>
     }
   }
 </section>

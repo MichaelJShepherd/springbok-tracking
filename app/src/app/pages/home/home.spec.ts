@@ -234,4 +234,23 @@ describe('Home', () => {
       'temporarily unavailable',
     );
   });
+
+  it('renders the site-level attribution footer with a working /method link (#87, PRD D31)', async () => {
+    const { html } = await renderWith([NO_FIXTURES, NO_LIVE_MATCH, latestResultMatcher(null)]);
+
+    const footer = html.querySelector('[data-testid="home-footer"]');
+    expect(footer).toBeTruthy();
+    expect(footer?.textContent).toContain(
+      'Match list adapted from',
+    );
+    expect(footer?.textContent).toContain(
+      'Wikipedia — List of South Africa national rugby union test matches',
+    );
+    expect(footer?.textContent).toContain('CC BY-SA 4.0');
+    expect(footer?.textContent).toContain('modified: parsed and normalised from wikitext');
+
+    const methodLink = footer?.querySelector('a[href="/method"]');
+    expect(methodLink).toBeTruthy();
+    expect(methodLink?.textContent?.trim()).toBe('Method');
+  });
 });

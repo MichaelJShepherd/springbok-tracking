@@ -122,3 +122,10 @@
   padding: var(--sp-2) 0;
   border-bottom: 1px solid var(--c-ink-700);
 }
+
+.footer-attrib {
+  color: var(--c-ink-500);
+  font-size: var(--fs-100);
+  border-top: 1px solid var(--c-ink-700);
+  padding-top: var(--sp-3);
+}
