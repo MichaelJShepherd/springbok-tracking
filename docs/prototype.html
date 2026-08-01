@@ -379,9 +379,9 @@
       sentiment: {
         source: "guardian",
         badgeText: "Fan mood — computed by this site from news headlines",
+        // Guardian fallback = ONE whole-match score, no per-bucket curve (PRD D2)
         buckets: [
-          { name: "Match", label: "tense, tight, backs-to-the-wall", score: 0.15 },
-          { name: "Post-match", label: "relief, pride, second world title", score: 0.7 }
+          { name: "Whole match", label: "Upbeat", score: 0.45 }
         ]
       },
       wikipediaUrl: "https://en.wikipedia.org/wiki/2007_Rugby_World_Cup_Final"
@@ -420,11 +420,13 @@
       sentiment: {
         source: "reddit",
         badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
+        // Labels come from the closed five-label vocabulary (PRD D2):
+        // Despair / Grumbling / Mixed / Upbeat / Euphoric, banded by score
         buckets: [
-          { name: "Pre-match", label: "nervy, hopeful, cautiously optimistic", score: 0.1 },
-          { name: "1st half", label: "gutsy, defiant, backs against wall", score: 0.2 },
-          { name: "2nd half", label: "heartbreak, so close, gutted collectively", score: -0.5 },
-          { name: "Post-match", label: "proud despite loss, character shown", score: -0.1 }
+          { name: "Pre-match", label: "Mixed", score: 0.1 },
+          { name: "1st half", label: "Mixed", score: 0.2 },
+          { name: "2nd half", label: "Grumbling", score: -0.5 },
+          { name: "Post-match", label: "Mixed", score: -0.1 }
         ]
       },
       wikipediaUrl: "https://en.wikipedia.org/wiki/2015_Rugby_World_Cup_knockout_stage"
@@ -466,14 +468,14 @@
         source: "reddit",
         badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
         buckets: [
-          { name: "Pre-match", label: "confident, expectant, good form lately", score: 0.3 },
-          { name: "1st half", label: "delighted, dominant, tries flowing freely", score: 0.8 },
-          { name: "2nd half", label: "comfortable, cruising, bench impact praised", score: 0.75 },
-          { name: "Post-match", label: "satisfied, statement win, bench depth noted", score: 0.85 }
+          { name: "Pre-match", label: "Upbeat", score: 0.3 },
+          { name: "1st half", label: "Euphoric", score: 0.8 },
+          { name: "2nd half", label: "Euphoric", score: 0.75 },
+          { name: "Post-match", label: "Euphoric", score: 0.85 }
         ]
       },
       wikipediaUrl: "https://en.wikipedia.org/wiki/2024_Rugby_Championship",
-      methodUrl: "#/about-method",
+      methodUrl: "#/method",
       sourceThreadUrl: "https://www.reddit.com/r/rugbyunion/"
     },
 
@@ -490,7 +492,12 @@
       kickoff: field("14:00 GMT", F.present),
       lineups: { sa: [field(null, F.loading)], opp: [field(null, F.loading)] },
       events: [{ minute: "—", desc: "Event feed temporarily unavailable", state: F.failed }],
-      sentiment: null,
+      // D2 minimum-volume floor: below 25 comments the mood layer refuses to score
+      sentiment: {
+        source: "reddit",
+        badgeText: "Fan mood — computed by this site from r/rugbyunion match thread",
+        tooFew: true, commentCount: 11
+      },
       wikipediaUrl: "https://en.wikipedia.org/wiki/History_of_South_Africa_national_rugby_union_team"
     }
   };
@@ -507,8 +514,10 @@
     kickoff: "17:10 SAST", venue: "Twickenham Stadium, London",
     note: "vs All Blacks — (sample data)"
   };
+  // Off-season card shows last result ONLY — no predictive "next window"
+  // note (PRD D30: an unsourced prediction is what this site exists to not do)
   var nextFixtureOffSeasonNote = {
-    lastResult: "SA 27–13 NZ", nextWindow: "Rugby Championship, Aug–Oct (sample)"
+    lastResult: "SA 27–13 NZ"
   };
 
   // ---------------------------------------------------------------------
@@ -546,7 +555,7 @@
     return '<div class="badge computed" style="margin-bottom:var(--sp-2)">' +
       '<span class="dot"></span> computed</div>' +
       '<p class="note" style="margin-top:0">' + escapeHtml(sentiment.badgeText) +
-      ' &middot; <a href="#/about-method">method</a> &middot; <a href="' +
+      ' &middot; <a href="#/method">method</a> &middot; <a href="' +
       (sentiment.source === "reddit" ? "https://www.reddit.com/r/rugbyunion/" : "https://www.theguardian.com/sport/rugby-union") +
       '" target="_blank" rel="noopener">source</a></p>';
   }
@@ -569,8 +578,7 @@
       fixtureCardHtml =
         '<h3>Next fixture</h3>' +
         '<div style="font-size:var(--fs-400);font-weight:700">No test scheduled</div>' +
-        '<div class="meta-row"><span>Last result: ' + nextFixtureOffSeasonNote.lastResult + '</span></div>' +
-        '<div class="meta-row"><span>Next window: ' + nextFixtureOffSeasonNote.nextWindow + '</span></div>';
+        '<div class="meta-row"><span>Last result: ' + nextFixtureOffSeasonNote.lastResult + '</span></div>';
     }
 
     var latest = matches.rc2024;
@@ -660,7 +668,7 @@
       '<div class="chips">' + chipRow(decades, "decade") + '</div>' +
       '<table class="history"><thead><tr><th>Date</th><th>Opponent</th><th>Score</th><th>W/D/L</th><th>Venue</th><th>Competition</th></tr></thead>' +
       '<tbody>' + tableRows + '</tbody></table>' +
-      '<div class="footer-attrib">Match data adapted from Wikipedia’s <a href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_test_matches" target="_blank" rel="noopener">List of South Africa rugby union test matches</a>, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</div>';
+      '<div class="footer-attrib">Match data adapted from Wikipedia’s <a href="https://en.wikipedia.org/wiki/List_of_South_Africa_rugby_union_test_matches" target="_blank" rel="noopener">List of South Africa rugby union test matches</a>, licensed <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>.</div>';
 
     document.querySelectorAll(".chip").forEach(function (chip) {
       chip.addEventListener("click", function () {
@@ -746,7 +754,12 @@
     }).join("");
 
     var curveHtml;
-    if (m.sentiment) {
+    if (m.sentiment && m.sentiment.tooFew) {
+      curveHtml =
+        computedBadge(m.sentiment) +
+        '<p class="note">Too little discussion to score &mdash; ' + m.sentiment.commentCount +
+        ' comments in the match thread (minimum 25). Events above still tell the story.</p>';
+    } else if (m.sentiment) {
       var w = 560, h = 120, pad = 40;
       var n = m.sentiment.buckets.length;
       var pts = m.sentiment.buckets.map(function (b, i) {
@@ -761,7 +774,7 @@
           '<text x="' + p.x + '" y="' + (h - 4) + '" text-anchor="middle" class="curve-point-label">' + escapeHtml(p.b.name) + '</text>';
       }).join("");
       var labels = pts.map(function (p) {
-        return '<div style="flex:1 1 0;text-align:center;font-size:var(--fs-100);color:var(--c-ink-300);padding:0 4px">"' + escapeHtml(p.b.label) + '"</div>';
+        return '<div style="flex:1 1 0;text-align:center;font-size:var(--fs-100);color:var(--c-ink-300);padding:0 4px">' + escapeHtml(p.b.label) + '</div>';
       }).join("");
 
       curveHtml =
@@ -792,6 +805,26 @@
   }
 
   // ---------------------------------------------------------------------
+  // Page: /method (PRD §2.5 — the D5 method-link destination)
+  // ---------------------------------------------------------------------
+
+  function renderMethod() {
+    document.getElementById("app").innerHTML =
+      '<h1>How this site works</h1>' +
+      '<p class="lede">Every fact links to where it came from. Two bounded exceptions exist, and this page is their explanation.</p>' +
+      '<h2>Match facts</h2>' +
+      '<div class="card"><p class="note">Scores, lineups, referees and events are parsed from Wikipedia articles ' +
+      '(CC BY-SA 4.0) — each page footer links the exact source article. Where history is thin we say ' +
+      '&ldquo;not recorded&rdquo; rather than guessing. Fixtures come via API-Sports (named + fetch date shown).</p></div>' +
+      '<h2>Fan mood (computed)</h2>' +
+      '<div class="card"><p class="note">Mood scores are computed by this site with a public sentiment lexicon over ' +
+      'r/rugbyunion match-thread comments (or news headlines where no thread exists). Scores map to five labels: ' +
+      'Despair &middot; Grumbling &middot; Mixed &middot; Upbeat &middot; Euphoric. Threads with fewer than 25 comments are not scored. ' +
+      'Mood is our inference, never the source&rsquo;s own words &mdash; that&rsquo;s why it always carries the &ldquo;computed&rdquo; badge.</p></div>' +
+      '<p><a class="plain" href="#/home"><button class="toggle-btn">&larr; Home</button></a></p>';
+  }
+
+  // ---------------------------------------------------------------------
   // Router
   // ---------------------------------------------------------------------
 
@@ -806,6 +839,7 @@
     var parts = hash.replace(/^#\//, "").split("/");
 
     if (parts[0] === "home" || parts[0] === "") { setActiveTab("home"); renderHome(); return; }
+    if (parts[0] === "method") { setActiveTab("method"); renderMethod(); return; }
     if (parts[0] === "history") { setActiveTab("history"); renderHistory(); return; }
     if (parts[0] === "match" && parts[1] && parts[2] === "timeline") { setActiveTab("timeline"); renderTimeline(parts[1]); return; }
     if (parts[0] === "match" && parts[1]) { setActiveTab("match"); renderDetail(parts[1]); return; }

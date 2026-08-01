@@ -122,13 +122,13 @@ Guardian says".
 
 | Component | Surfaces | Notes |
 |---|---|---|
-| Fixture card | Home (J1) | Off-season variant (D8) swaps body copy for "No test scheduled" + last result + next window; postponed/TBD renders a chip, never a blank |
+| Fixture card | Home (J1) | Off-season variant (D8/D30) swaps body copy for "No test scheduled" + last result **only** (no predictive "next window" note); postponed/TBD renders a chip, never a blank |
 | Result card | Home (J2) | W/L/D colour bar using `--c-win/--c-loss/--c-draw`; match-day-in-progress variant: "Match under way — no live coverage here" |
 | History table + filter chips | History (J3) | See §3 mobile collapse |
 | Detail header | Game detail (J4) | Score hero (`fs-600`), competition/date/venue meta row, "sources differ" badge inline on any disputed field |
 | Lineups two-column | Game detail (J4) | SA \| Opponent; each name cell independently carries its own D16 state — a lineup can be half-present |
 | Events list | Game detail, Timeline (J4/J5) | Single source of truth per PRD D7; rendered plain on detail, plotted on an axis on timeline |
-| Timeline axis + mood curve overlay | Timeline (J5) | Axis renders events immediately; mood curve is a deferred overlay (never blocks event paint, per J5's bar) |
+| Timeline axis + mood curve overlay | Timeline (J5) | Axis renders events immediately; mood curve is a deferred overlay (never blocks event paint, PRD §2.4). Bucket labels come from D2's closed five-label vocabulary (Despair / Grumbling / Mixed / Upbeat / Euphoric); Guardian-fallback matches render ONE whole-match point, not a curve; threads under 25 comments render "too little discussion to score" |
 | Sources-differ badge | Game detail (J4) | Small inline badge next to the disputed field, links both source values (D14) — never silently picks one visually without the badge |
 | Attribution footer | Game detail, History (J3/J4) | CC BY-SA + exact article link + "modified: parsed and normalised from wikitext" (D26); History carries one site-level footer, detail carries one per page |
 
