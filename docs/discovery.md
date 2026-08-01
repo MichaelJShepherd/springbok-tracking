@@ -50,7 +50,10 @@ These settle future arguments. In priority order:
 1. **Simplicity first, scalability second.** (Repo-wide rule — see
    AGENTS.md 1.3. It governs product scope too: fewer features, done well.)
 2. **Nothing is shown without a viewable source.** Every fact links to where
-   it came from. If we can't source it, we don't display it.
+   it came from. If we can't source it, we don't display it. (Two bounded
+   carve-outs, defined in PRD D5 and D28: derived facts and API-provided
+   facts, each with their own provenance display; no third class without a
+   decision row.)
 3. **Fresh enough beats real time.** Updated on a schedule that matches fan
    needs (daily is fine; match-day more often). Live in-match updates are
    out of scope unless a compliant source makes them cheap.
@@ -64,6 +67,8 @@ These settle future arguments. In priority order:
    posture, decided 2026-08-01) and stop if the source objects or blocks.
 6. **Sparse honestly, never padded.** Where history is thin, say so; never
    infer or fabricate detail to make old games look as rich as new ones.
+   (Inference is permitted only inside the badged derived-fact class —
+   PRD D5.)
 
 ## Scope of the first product
 
@@ -113,7 +118,7 @@ research pass.
 
 | Source | Access | Cost | Terms verdict | Decision |
 |---|---|---|---|---|
-| API-Sports Rugby (api-sports.io) | REST/JSON API: games, results, standings. **No lineups, events or referee fields at any tier** (#65) | Free 100 req/day (limited seasons); Pro $19/mo | Allowed with conditions — stay within rate limits; free-plan scope is mutable [re-verify] | **Build — fixtures/results/standings only.** Cannot serve pillar 3 |
+| API-Sports Rugby (api-sports.io) | REST/JSON API: games, results, standings. **No lineups, events or referee fields at any tier** (#65) | Free 100 req/day (limited seasons); Pro $19/mo | Allowed with conditions — stay within rate limits; free-plan scope is mutable [re-verify] | **Build — fixtures only** (narrowed by PRD D1: no standings, no results cross-check) |
 | TheSportsDB | JSON API; has lineup + event-timeline endpoints | Patreon ~$9/mo (free key is a shared test key; terms bar free keys from powering a live public app) | Allowed with conditions — attribution; paid key for production (#65) | **Defer — runner-up** for detail if Wikipedia coverage proves too thin; coverage depth unconfirmed |
 | Sportradar / Stats Perform / Goalserve | Licensed enterprise feeds (full lineups/play-by-play) | ~$550–$10,000+/mo, contact-sales | Allowed but enterprise contracts | **Reject — economically prohibitive** |
 | World Rugby / SA Rugby | No public developer API exists (#65) | — | — | **Reject — nothing to integrate** |
