@@ -334,3 +334,103 @@ the steady-state interval was slowed to 1.5s between requests (AGENTS.md
 to route around it). No fetch was retried more than twice; a persistent
 429 still surfaces as a normal `fetch_failed`-equivalent skip for that
 page, counted in the run's failure total.
+
+## Sentiment (task #78)
+
+`ingest:sentiment` (`ingestion/src/scripts/sentiment.ts`) replaces its
+previous print-only stub with a real (but currently unreachable — see
+below) implementation of PRD D2/D4's Reddit-primary/Guardian-fallback
+lexicon sentiment pipeline into `sentiment_scores`.
+
+### Lexicon (D2 "AFINN-style + small rugby lexicon")
+
+`ingestion/src/lib/sentiment-lexicon.ts` is a small, hand-written,
+original word list (general sentiment words + a rugby-specific set) —
+deliberately **not** a copy of the real AFINN dataset, to keep this public
+repo clear of a third-party dataset's own licence/attribution terms
+(AGENTS.md 1.1) and to keep the scorer dependency-free (1.3: a plain
+object literal, no data file to fetch). `sentiment-scorer.ts` tokenises
+text, averages matched word scores per comment/article, averages those
+across a bucket, and normalises into PRD D2's `[-1, 1]` range. Known,
+accepted limitation: this is a bag-of-words scorer with no negation
+handling and no context disambiguation (e.g. "thrashed" reads the same
+whichever side did the thrashing) — PRD D2's own accuracy bar (≥8/10
+directionally correct, spot-checked once real data flows) is explicitly
+out of this task's scope.
+
+### Bucketing (D2/D3)
+
+`ingestion/src/lib/sentiment-buckets.ts`'s `bucketForTimestamp` assigns
+one comment timestamp to `pre_match` / `first_half` / `second_half` /
+`post_match` relative to a match's `kickoff_time`, using a documented,
+simple heuristic (40-minute halves + a 15-minute halftime tolerance for
+stoppage time — not a real play-by-play clock). When no kickoff timestamp
+exists for a match (the large majority of the backfilled set, per D16),
+every comment instead falls into the single `whole_match` bucket. The
+Guardian path always uses `whole_match` only, per D2 ("headlines have no
+match clock").
+
+### Minimum-volume floor (D2)
+
+`MIN_REDDIT_COMMENTS = 25` and `MIN_GUARDIAN_ARTICLES = 5`
+(`sentiment-scorer.ts`) — a bucket under its floor is written with
+`too_few = true` and `score`/`label` left `null` ("too little discussion
+to score") rather than a fabricated number.
+
+### D20 retention — no comment/headline text persisted or logged
+
+`ingestion/src/lib/sentiment-pipeline.ts` is the one seam where raw
+comment/article text is read (to score/bucket it) and a `sentiment_scores`
+row is produced — its `SentimentRow` interface is exactly the D20-permitted
+column set (`match_id`, `bucket`, `score`, `label`, `bucket_source_count`,
+`too_few`, `source`, `source_url`). `ingestion/src/lib/sentiment-retention.spec.ts`
+is the automated check the ticket asked for (in place of a custom ESLint
+rule — a behavioural test proved more direct and Gate-3-friendly than a
+static lint rule alone): it (a) runs the real row-building functions
+against fixture text containing a unique marker string, with `console.*`
+spied, and asserts the marker never appears in a returned row or anything
+logged; (b) asserts every returned row has *exactly* the permitted column
+set, so an added field fails immediately even before it is wired to a real
+insert; and (c) statically scans every sentiment-related source file for a
+`console.*` call on the same line as a `.body`/`.headline`/`.standfirst`
+access, as a lint-rule-equivalent defence in depth. All three would fail
+if someone reintroduced source-text persistence or logging.
+
+### Reddit/Guardian — LIVE, but DISABLED until keys exist
+
+`ingestion/src/lib/reddit-client.ts` and `ingestion/src/lib/guardian-client.ts`
+follow the same "cleanly OFF" contract as `api-sports-client.ts` (task
+#79): `isRedditConfigured()` (`REDDIT_CLIENT_ID` + `REDDIT_CLIENT_SECRET`)
+and `isGuardianConfigured()` (`GUARDIAN_API_KEY`) gate the only two
+functions in this codebase that reach either host at all, and
+`scripts/sentiment.ts` never calls either fetch function outside an `if
+(isXConfigured())` branch. **No key exists at task #78 time** (task #67's
+Reddit OAuth registration is still pending; no Guardian Open Platform key
+has been requested), and this task made no live call to either host —
+verified both by code inspection (the gate above) and by a real local run
+with both env vars unset, which logged both OFF reasons and made zero
+network calls. Both clients are unit-tested only against recorded,
+synthetic fixtures (`ingestion/src/lib/__fixtures__/reddit-match-thread-comments.json`,
+`.../guardian-articles.json` — invented comments/articles, no real
+usernames or personal data, D27/AGENTS.md 1.1).
+
+### D25 guardrail — adapted zero-rows check (same precedent as #79)
+
+A run where *neither* source is configured has genuinely nothing to
+score — `scripts/sentiment.ts` treats that as a clean `success` with
+`rows_written = 0` and a logged reason, the same adaptation task #79 made
+for `ingest:fixtures`'s true-off-season case, rather than failing loudly.
+The zero-rows-fails check still applies once a source *is* configured but
+a run produces nothing.
+
+### Real end-to-end run: not yet possible
+
+Because both sources are OFF, no live comment/article has ever been
+scored by this pipeline — the lexicon scorer, bucketing, and volume floor
+are exercised only by unit tests against recorded/synthetic fixtures
+(D27). Whoever first runs this with a real key must additionally: fill in
+a real match → Reddit-thread lookup (`scripts/sentiment.ts` currently
+passes `match_id` as a placeholder Reddit thread id, since there is
+nothing live to look up against yet), record the D2 accuracy spot-check
+(≥8/10 matches directionally correct) on its own task, and re-confirm the
+D20 retention posture holds against real data.

@@ -1,0 +1,15 @@
+[
+  {
+    "kind": "Listing",
+    "data": {
+      "children": [
+        { "kind": "t3", "data": { "title": "Match Thread: Synthetic Test Fixture" } },
+        { "kind": "t1", "data": { "body": "So excited for kickoff, this squad looks strong", "created_utc": 1700000000, "author": "test_fan_one" } },
+        { "kind": "t1", "data": { "body": "brilliant start, dominant scrum", "created_utc": 1700003000, "author": "test_fan_two" } },
+        { "kind": "t1", "data": { "body": "what a shambles of a defensive read there", "created_utc": 1700006200, "author": "test_fan_three" } },
+        { "kind": "t1", "data": { "body": "clinical finish, superb try", "created_utc": 1700009500, "author": "test_fan_four" } },
+        { "kind": "t1", "data": { "body": "full time, proud of that performance, champions", "created_utc": 1700015000, "author": "test_fan_five" } }
+      ]
+    }
+  }
+]
