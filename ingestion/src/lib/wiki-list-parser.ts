@@ -200,6 +200,13 @@ export function parseMatchBlock(block: string, year: string): ParsedMatch {
     parseErrors.push('neither home/away nor team1/team2 fields present');
   }
 
+  // A side that resolved to *something* but not via a recognised code/template or a
+  // wikilink is a real data-quality signal (an unrecognised or restructured opponent
+  // field) — record it so the run's failure count and D25 guardrail visibility catch
+  // it, instead of it silently becoming a garbage team name (PRD D25's whole point).
+  if (home?.unresolved) parseErrors.push(`unresolved home side: "${rawFields['home'] ?? rawFields['team1'] ?? ''}"`);
+  if (away?.unresolved) parseErrors.push(`unresolved away side: "${rawFields['away'] ?? rawFields['team2'] ?? ''}"`);
+
   let homeIsSouthAfrica: boolean | undefined;
   if (home?.team.canonicalName === 'South Africa') homeIsSouthAfrica = true;
   else if (away?.team.canonicalName === 'South Africa') homeIsSouthAfrica = false;

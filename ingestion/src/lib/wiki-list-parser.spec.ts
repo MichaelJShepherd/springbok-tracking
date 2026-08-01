@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { parseListArticle, parseWikiDate, parseScore, extractBalancedBlocks } from './wiki-list-parser.js';
+import { parseListArticle, parseMatchBlock, parseWikiDate, parseScore, extractBalancedBlocks } from './wiki-list-parser.js';
 
 const FIXTURES_DIR = join(dirname(fileURLToPath(import.meta.url)), '__fixtures__');
 
@@ -86,6 +86,32 @@ describe('parseListArticle — 1890s era (team1/team2, raw wikilink opponent)', 
 
   it('marks the absent kickoff time field as absent_in_source', () => {
     expect(matches[0].kickoffProvenance).toBe('absent_in_source');
+  });
+});
+
+describe('parseMatchBlock — unresolved opponent field (PRD D25 visibility)', () => {
+  it('records a parse error (not a silent garbage team) when an opponent field has neither a coded template nor a wikilink', () => {
+    const block = `{{#invoke:rugby box collapsible|main
+| date = 1 January 2000
+| team1 = {{ru-rt|RSA}}
+| score = 10–5
+| team2 = Some Unrecognised Text With No Markup At All
+}}`;
+    const parsed = parseMatchBlock(block, '2000');
+    expect(parsed.away?.unresolved).toBe(true);
+    expect(parsed.parseErrors.some((e) => e.includes('unresolved away side'))).toBe(true);
+  });
+
+  it('does not flag a normally-resolved opponent as unresolved', () => {
+    const block = `{{#invoke:rugby box collapsible|main
+| date = 1 January 2000
+| team1 = {{ru-rt|RSA}}
+| score = 10–5
+| team2 = {{ru-rt|NZL}}
+}}`;
+    const parsed = parseMatchBlock(block, '2000');
+    expect(parsed.away?.unresolved).toBe(false);
+    expect(parsed.parseErrors.some((e) => e.includes('unresolved'))).toBe(false);
   });
 });
 

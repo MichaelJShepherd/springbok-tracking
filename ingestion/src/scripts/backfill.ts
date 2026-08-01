@@ -76,6 +76,9 @@ async function main(): Promise<void> {
     }
   }
 
+  // Field-level parse errors (e.g. an unresolved opponent code/wikilink, an unparseable
+  // score) count towards the run's failure total even though the row itself still gets
+  // written — a garbage-but-present value must never look like a clean success (D25).
   const withParseErrors = rows.filter((r) => r.parseErrors.length > 0);
   if (withParseErrors.length > 0) {
     console.warn(`[ingest:backfill] ${withParseErrors.length} match row(s) have field-level parse errors (see per-field provenance).`);
@@ -95,7 +98,7 @@ async function main(): Promise<void> {
 
   // 2. Upsert teams (D13), then map canonical_name -> id.
   let rowsWritten = 0;
-  let failures = skipped.length;
+  let failures = skipped.length + withParseErrors.length;
   if (teamRows.length > 0) {
     const { error: teamsError } = await client
       .from('teams')
@@ -207,7 +210,12 @@ async function main(): Promise<void> {
       // Previous run's notes weren't JSON (e.g. pre-this-format) — treat as no baseline.
     }
   }
-  const guardrail = evaluateGuardrail(rowsWritten, completeness, previousCompleteness);
+  // The zero-rows check must key off matches specifically, not the rowsWritten total —
+  // teams can still resolve (they don't need a date) even if every match's date field
+  // fails to parse, which would otherwise mask a total parsing failure as a healthy
+  // non-zero run on exactly the first run (no previous-run baseline to catch it via
+  // the completeness-drop comparison instead).
+  const guardrail = evaluateGuardrail(matchInsertRows.length, completeness, previousCompleteness);
 
   const eraCounts = new Map<string, number>();
   for (const row of rows) eraCounts.set(eraOf(row.matchDate), (eraCounts.get(eraOf(row.matchDate)) ?? 0) + 1);
