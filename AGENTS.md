@@ -77,17 +77,40 @@ breach that site's terms of service:
 - If a source's position is ambiguous, treat it as prohibited and ask the
   repo owner before proceeding.
 
-### 1.5 No task, no work
+### 1.5 No task, no work — and the task board is the agent's job
 
 All work on this project is driven from the task board (section 2). Do not
 write code, change docs, or push anything unless a task for it exists on the
-board first. If you spot work that should happen, create a task for it (or
-ask the repo owner to) — then pick it up.
+board first.
+
+**Creating and maintaining tasks is your responsibility as the agent — never
+the repo owner's.** Be absolutely clear on this: the human asking for
+something is not thereby volunteering to write it up. There is no such thing
+as "the owner will make a task for this".
+
+- Before starting any work, **you** create the task on the board. If a spoken
+  or chat request arrives with no task behind it, your first action is to
+  create one — not to start working, and not to ask the owner to create it.
+- If a request turns out to be several pieces of work, you create a task per
+  piece.
+- If you spot work that should happen but is not yours right now, **you**
+  create a Backlog task for it. Mentioning it in chat and moving on does not
+  count — chat is not the board.
+- **You** keep every task you touch truthful in real time: move the status as
+  you go, and record the branch name, decisions taken, verification output
+  and gate outcomes (section 4) on the task as they happen — not in a batch
+  at the end, and not only in your reply to the owner.
+- If you did work without a task — including work an instruction pushed you
+  straight into — create the task immediately, backfill what happened on it,
+  and say so. An unrecorded change is a defect, not a shortcut.
+- The only thing the repo owner owns on the board is the decision to move a
+  task to Done (section 2), plus answering product questions you raise on it.
 
 ## 2. Task workflow (Warroom)
 
 The board lives in Warroom, project **Springbok Tracker**. Agents interact
-with it through the Warroom MCP tools (look the project up by name).
+with it through the Warroom MCP tools (look the project up by name). You have
+these tools — so you have no excuse for an unrecorded piece of work (rule 1.5).
 
 - **All new tasks go to the Backlog** (Warroom's unscheduled bucket —
   `sprintId: 'backlog'` when listing).
@@ -104,9 +127,14 @@ with it through the Warroom MCP tools (look the project up by name).
 
 - Keep the task truthful in real time: update the status as you move through
   the flow, and comment on the task with the branch name, key decisions made,
-  and verification results before handing over for review.
+  and verification results before handing over for review. This is the
+  agent's job, in full (rule 1.5).
+- A task's description and comments must be enough for a fresh agent with no
+  memory of the conversation to pick the work up. Write them for that reader.
 - One task = one branch. Reference the task number (e.g. `#53`) in commits
   and PRs.
+- **Done is the owner's call.** Move work to In Review and stop there; never
+  mark your own work Done unless explicitly told to.
 
 ## 3. Git conventions
 
