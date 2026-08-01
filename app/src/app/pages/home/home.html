@@ -47,7 +47,14 @@
               @if (latestResult(); as last) {
                 <div class="meta-row">
                   <span
-                    >Last result: South Africa {{ last.springboks_score }}–{{ last.opponent_score }}
+                    >Last result: South Africa
+                    <app-field-value
+                      [value]="last.springboks_score"
+                      [provenance]="last.springboks_score_provenance"
+                    />&ndash;<app-field-value
+                      [value]="last.opponent_score"
+                      [provenance]="last.opponent_score_provenance"
+                    />
                     {{ opponentName(last) }}</span
                   >
                 </div>
@@ -61,12 +68,23 @@
             <div class="result-bar" [class]="last.result"></div>
             <h3>Latest result</h3>
             <div class="fixture-title">
-              South Africa {{ last.springboks_score }}–{{ last.opponent_score }} {{ opponentName(last) }}
+              South Africa
+              <app-field-value
+                [value]="last.springboks_score"
+                [provenance]="last.springboks_score_provenance"
+              />&ndash;<app-field-value
+                [value]="last.opponent_score"
+                [provenance]="last.opponent_score_provenance"
+              />
+              {{ opponentName(last) }}
             </div>
             <div class="meta-row">
-              @if (last.competition) {
-                <span>{{ last.competition }}</span>
-              }
+              <span>
+                <app-field-value
+                  [value]="last.competition"
+                  [provenance]="last.competition_provenance"
+                />
+              </span>
               <span>{{ last.match_date }}</span>
             </div>
             <a class="plain" [routerLink]="['/match', last.match_id]">Open game detail &rarr;</a>

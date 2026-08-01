@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { FixtureRow, MatchRow, opponentName } from '../../shared/match-models';
+import { FieldValue } from '../../shared/field-value/field-value';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
@@ -34,7 +35,7 @@ function todayIso(): string {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, FieldValue],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })

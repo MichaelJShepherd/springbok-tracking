@@ -83,6 +83,34 @@ describe('Home', () => {
     expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
   });
 
+  it('renders the latest result score/competition per their own D16 provenance, never a blank dash', async () => {
+    const lastResult = {
+      match_id: '2026-05-01-wales-1',
+      match_date: '2026-05-01',
+      competition: null,
+      competition_provenance: 'fetch_failed',
+      venue: 'Principality Stadium, Cardiff',
+      venue_provenance: 'present',
+      kickoff_time: null,
+      kickoff_time_provenance: 'not_yet_fetched',
+      springboks_score: null,
+      springboks_score_provenance: 'fetch_failed',
+      opponent_score: 30,
+      opponent_score_provenance: 'present',
+      result: 'loss',
+      source_article_url: null,
+      teams: { canonical_name: 'Wales' },
+    };
+
+    const { html } = await renderWith([NO_FIXTURES, NO_LIVE_MATCH, latestResultMatcher(lastResult)]);
+
+    const resultCard = html.querySelector('[data-testid="latest-result-card"]');
+    // A failed score fetch must render the D16 "temporarily unavailable"
+    // badge, not a blank cell or a bare "–20" dash (the bug Gate 2 caught).
+    expect(resultCard?.textContent).toContain('temporarily unavailable');
+    expect(resultCard?.textContent).not.toMatch(/South Africa\s*–30/);
+  });
+
   it('renders postponed/TBD chips for a fixture missing venue and kickoff time', async () => {
     const fixture = {
       id: 'fx-1',
