@@ -5,6 +5,9 @@
 *.pem
 *.key
 
+# Local-only Claude skills
+.claude/skills/delivery-process/
+
 # OS / editor noise
 .DS_Store
 Thumbs.db
