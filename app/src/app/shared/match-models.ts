@@ -47,6 +47,27 @@ export function opponentName(row: { teams: TeamRef | null }): string {
   return row.teams?.canonical_name ?? 'Unknown opponent';
 }
 
+/**
+ * Formats a stored kickoff timestamp (UTC ISO, e.g.
+ * "2026-08-08T16:00:00+00:00") as South Africa wall-clock time — J1 requires
+ * "kickoff in SA time" on the next-fixture card (docs/journeys.md J1). A
+ * null/absent kickoff passes through unchanged so callers keep their
+ * existing D16 honest states (e.g. the "Kickoff TBD" chip, or field-value's
+ * "not recorded") — this helper only ever touches a non-null value.
+ */
+export function formatKickoffSAST(kickoff: string | null): string | null {
+  if (!kickoff) {
+    return null;
+  }
+  const time = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Africa/Johannesburg',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(kickoff));
+  return `${time} SAST`;
+}
+
 export function decadeOf(matchDate: string): string {
   const year = Number(matchDate.slice(0, 4));
   const decade = Math.floor(year / 10) * 10;

@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
-import { opponentName } from '../../shared/match-models';
+import { formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
 import { SourcesDifferBadge } from '../../shared/sources-differ-badge/sources-differ-badge';
 import {
@@ -41,6 +41,7 @@ export class MatchDetail implements OnInit {
   readonly events = signal<MatchEventRow[]>([]);
 
   readonly opponentName = opponentName;
+  readonly formatKickoffSAST = formatKickoffSAST;
   readonly eventTypeLabel = (type: MatchEventRow['event_type']) => EVENT_TYPE_LABELS[type];
   readonly officialRoleLabel = (role: MatchOfficialRow['role']) => OFFICIAL_ROLE_LABELS[role];
   readonly isTimed = isTimed;

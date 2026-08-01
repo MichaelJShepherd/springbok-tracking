@@ -28,7 +28,7 @@
               }
               <span>{{ fixture.match_date }}</span>
               @if (fixture.kickoff_time) {
-                <span>{{ fixture.kickoff_time }}</span>
+                <span data-testid="next-fixture-kickoff">{{ formatKickoffSAST(fixture.kickoff_time) }}</span>
               }
               @if (fixture.venue) {
                 <span>{{ fixture.venue }}</span>
