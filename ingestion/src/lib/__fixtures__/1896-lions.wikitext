@@ -1,0 +1,46 @@
+===1896===
+'''1896 record'''<ref>{{Cite web|url=http://www.espnscrum.com/scrum/rugby/records/team/match_results.html?id=1896;team=5;type=year|title=Rugby Union &#124; 1896 &#124; South Africa &#124; Match results|website=ESPN scrum}}</ref>
+{| class="wikitable" style="text-align:center"
+|-
+!width="70"| Games played
+!width="70"| Won
+!width="70"| Lost
+!width="70"| Drawn
+!width="70"| Win percentage
+|-
+|4||1||3|| 0 ||25%
+|}
+{{#invoke:rugby box collapsible|main
+| date = 5 September 1896
+| time =
+| team1 = {{ru-rt|RSA|1876}}
+| score = 5–0
+| report =
+| team2 = [[File:British and Irish Lions flag.svg|23px]]  [[British & Irish Lions]]
+| try1 = [[Alf Larard]]
+| con1 = [[Tommy Hepburn]]
+| pen1 =
+| try2 =
+| con2 =
+| pen2 =
+| stadium = [[Newlands Stadium]], [[Cape Town]]
+| attendance =
+| referee = [[Alfred Richards (sportsman)|Alf Richards]] ([[South African Rugby Union|South Africa]])
+}}
+{{#invoke:rugby box collapsible|main
+| date = 29 August 1896
+| time =
+| team1 = {{ru-rt|RSA|1876}}
+| score = 3–9
+| report =
+| team2 = [[File:British and Irish Lions flag.svg|23px]]  [[British & Irish Lions]]
+| try1 = [[Percy Twentyman-Jones]]
+| con1 =
+| pen1 =
+| try2 =
+| con2 =
+| pen2 =
+| stadium = Kimberley Athletic Club Ground, [[Kimberley, Northern Cape|Kimberley]]
+| attendance =
+| referee =
+}}
