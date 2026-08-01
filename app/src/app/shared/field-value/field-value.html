@@ -1,0 +1,14 @@
+@switch (provenance()) {
+  @case ('present') {
+    <span class="field-present">{{ value() }}</span>
+  }
+  @case ('absent_in_source') {
+    <span class="field-absent">not recorded</span>
+  }
+  @case ('not_yet_fetched') {
+    <span class="field-loading" aria-label="loading"></span>
+  }
+  @case ('fetch_failed') {
+    <span class="field-failed">&#9888; temporarily unavailable</span>
+  }
+}

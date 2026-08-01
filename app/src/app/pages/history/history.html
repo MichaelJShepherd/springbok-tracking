@@ -1,2 +1,130 @@
-<h1>History</h1>
-<p>Placeholder — all-time results table (PRD §2.2) lands in a later slice.</p>
+<section class="history">
+  <h1>History</h1>
+  <p class="tagline">Every recorded Springbok test, newest first.</p>
+
+  @switch (state()) {
+    @case ('loading') {
+      <p class="state-loading" data-testid="history-loading">Loading…</p>
+    }
+    @case ('error') {
+      <p class="state-failed" data-testid="history-error">
+        &#9888; Match history temporarily unavailable — is local Supabase running?
+      </p>
+    }
+    @case ('loaded') {
+      <div class="filters" data-testid="history-filters">
+        @if (opponents().length) {
+          <div class="chips">
+            @for (name of opponents(); track name) {
+              <button
+                type="button"
+                class="chip"
+                [class.selected]="selectedOpponent() === name"
+                (click)="toggleOpponent(name)"
+              >
+                {{ name }}
+              </button>
+            }
+          </div>
+        }
+
+        @if (competitions().length) {
+          <div class="chips">
+            @for (name of competitions(); track name) {
+              <button
+                type="button"
+                class="chip"
+                [class.selected]="selectedCompetition() === name"
+                (click)="toggleCompetition(name)"
+              >
+                {{ name }}
+              </button>
+            }
+          </div>
+        }
+
+        @if (eras().length) {
+          <div class="chips">
+            @for (era of eras(); track era) {
+              <button
+                type="button"
+                class="chip"
+                [class.selected]="selectedEra() === era"
+                (click)="toggleEra(era)"
+              >
+                {{ era }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      @if (filtered().length) {
+        <table class="history-table" data-testid="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Opponent</th>
+              <th>Score</th>
+              <th>W/D/L</th>
+              <th>Venue</th>
+              <th>Competition</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (match of filtered(); track match.match_id) {
+              <tr class="row-link" [routerLink]="['/match', match.match_id]">
+                <td data-label="Date">{{ match.match_date }}</td>
+                <td data-label="Opponent">{{ opponentName(match) }}</td>
+                <td data-label="Score">
+                  <app-field-value
+                    [value]="match.springboks_score"
+                    [provenance]="match.springboks_score_provenance"
+                  />
+                  &ndash;
+                  <app-field-value
+                    [value]="match.opponent_score"
+                    [provenance]="match.opponent_score_provenance"
+                  />
+                </td>
+                <td data-label="W/D/L">
+                  @if (match.result) {
+                    <span class="wld" [class]="match.result">{{
+                      match.result === 'win' ? 'W' : match.result === 'loss' ? 'L' : 'D'
+                    }}</span>
+                  } @else {
+                    <span class="field-absent">not recorded</span>
+                  }
+                </td>
+                <td data-label="Venue">
+                  <app-field-value [value]="match.venue" [provenance]="match.venue_provenance" />
+                </td>
+                <td data-label="Competition">
+                  <app-field-value
+                    [value]="match.competition"
+                    [provenance]="match.competition_provenance"
+                  />
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="note" data-testid="history-empty">No matches found for these filters.</p>
+      }
+
+      <footer class="footer-attrib">
+        Match list adapted from
+        <a
+          href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches"
+          target="_blank"
+          rel="noopener"
+          >Wikipedia — List of South Africa national rugby union test matches</a
+        >, available under
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
+          >CC BY-SA 4.0</a
+        >; modified: parsed and normalised from wikitext.
+      </footer>
+    }
+  }
+</section>

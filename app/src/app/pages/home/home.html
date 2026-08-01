@@ -2,17 +2,98 @@
   <h1>Springbok Tracking</h1>
   <p class="tagline">Every Springbok test, tracked from the record — not from memory.</p>
 
-  <div class="matches-count" data-testid="matches-count">
-    @switch (state()) {
-      @case ('loading') {
-        <p class="state-loading">Loading seeded matches…</p>
-      }
-      @case ('error') {
-        <p class="state-failed">⚠ Matches count temporarily unavailable — is local Supabase running?</p>
-      }
-      @case ('loaded') {
-        <p class="count">{{ matchesCount() }} match{{ matchesCount() === 1 ? '' : 'es' }} in the local database</p>
+  @switch (state()) {
+    @case ('loading') {
+      <p class="state-loading" data-testid="home-loading">Loading…</p>
+    }
+    @case ('error') {
+      <p class="state-failed" data-testid="home-error">
+        &#9888; Home data temporarily unavailable — is local Supabase running?
+      </p>
+    }
+    @case ('loaded') {
+      <div class="card-row">
+        <div class="card" data-testid="next-fixture-card">
+          <h3>Next fixture</h3>
+
+          @if (liveMatch(); as live) {
+            <p class="note" data-testid="match-under-way">
+              Match under way — no live coverage here; result appears after full time.
+            </p>
+          } @else if (nextFixture(); as fixture) {
+            <div class="fixture-title">South Africa vs {{ opponentName(fixture) }}</div>
+            <div class="meta-row">
+              @if (fixture.competition) {
+                <span>{{ fixture.competition }}</span>
+              }
+              <span>{{ fixture.match_date }}</span>
+              @if (fixture.kickoff_time) {
+                <span>{{ fixture.kickoff_time }}</span>
+              }
+              @if (fixture.venue) {
+                <span>{{ fixture.venue }}</span>
+              }
+            </div>
+            @if (nextFixtureChips().length) {
+              <div class="chips" data-testid="fixture-chips">
+                @for (chip of nextFixtureChips(); track chip.label) {
+                  <span class="chip tbd">{{ chip.label }}</span>
+                }
+              </div>
+            }
+          } @else {
+            <div data-testid="off-season">
+              <p class="note">No test scheduled</p>
+              @if (latestResult(); as last) {
+                <div class="meta-row">
+                  <span
+                    >Last result: South Africa {{ last.springboks_score }}–{{ last.opponent_score }}
+                    {{ opponentName(last) }}</span
+                  >
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="card" data-testid="latest-result-card">
+          @if (latestResult(); as last) {
+            <div class="result-bar" [class]="last.result"></div>
+            <h3>Latest result</h3>
+            <div class="fixture-title">
+              South Africa {{ last.springboks_score }}–{{ last.opponent_score }} {{ opponentName(last) }}
+            </div>
+            <div class="meta-row">
+              @if (last.competition) {
+                <span>{{ last.competition }}</span>
+              }
+              <span>{{ last.match_date }}</span>
+            </div>
+            <a class="plain" [routerLink]="['/match', last.match_id]">Open game detail &rarr;</a>
+          } @else {
+            <h3>Latest result</h3>
+            <p class="note">No results recorded yet</p>
+          }
+        </div>
+      </div>
+
+      @if (upcomingFixtures().length) {
+        <div class="upcoming" data-testid="upcoming-fixtures">
+          <h3>Upcoming fixtures</h3>
+          @for (fixture of upcomingFixtures(); track fixture.id) {
+            <div class="meta-row upcoming-row">
+              <span>South Africa vs {{ opponentName(fixture) }}</span>
+              <span>{{ fixture.match_date }}</span>
+              @if (fixture.competition) {
+                <span>{{ fixture.competition }}</span>
+              }
+              @for (chip of fixtureChipsFor(fixture); track chip.label) {
+                <span class="chip tbd">{{ chip.label }}</span>
+              }
+            </div>
+          }
+        </div>
       }
     }
-  </div>
+  }
 </section>

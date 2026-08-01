@@ -1,0 +1,44 @@
+.field-absent {
+  color: var(--c-state-absent);
+  font-style: italic;
+}
+
+.field-loading {
+  display: inline-block;
+  width: 4rem;
+  height: 0.9em;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--c-state-loading) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    var(--c-state-loading) 75%
+  );
+  background-size: 200% 100%;
+  animation: field-shimmer 1.4s infinite;
+}
+
+.field-failed {
+  display: inline-block;
+  color: var(--c-state-failed);
+  background: rgba(181, 69, 63, 0.12);
+  border: 1px solid var(--c-state-failed);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--sp-2);
+  font-size: var(--fs-100);
+}
+
+@keyframes field-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-loading {
+    animation: none;
+  }
+}
