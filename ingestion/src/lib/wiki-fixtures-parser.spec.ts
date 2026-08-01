@@ -37,7 +37,7 @@ describe('parseSeasonArticleFixtures — 2026 men\'s rugby union internationals 
     SOURCE_URL,
   );
 
-  it('excludes an A-team fixture (ruA-rt code) — neither side resolves to the senior South Africa side', () => {
+  it('excludes an A-team fixture (ruA-rt code, unmatched by the code-template regex, so neither side resolves to South Africa)', () => {
     expect(fixtures.some((f) => f.matchDate === '2026-06-20')).toBe(false);
   });
 
@@ -102,6 +102,20 @@ describe('parseFixtureBlock — edge cases', () => {
     const { fixture, notApplicableReason } = parseFixtureBlock(block, SOURCE_URL);
     expect(fixture).toBeUndefined();
     expect(notApplicableReason).toContain('both sides resolved to South Africa');
+  });
+
+  it('marks status tbd on a genuinely blank stadium field alone, even with a known kickoff time (Gate 3 coverage gap)', () => {
+    const block = `{{rugbybox
+|date = 1 November 2026
+|time = 15:00
+|team1 = {{ru-rt|RSA}}
+|score =
+|team2 = {{ru|NZL}}
+|stadium =
+}}`;
+    const { fixture } = parseFixtureBlock(block, SOURCE_URL);
+    expect(fixture?.status).toBe('tbd');
+    expect(fixture?.kickoffTime).toBe('2026-11-01T15:00:00Z');
   });
 
   it('does not write a row when the date is unparseable', () => {

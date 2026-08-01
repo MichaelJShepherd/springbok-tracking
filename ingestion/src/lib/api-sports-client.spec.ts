@@ -60,6 +60,11 @@ describe('mapApiSportsGame — recorded fixture (task #79, D27)', () => {
     expect(mapApiSportsGame(games[3]).status).toBe('tbd'); // TBD
   });
 
+  it('maps the ABD (abandoned) short-code to cancelled too (Gate 3 coverage gap)', () => {
+    const abandonedGame: ApiSportsGame = { ...games[0], status: { short: 'ABD' } };
+    expect(mapApiSportsGame(abandonedGame).status).toBe('cancelled');
+  });
+
   it('records a null venue honestly rather than inventing one when the API omits it', () => {
     expect(mapApiSportsGame(games[3]).venue).toBeNull();
   });
