@@ -51,8 +51,10 @@ link to detail.
 
 - Bar: any historic game findable in ≤4 interactions (D10): nav → filter →
   (scroll) → row.
-- Mobile: the table collapses to stacked result rows (date, opponent,
-  score, W/L colour) — filters become a sheet; nothing scrolls sideways.
+- Mobile: the table collapses to a stacked mobile layout — the specifics
+  (row contents, filter presentation) are design decisions, specified in
+  docs/design.md, not here; the journey's requirement is only that nothing
+  scrolls sideways.
 - Sparse eras render honestly: an 1896 row may be date/opponent/score only
   — no padded columns (D16, principle 6).
 - Footer attribution to the Wikipedia list article (D26).
