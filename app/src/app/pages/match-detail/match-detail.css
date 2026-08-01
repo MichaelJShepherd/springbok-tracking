@@ -93,23 +93,8 @@
   gap: var(--sp-1);
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
-  font-size: var(--fs-100);
-  padding: 1px var(--sp-2);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  margin-left: var(--sp-1);
-}
-
-.badge.differ {
-  background: rgba(212, 175, 55, 0.12);
-  color: var(--c-gold-400);
-  border: 1px solid var(--c-gold-500);
-  cursor: help;
-}
+/* The "sources differ" badge itself lives in shared/sources-differ-badge/
+   (its own scoped styles) — this page only lays out around it. */
 
 /* Lineups two-column, stacked on mobile (design.md §2 "Lineups two-column") */
 .lineups {

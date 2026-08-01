@@ -1,0 +1,18 @@
+.badge.differ {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-100);
+  padding: 1px var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: rgba(212, 175, 55, 0.12);
+  color: var(--c-gold-400);
+  border: 1px solid var(--c-gold-500);
+  margin-left: var(--sp-1);
+  flex-wrap: wrap;
+}
+
+.badge.differ a {
+  color: inherit;
+  text-decoration: underline;
+}

@@ -21,49 +21,21 @@
             <div class="score-hero" data-testid="score-hero">
               South Africa
               <app-field-value [value]="m.springboks_score" [provenance]="m.springboks_score_provenance" />
-              @if (disagreementFor('springboks_score'); as d) {
-                <span
-                  class="badge differ"
-                  data-testid="sources-differ-springboks_score"
-                  [title]="d.displayedSource + ': ' + d.displayedValue + ' | ' + d.alternateSource + ': ' + d.alternateValue"
-                  >sources differ</span
-                >
-              }
+              <app-sources-differ-badge [disagreement]="disagreementFor('springboks_score')" />
               &ndash;
               <app-field-value [value]="m.opponent_score" [provenance]="m.opponent_score_provenance" />
-              @if (disagreementFor('opponent_score'); as d) {
-                <span
-                  class="badge differ"
-                  data-testid="sources-differ-opponent_score"
-                  [title]="d.displayedSource + ': ' + d.displayedValue + ' | ' + d.alternateSource + ': ' + d.alternateValue"
-                  >sources differ</span
-                >
-              }
+              <app-sources-differ-badge [disagreement]="disagreementFor('opponent_score')" />
               {{ opponentName(m) }}
             </div>
             <div class="meta-row">
               <span>
                 <app-field-value [value]="m.competition" [provenance]="m.competition_provenance" />
-                @if (disagreementFor('competition'); as d) {
-                  <span
-                    class="badge differ"
-                    data-testid="sources-differ-competition"
-                    [title]="d.displayedSource + ': ' + d.displayedValue + ' | ' + d.alternateSource + ': ' + d.alternateValue"
-                    >sources differ</span
-                  >
-                }
+                <app-sources-differ-badge [disagreement]="disagreementFor('competition')" />
               </span>
               <span>{{ m.match_date }}</span>
               <span>
                 <app-field-value [value]="m.venue" [provenance]="m.venue_provenance" />
-                @if (disagreementFor('venue'); as d) {
-                  <span
-                    class="badge differ"
-                    data-testid="sources-differ-venue"
-                    [title]="d.displayedSource + ': ' + d.displayedValue + ' | ' + d.alternateSource + ': ' + d.alternateValue"
-                    >sources differ</span
-                  >
-                }
+                <app-sources-differ-badge [disagreement]="disagreementFor('venue')" />
               </span>
             </div>
           </div>
@@ -83,20 +55,13 @@
 
           <h3>Kickoff time</h3>
           <app-field-value [value]="m.kickoff_time" [provenance]="m.kickoff_time_provenance" />
-          @if (disagreementFor('kickoff_time'); as d) {
-            <span
-              class="badge differ"
-              data-testid="sources-differ-kickoff_time"
-              [title]="d.displayedSource + ': ' + d.displayedValue + ' | ' + d.alternateSource + ': ' + d.alternateValue"
-              >sources differ</span
-            >
-          }
+          <app-sources-differ-badge [disagreement]="disagreementFor('kickoff_time')" />
 
           @if (otherOfficials().length) {
             <div class="other-officials" data-testid="other-officials">
-              @for (o of otherOfficials(); track o.role) {
+              @for (o of otherOfficials(); track $index) {
                 <div class="meta-row">
-                  <span>{{ o.role }}:</span>
+                  <span>{{ officialRoleLabel(o.role) }}:</span>
                   <app-field-value [value]="o.name" [provenance]="o.name_provenance" />
                 </div>
               }
@@ -163,7 +128,7 @@
 
         <footer class="footer-attrib" data-testid="attribution-footer">
           Match data adapted from
-          <a [href]="attributionUrl()" target="_blank" rel="noopener">the source article on Wikipedia</a>,
+          <a [href]="attributionUrl()" target="_blank" rel="noopener">{{ attributionLabel() }}</a>,
           available under
           <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
             >CC BY-SA 4.0</a

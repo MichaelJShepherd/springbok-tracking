@@ -132,6 +132,18 @@
   font-weight: 700;
 }
 
+.mood-single.mood-pos {
+  color: var(--c-mood-pos);
+}
+
+.mood-single.mood-neg {
+  color: var(--c-mood-neg);
+}
+
+.mood-single.mood-neutral {
+  color: var(--c-mood-neutral);
+}
+
 .method-link {
   margin-top: var(--sp-2);
   font-size: var(--fs-100);

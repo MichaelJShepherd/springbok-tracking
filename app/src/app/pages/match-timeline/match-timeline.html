@@ -15,8 +15,11 @@
       <section class="timeline" data-testid="match-timeline">
         <h1>Match timeline</h1>
         <p class="lede">
-          South Africa {{ m.springboks_score }}&ndash;{{ m.opponent_score }} {{ opponentName(m) }} &middot;
-          {{ m.match_date }}
+          South Africa
+          <app-field-value [value]="m.springboks_score" [provenance]="m.springboks_score_provenance" />
+          &ndash;
+          <app-field-value [value]="m.opponent_score" [provenance]="m.opponent_score_provenance" />
+          {{ opponentName(m) }} &middot; {{ m.match_date }}
         </p>
 
         <h2>Events</h2>
@@ -25,7 +28,7 @@
             <div class="axis-wrap" data-testid="events-axis">
               <div class="axis-line">
                 @for (e of timedEvents(); track e.sequence_no) {
-                  <div class="axis-marker" [style.left.%]="((e.minute ?? 0) / maxMinute()) * 100">
+                  <div class="axis-marker" [style.left.%]="markerLeftPercent(e.minute)">
                     <div class="label">{{ e.minute }}'</div>
                   </div>
                 }
@@ -41,7 +44,8 @@
                     <span class="min" data-testid="event-clock">{{ e.minute }}'</span>
                   }
                   <span>
-                    {{ eventTypeLabel(e.event_type) }} &mdash; {{ e.description || 'not recorded' }}
+                    {{ eventTypeLabel(e.event_type) }} &mdash;
+                    <app-field-value [value]="e.description" [provenance]="e.description_provenance" />
                   </span>
                 </li>
               }
@@ -74,7 +78,7 @@
                   <p class="note">
                     Too little discussion to score
                     @if (tooFewSample() !== null) {
-                      &mdash; {{ tooFewSample() }} recorded
+                      &mdash; {{ tooFewSample() }} comments/articles recorded
                     }. Events above still tell the story.
                   </p>
                 </div>
@@ -85,8 +89,8 @@
                   </div>
                   <p class="note">{{ sentimentBadgeText() }}</p>
                   @if (singlePoint(); as p) {
-                    <p class="mood-single" [class]="p.label ? p.label.toLowerCase() : ''">
-                      {{ p.label }}
+                    <p class="mood-single" [class]="'mood-' + singlePointColorClass()">
+                      {{ p.label ?? '—' }}
                     </p>
                   }
                   <p class="method-link">

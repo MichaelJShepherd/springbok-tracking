@@ -173,11 +173,41 @@ describe('MatchDetail', () => {
 
     const badge = html.querySelector('[data-testid="sources-differ-kickoff_time"]');
     expect(badge?.textContent).toContain('sources differ');
-    expect(badge?.getAttribute('title')).toContain('Wikipedia: 15:00 SAST');
-    expect(badge?.getAttribute('title')).toContain('Kaggle cross-check dataset: 14:30 SAST');
+    expect(badge?.textContent).toContain('Wikipedia: 15:00 SAST');
+    expect(badge?.textContent).toContain('Kaggle cross-check dataset: 14:30 SAST');
 
     // A field with no recorded disagreement must never show the badge.
     expect(html.querySelector('[data-testid="sources-differ-venue"]')).toBeNull();
+  });
+
+  it('links both disagreeing sources when their URLs are recorded, not just a tooltip (D14)', async () => {
+    const disputedMatch = {
+      ...BASE_MATCH,
+      disagreements: [
+        {
+          field: 'kickoff_time',
+          displayedValue: '15:00 SAST',
+          displayedSource: 'Wikipedia',
+          displayedSourceUrl: 'https://en.wikipedia.org/wiki/1995_Rugby_World_Cup_Final',
+          alternateValue: '14:30 SAST',
+          alternateSource: 'Kaggle cross-check dataset',
+          alternateSourceUrl: 'https://example.com/kaggle-dataset',
+        },
+      ],
+    };
+
+    const { html } = await renderWith([
+      matchMatcher(disputedMatch),
+      officialsMatcher([]),
+      lineupsMatcher([]),
+      eventsMatcher([]),
+    ]);
+
+    const badge = html.querySelector('[data-testid="sources-differ-kickoff_time"]');
+    const links = Array.from(badge?.querySelectorAll('a') ?? []) as HTMLAnchorElement[];
+    expect(links.length).toBe(2);
+    expect(links.some((a) => a.href.includes('1995_Rugby_World_Cup_Final'))).toBe(true);
+    expect(links.some((a) => a.href.includes('kaggle-dataset'))).toBe(true);
   });
 
   it('renders an honest error state instead of throwing when a query fails', async () => {

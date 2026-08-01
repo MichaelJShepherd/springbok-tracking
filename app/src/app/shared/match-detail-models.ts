@@ -155,3 +155,10 @@ export function sentimentBadgeText(source: SentimentSource): string {
     ? 'Fan mood — computed by this site from r/rugbyunion match thread'
     : 'Fan mood — computed by this site from news headlines';
 }
+
+/** Shared select strings so the detail and timeline pages fetch identically (dedupe). */
+export const MATCH_DETAIL_SELECT =
+  'match_id, match_date, competition, competition_provenance, venue, venue_provenance, kickoff_time, kickoff_time_provenance, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result, source_article_url, teams:opponent_team_id(canonical_name)';
+
+export const MATCH_EVENTS_SELECT =
+  'sequence_no, event_type, team_side, description, description_provenance, minute, minute_provenance';

@@ -2,10 +2,13 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { MatchRow, opponentName } from '../../shared/match-models';
+import { FieldValue } from '../../shared/field-value/field-value';
 import {
   BUCKET_LABELS,
   CURVE_BUCKET_ORDER,
   EVENT_TYPE_LABELS,
+  MATCH_DETAIL_SELECT,
+  MATCH_EVENTS_SELECT,
   MatchEventRow,
   SentimentScoreRow,
   isTimed,
@@ -25,16 +28,16 @@ export interface CurvePoint {
   colorClass: 'pos' | 'neg' | 'neutral';
 }
 
-const MATCH_SELECT =
-  'match_id, match_date, competition, competition_provenance, venue, venue_provenance, kickoff_time, kickoff_time_provenance, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result, source_article_url, teams:opponent_team_id(canonical_name)';
-
 const CURVE_WIDTH = 560;
 const CURVE_HEIGHT = 120;
 const CURVE_PAD = 40;
 
+/** Keeps the last axis marker's centred label fully inside the card (no sideways scroll, J3/J5). */
+const AXIS_MARKER_MAX_PERCENT = 97;
+
 @Component({
   selector: 'app-match-timeline',
-  imports: [RouterLink],
+  imports: [RouterLink, FieldValue],
   templateUrl: './match-timeline.html',
   styleUrl: './match-timeline.css',
 })
@@ -64,6 +67,12 @@ export class MatchTimeline implements OnInit {
   /** True once at least one timed event exists — the axis line is only worth drawing then. */
   readonly hasTimedAxis = computed(() => this.timedEvents().length > 0);
 
+  /** Clamped so a marker at the final minute never pushes its centred label outside the card. */
+  markerLeftPercent(minute: number | null): number {
+    const pct = ((minute ?? 0) / this.maxMinute()) * 100;
+    return Math.min(AXIS_MARKER_MAX_PERCENT, pct);
+  }
+
   readonly sentimentSource = computed(() => this.sentimentRows()[0]?.source ?? null);
   readonly sentimentBadgeText = computed(() => {
     const source = this.sentimentSource();
@@ -73,18 +82,28 @@ export class MatchTimeline implements OnInit {
     () => this.sentimentRows().find((r) => r.source_url)?.source_url ?? null,
   );
 
-  /** D2 minimum-volume floor: any row flagged too_few means the thread/articles were too thin to score. */
-  readonly tooFew = computed(() => this.sentimentRows().some((r) => r.too_few));
+  /**
+   * D2 minimum-volume floor. The floor is a property of the whole source
+   * instance (one Reddit thread, one Guardian article set) — every bucket
+   * an ingestion run writes for that source carries the same flag — so
+   * this only suppresses the curve when the *entire* source was too thin,
+   * never because one bucket among several well-sourced ones was.
+   */
+  readonly tooFew = computed(() => {
+    const rows = this.sentimentRows();
+    return rows.length > 0 && rows.every((r) => r.too_few);
+  });
   readonly tooFewSample = computed(
     () => this.sentimentRows().find((r) => r.too_few)?.bucket_source_count ?? null,
   );
 
-  /** Single-point variant: Guardian rows, or any lone whole_match row (D2). */
+  /** Single-point variant: Guardian rows, or a Reddit thread scored as one whole-match bucket (D2). */
   readonly isSinglePoint = computed(() => {
     const rows = this.sentimentRows();
-    return rows.length === 1 && rows[0].bucket === 'whole_match';
+    return rows.length > 0 && !this.tooFew() && rows.every((r) => r.bucket === 'whole_match');
   });
   readonly singlePoint = computed(() => this.sentimentRows()[0] ?? null);
+  readonly singlePointColorClass = computed(() => moodColorClass(this.singlePoint()?.score ?? null));
 
   readonly curveRows = computed(() =>
     CURVE_BUCKET_ORDER.map((bucket) => this.sentimentRows().find((r) => r.bucket === bucket)).filter(
@@ -104,7 +123,7 @@ export class MatchTimeline implements OnInit {
         x,
         y,
         label: BUCKET_LABELS[row.bucket],
-        moodLabel: row.label ?? 'Mixed',
+        moodLabel: row.label ?? '—',
         colorClass: moodColorClass(row.score),
       };
     });
@@ -138,12 +157,10 @@ export class MatchTimeline implements OnInit {
   private async load(matchId: string): Promise<void> {
     try {
       const [matchRes, eventsRes] = await Promise.all([
-        this.supabase.client.from('matches').select(MATCH_SELECT).eq('match_id', matchId).maybeSingle(),
+        this.supabase.client.from('matches').select(MATCH_DETAIL_SELECT).eq('match_id', matchId).maybeSingle(),
         this.supabase.client
           .from('match_events')
-          .select(
-            'sequence_no, event_type, team_side, description, description_provenance, minute, minute_provenance',
-          )
+          .select(MATCH_EVENTS_SELECT)
           .eq('match_id', matchId)
           .order('sequence_no', { ascending: true }),
       ]);
