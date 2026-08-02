@@ -1,0 +1,151 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+h2 {
+  font-size: var(--t-xl);
+  margin-top: var(--s-4);
+}
+
+/* — Pre-match masthead: same dark-green/collar treatment as match-detail's
+   post-match masthead (docs/design.md §6.2), but no score hero — there is
+   no score yet. The `.detail-masthead` class name is reused deliberately so
+   the global `.detail-masthead .field-absent` WCAG AA override (src/styles.css)
+   applies here too without a second copy of that rule. — */
+.detail-masthead {
+  background: var(--g-900);
+  box-shadow: var(--collar);
+  color: var(--paper);
+  padding: var(--s-6) var(--gutter);
+  margin: 0 calc(var(--gutter) * -1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s-2);
+}
+
+.detail-eyebrow {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  color: var(--gold-300);
+  margin: 0;
+}
+
+.fixture-title {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  /* The masthead's `align-items: center` (cross-axis centring, not
+     stretch) leaves a column flex child's width at its unconstrained
+     fit-content size — for a long opponent name at --t-2xl that is wider
+     than a phone viewport, which overflowed invisibly off-screen instead
+     of wrapping (J3: nothing may scroll/overflow sideways). Capping the
+     item to the container's width forces normal word-wrap within it. */
+  max-width: 100%;
+}
+
+/* Below ~480px, drop to --t-xl so a long opponent name ("South Africa v
+   British & Irish Lions") wraps onto comfortably few lines rather than
+   fighting the hero size for room (mirrors match-detail.css's own
+   sub-480px score-hero adjustment). */
+@media (max-width: 479px) {
+  .fixture-title {
+    font-size: var(--t-xl);
+  }
+}
+
+.fixture-kickoff {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
+  font-size: var(--t-lg);
+  margin: 0;
+  color: var(--gold-300);
+}
+
+.match-day-note {
+  color: var(--gold-300);
+  font-size: var(--t-base);
+  max-width: 40ch;
+  margin: 0;
+}
+
+.detail-venue {
+  color: var(--gold-300);
+  font-size: var(--t-sm);
+  margin: 0;
+}
+
+/* Reuses Home's chip vocabulary (docs/design.md §6.2) — duplicated per
+   AGENTS.md 1.3 (simplicity first; no shared component exists yet to
+   extract into without inventing one for a third consumer). */
+.chip {
+  display: inline-block;
+  font-size: var(--t-cap);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
+}
+
+.chip.tbd {
+  color: var(--gold-ink);
+  border-color: var(--gold-700);
+}
+
+/* — Head-to-head strip (docs/design.md §7.3/§6.2) — */
+.h2h {
+  background: var(--g-100);
+  border-color: var(--rule-strong);
+}
+
+.h2h-zones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+@media (min-width: 720px) {
+  .h2h-zones {
+    flex-direction: row;
+  }
+
+  .h2h-zone {
+    flex: 1 1 0;
+    border-left: var(--hairline);
+    padding-left: var(--s-4);
+  }
+
+  .h2h-zone:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+.h2h-pct {
+  font-family: var(--font-numeric);
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-pct small {
+  font-family: var(--font-numeric);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+}
+
+.h2h-counts {
+  font-family: var(--font-numeric);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-line {
+  margin: 0;
+  font-size: var(--t-sm);
+}
+
+/* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

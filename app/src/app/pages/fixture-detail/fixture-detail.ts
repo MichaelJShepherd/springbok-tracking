@@ -1,0 +1,139 @@
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { SupabaseService } from '../../core/supabase.service';
+import { formatKickoffSAST, opponentName } from '../../shared/match-models';
+import { HeadToHeadRow, buildHeadToHead } from '../../shared/head-to-head';
+import { HEAD_TO_HEAD_SELECT } from '../../shared/match-detail-models';
+import {
+  FIXTURE_DETAIL_SELECT,
+  FixtureDetailRow,
+  FixtureStatus,
+  formatFetchedAtSAST,
+} from '../../shared/fixture-detail-models';
+import { parseFixtureRouteId, slugifyOpponent, todayInSAST } from '../../shared/fixture-id';
+
+type LoadState = 'loading' | 'loaded' | 'not_found' | 'error';
+type H2hState = 'loading' | 'loaded' | 'error';
+
+const STATUS_LABELS: Record<FixtureStatus, string> = {
+  scheduled: 'Scheduled',
+  postponed: 'Postponed',
+  tbd: 'TBD',
+  cancelled: 'Cancelled',
+};
+
+/**
+ * Pre-match game-detail page (docs/design.md §6.2, PRD D37, #95). Reads
+ * `fixtures_upstream` for the fixture facts and `matches` only for the
+ * head-to-head aggregate — the two tables' rows are never merged into one
+ * displayed record (D15 licence separation, same discipline as Home).
+ */
+@Component({
+  selector: 'app-fixture-detail',
+  imports: [RouterLink],
+  templateUrl: './fixture-detail.html',
+  styleUrl: './fixture-detail.css',
+})
+export class FixtureDetail implements OnInit {
+  private readonly supabase = inject(SupabaseService);
+  private readonly route = inject(ActivatedRoute);
+
+  /** Injectable so the match-day (D8) state is testable on any day (AGENTS.md Gate 3). */
+  readonly clock = input<() => Date>(() => new Date());
+
+  readonly state = signal<LoadState>('loading');
+  readonly fixture = signal<FixtureDetailRow | null>(null);
+
+  readonly h2hState = signal<H2hState>('loading');
+  readonly h2hRows = signal<HeadToHeadRow[]>([]);
+  readonly headToHead = computed(() => {
+    const f = this.fixture();
+    if (!f || this.h2hState() !== 'loaded') return null;
+    // The route id is never a real `match_id` (the fixture hasn't been
+    // played yet), so `matchFound` is always false here by construction —
+    // zone 3 ("Nth meeting" / "before this match") never renders, and zone
+    // 1's all-time record correctly stands in for "before this match"
+    // (docs/design.md §6.2).
+    const routeId = this.route.snapshot.paramMap.get('id') ?? '';
+    return buildHeadToHead(this.h2hRows(), routeId);
+  });
+
+  readonly opponentName = opponentName;
+  readonly formatKickoffSAST = formatKickoffSAST;
+  readonly formatFetchedAtSAST = formatFetchedAtSAST;
+  readonly statusLabel = (status: FixtureStatus): string => STATUS_LABELS[status];
+
+  readonly isMatchDay = computed(() => {
+    const f = this.fixture();
+    return !!f && f.match_date === todayInSAST(this.clock());
+  });
+
+  readonly provenanceIsWikipedia = computed(() => this.fixture()?.source === 'wikipedia');
+
+  ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    const parsed = id ? parseFixtureRouteId(id) : null;
+    if (!parsed) {
+      this.state.set('not_found');
+      return;
+    }
+    this.load(parsed.matchDate, parsed.opponentSlug);
+  }
+
+  private async load(matchDate: string, opponentSlug: string): Promise<void> {
+    // Same non-negotiable as every other page: a missing row, or an
+    // unreachable Supabase, must never throw or blank the page (AGENTS.md
+    // non-negotiables / PRD D16).
+    try {
+      const { data, error } = await this.supabase.client
+        .from('fixtures_upstream')
+        .select(FIXTURE_DETAIL_SELECT)
+        .eq('match_date', matchDate);
+
+      if (error) {
+        this.state.set('error');
+        return;
+      }
+
+      const rows = (data ?? []) as unknown as FixtureDetailRow[];
+      const candidates = rows.filter((r) => slugifyOpponent(opponentName(r)) === opponentSlug);
+      if (candidates.length === 0) {
+        this.state.set('not_found');
+        return;
+      }
+      // D14 precedence: an api-sports row beats a wikipedia row for the same
+      // (date, opponent) pair, mirroring ingest:fixtures' own dedupe rule.
+      const fixture = candidates.find((r) => r.source === 'api-sports') ?? candidates[0];
+
+      this.fixture.set(fixture);
+      this.state.set('loaded');
+
+      // Head-to-head strip — deliberately not awaited: an independent read
+      // that must never block or blank the rest of the page (same
+      // non-negotiable match-detail's own head-to-head load follows).
+      void this.loadHeadToHead(fixture.opponent_team_id);
+    } catch {
+      this.state.set('error');
+    }
+  }
+
+  private async loadHeadToHead(opponentTeamId: string): Promise<void> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('matches')
+        .select(HEAD_TO_HEAD_SELECT)
+        .eq('opponent_team_id', opponentTeamId)
+        .order('match_date', { ascending: true });
+
+      if (error) {
+        this.h2hState.set('error');
+        return;
+      }
+
+      this.h2hRows.set((data ?? []) as unknown as HeadToHeadRow[]);
+      this.h2hState.set('loaded');
+    } catch {
+      this.h2hState.set('error');
+    }
+  }
+}

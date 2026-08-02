@@ -5,6 +5,7 @@ import { FixtureRow, MatchRow, formatKickoffSAST, opponentName } from '../../sha
 import { FieldValue } from '../../shared/field-value/field-value';
 import { ResultMark, MarkResult } from '../../shared/result-mark/result-mark';
 import { abbreviateOpponent } from '../../shared/team-abbrev';
+import { fixtureRouteId } from '../../shared/fixture-id';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
@@ -165,6 +166,7 @@ export class Home implements OnInit {
   readonly opponentName = opponentName;
   readonly fixtureChipsFor = fixtureChips;
   readonly formatKickoffSAST = formatKickoffSAST;
+  readonly fixtureRouteId = fixtureRouteId;
 
   ngOnInit(): void {
     this.load();
