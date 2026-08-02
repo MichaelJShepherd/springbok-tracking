@@ -20,6 +20,7 @@
           [attr.y]="axisY() + 16"
           text-anchor="middle"
           font-size="11"
+          font-family="var(--font-numeric)"
           fill="var(--ink-3)"
         >
           {{ m }}&prime;
@@ -27,8 +28,8 @@
       }
       <line x1="42" [attr.y1]="topY()" [attr.x2]="608" [attr.y2]="axisY()" stroke="none" />
       <line x1="42" [attr.y1]="axisY()" x2="582" [attr.y2]="axisY()" stroke="var(--rule-strong)" />
-      <text x="36" [attr.y]="zeroY() + 4" text-anchor="end" font-size="11" fill="var(--ink-3)">0</text>
-      <text x="36" [attr.y]="topY() + 4" text-anchor="end" font-size="11" fill="var(--ink-3)">
+      <text x="36" [attr.y]="zeroY() + 4" text-anchor="end" font-size="11" font-family="var(--font-numeric)" fill="var(--ink-3)">0</text>
+      <text x="36" [attr.y]="topY() + 4" text-anchor="end" font-size="11" font-family="var(--font-numeric)" fill="var(--ink-3)">
         {{ c.yTop }}
       </text>
       <line
@@ -49,7 +50,7 @@
         x="590"
         [attr.y]="c.y(finalSaNum()) + 4 + saLabelDy()"
         font-size="16"
-        font-family="var(--font-display)"
+        font-family="var(--font-numeric)"
         fill="var(--win)"
       >
         {{ finalSaNum() }}
@@ -58,7 +59,7 @@
         x="590"
         [attr.y]="c.y(finalOppNum()) + 4 + oppLabelDy()"
         font-size="16"
-        font-family="var(--font-display)"
+        font-family="var(--font-numeric)"
         fill="var(--loss)"
       >
         {{ finalOppNum() }}

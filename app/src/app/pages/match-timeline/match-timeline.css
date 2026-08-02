@@ -66,8 +66,10 @@ h2 {
   border-bottom: none;
 }
 
+/* Event clock minute is a numeric data context (D36). */
 .events-list .min {
   color: var(--gold-ink);
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums lining;
   width: 3.2rem;
   flex-shrink: 0;

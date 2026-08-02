@@ -31,6 +31,13 @@ h1 {
 
 .score-line {
   font-size: var(--t-2xl);
+}
+
+/* The score digits are a numeric data context (D36); the surrounding team
+   names in .score-line stay on --font-display (inherited from
+   .fixture-title). */
+.score-line .score {
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums lining;
 }
 
@@ -125,16 +132,20 @@ h1 {
   gap: 2px;
 }
 
+/* Opponent abbreviation + score under each form mark, and the W/L/D tally,
+   are numeric data contexts (D36). */
 .form-meta {
+  font-family: var(--font-numeric);
   font-size: var(--t-cap);
   color: var(--ink-3);
   font-variant-numeric: tabular-nums lining;
 }
 
 .form-summary {
-  font-family: var(--font-display);
+  font-family: var(--font-numeric);
   font-size: var(--t-lg);
   font-weight: 600;
+  font-variant-numeric: tabular-nums lining;
 }
 
 /* `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

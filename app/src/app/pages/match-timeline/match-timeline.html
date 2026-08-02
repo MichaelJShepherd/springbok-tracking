@@ -19,7 +19,7 @@
           <app-field-value [value]="m.springboks_score" [provenance]="m.springboks_score_provenance" />
           &ndash;
           <app-field-value [value]="m.opponent_score" [provenance]="m.opponent_score_provenance" />
-          {{ opponentName(m) }} &middot; {{ m.match_date }}
+          {{ opponentName(m) }} &middot; <span class="num">{{ m.match_date }}</span>
         </p>
 
         <h2>Score progression</h2>

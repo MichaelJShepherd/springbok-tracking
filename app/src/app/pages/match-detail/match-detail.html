@@ -17,7 +17,7 @@
           <p class="detail-eyebrow">
             <app-field-value [value]="m.competition" [provenance]="m.competition_provenance" />
             <app-sources-differ-badge [disagreement]="disagreementFor('competition')" />
-            &middot; {{ m.match_date }}
+            &middot; <span class="num">{{ m.match_date }}</span>
           </p>
           <div class="score-hero" data-testid="score-hero">
             <span class="team">South Africa</span>
@@ -61,7 +61,7 @@
                 <p class="h2h-line">
                   @if (h2h.biggestWin) {
                     Biggest win
-                    <a [routerLink]="['/match', h2h.biggestWin.matchId]"
+                    <a [routerLink]="['/match', h2h.biggestWin.matchId]" class="num"
                       >{{ h2h.biggestWin.scoreLabel }} ({{ h2h.biggestWin.matchDate.slice(0, 4) }})</a
                     >{{ h2h.biggestWin.tied ? ' (equalled)' : '' }}
                   }
@@ -70,7 +70,7 @@
                   }
                   @if (h2h.biggestDefeat) {
                     Biggest defeat
-                    <a [routerLink]="['/match', h2h.biggestDefeat.matchId]"
+                    <a [routerLink]="['/match', h2h.biggestDefeat.matchId]" class="num"
                       >{{ h2h.biggestDefeat.scoreLabel }} ({{ h2h.biggestDefeat.matchDate.slice(0, 4) }})</a
                     >{{ h2h.biggestDefeat.tied ? ' (equalled)' : '' }}
                   }
@@ -87,8 +87,11 @@
                     <p class="h2h-line">The {{ ordinal(h2h.meetingNumber) }} meeting</p>
                     @if (h2h.before; as before) {
                       <p class="h2h-line" data-testid="h2h-before">
-                        Before this match: W {{ before.wins }} &middot; L {{ before.losses }} &middot; D
-                        {{ before.draws }}
+                        Before this match:
+                        <span class="num"
+                          >W {{ before.wins }} &middot; L {{ before.losses }} &middot; D
+                          {{ before.draws }}</span
+                        >
                       </p>
                     }
                     @if (h2h.previousMeetings.length) {
