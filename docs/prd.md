@@ -135,6 +135,6 @@ Out of scope for v1: everything discovery lists, plus standings (D1).
 | #68 Wikipedia coverage sample | resolved — D11/D29 updated with results | done (#68 In Review) |
 | **Per-era wikitext field map** (which sections/templates yield lineups, officials, events, per era — from #68's sampled pages) | D17's ingestion build; blocks the backfill slice | Backlog task to file at Phase 3 kickoff |
 | #67 browser terms reads + Reddit OAuth registration | D4 ladder rung availability, D9 trigger, D20 clause wording | client action (Michael) |
-| Design direction + prototype sign-off — **v2 (#89)**, superseding v1 (#70) per D32 | gates the design-v2 UI build (no app code changes until the owner signs off on `docs/prototype.html` v2) | #89, awaiting owner sign-off |
+| Design direction + prototype sign-off — **v2 (#89)**, superseding v1 (#70) per D32 | gates the design-v2 UI build | signed off by Michael 2026-08-02 (recorded on #89); build ticket #90 |
 | Revisit D20 retention infrastructure before any real deployment | D20 | Backlog task #71 |
 | Any expansion of the D12 match set (non-cap games, Cavaliers etc.) | D12 | Backlog task #72 |
