@@ -20,7 +20,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.app-brand')?.textContent).toContain('Springbok Tracking');
+    expect(compiled.querySelector('.app-wordmark')?.textContent).toContain('Springbok Tracking');
     expect(compiled.querySelectorAll('.app-nav a').length).toBe(3);
   });
 });

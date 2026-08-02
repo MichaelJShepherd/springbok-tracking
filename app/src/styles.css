@@ -1,66 +1,100 @@
-/* Global design tokens — see docs/design.md §1.1 for the source of truth.
-   Keep these two files in sync; docs/design.md is the spec, this is the
-   implementation. */
+/* Global design tokens — docs/design.md v2 (#90) is the source of truth for
+   these values; keep this file in sync with docs/design.md §2–§4. Heritage
+   rugby / "record book" system: single light theme, print-derived depth
+   (hairlines, double rules, ledger zebra) instead of shadows and dark cards. */
 :root {
-  /* Palette — brand accent */
-  --c-green-900: #06231a;
-  --c-green-700: #0b3d2e;
-  --c-green-600: #145c41;
-  --c-green-500: #1d7a54;
-  --c-gold-500: #d4af37;
-  --c-gold-400: #e6c65c;
+  color-scheme: light; /* single theme — docs/design.md §10 */
 
-  /* Neutrals — dark ink, used for text/surfaces (most of the UI) */
-  --c-ink-950: #0d0f0e;
-  --c-ink-900: #141715;
-  --c-ink-800: #1c201d;
-  --c-ink-700: #2a2f2b;
-  --c-ink-500: #6b746d;
-  --c-ink-300: #a7b0a9;
-  --c-ink-100: #e7ebe8;
-  --c-paper: #f7f8f6;
+  /* — Springbok green: structure, headings, "win", the spine — */
+  --g-900: #04261b;
+  --g-800: #06412c;
+  --g-700: #005a38;
+  --g-600: #007749;
+  --g-100: #e4efe8;
 
-  /* Semantic — results */
-  --c-win: #1d7a54;
-  --c-loss: #a83232;
-  --c-draw: #a7862b;
+  /* — Gold: three roles, never interchangeable (design.md §2.3) — */
+  --gold-500: #ffb81c;
+  --gold-300: #ffd97a;
+  --gold-700: #b57e10;
+  --gold-ink: #6b4b0c;
 
-  /* Semantic — sentiment / mood curve */
-  --c-mood-pos: #2e8b57;
-  --c-mood-neg: #b5453f;
-  --c-mood-neutral: #8a8f89;
+  /* — Paper & ink — */
+  --paper: #f3eee2;
+  --card: #fcf9f2;
+  --card-alt: #f7f2e7;
+  --rule: #d9cfb8;
+  --rule-strong: #b9ac8e;
+  --ink: #17221c;
+  --ink-2: #3c4a43;
+  --ink-3: #5d6b62;
+  --ink-4: #7c8983;
 
-  /* Honesty-state language (D16) */
-  --c-state-absent: #9aa39c;
-  --c-state-loading: #6b8fae;
-  --c-state-failed: #b5453f;
+  /* — Result semantics — */
+  --win: #005a38;
+  --loss: #9b2226;
+  --draw: #7a5b12;
+  --loss-tint: #fbecec;
+  --draw-tint: #fbf3df;
+  --win-tint: #e4efe8;
 
-  /* Type scale — system stack, zero webfont dependency */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --fs-100: 0.75rem;
-  --fs-200: 0.875rem;
-  --fs-300: 1rem;
-  --fs-400: 1.25rem;
-  --fs-500: 1.75rem;
-  --fs-600: 2.25rem;
+  /* — Honesty states (D16) — */
+  --state-absent: var(--ink-3);
+  --state-loading: #2c5a7a;
+  --loading-tint: #eaf1f6;
+  --state-failed: var(--loss);
 
-  /* Spacing scale (4px base) */
-  --sp-1: 0.25rem;
-  --sp-2: 0.5rem;
-  --sp-3: 0.75rem;
-  --sp-4: 1rem;
-  --sp-6: 1.5rem;
-  --sp-8: 2rem;
-  --sp-12: 3rem;
+  /* — Mood / sentiment (D2) — */
+  --mood-pos: var(--g-600);
+  --mood-neg: var(--loss);
+  --mood-neutral: var(--ink-3);
 
-  /* Radius / elevation */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 14px;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.24);
-  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.28);
+  /* — Type — */
+  --font-display:
+    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Hoefler Text', Georgia,
+    'Times New Roman', serif;
+  --font-text:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+  --t-eyebrow: 0.6875rem;
+  --t-cap: 0.75rem;
+  --t-sm: 0.875rem;
+  --t-base: 1rem;
+  --t-lg: 1.25rem;
+  --t-xl: 1.75rem;
+  --t-2xl: 2.5rem;
+  --t-hero: clamp(2.75rem, 11vw, 4rem);
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.35;
+  --lh-body: 1.55;
+  --measure: 66ch;
+
+  /* — Space & radius — */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+
+  --r-sm: 2px;
+  --r-md: 3px;
+  --r-lg: 3px;
+
+  --row-y: 0.75rem;
+  --row-y-lg: 0.5rem;
+  --plate-x: var(--s-4);
+  --gutter: var(--s-4);
+  --page-max: 1040px;
+
+  /* — Rules: the depth system — */
+  --hairline: 1px solid var(--rule);
+  --hairline-2: 1px solid var(--rule-strong);
+  --double-rule: 3px double var(--rule-strong);
+  --collar: 0 -3px 0 inset var(--gold-500);
+  --plate-lift: 0 1px 0 var(--rule);
 }
 
 * {
@@ -74,13 +108,225 @@ body {
 }
 
 body {
-  font-family: var(--font-sans);
-  background: var(--c-ink-950);
-  color: var(--c-ink-100);
-  font-size: var(--fs-300);
-  line-height: 1.5;
+  position: relative;
+  font-family: var(--font-text);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
+  font-variant-numeric: tabular-nums lining;
+}
+
+/* Paper texture — CSS only, ~10 lines, zero requests (design.md §4.4). */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    repeating-linear-gradient(0deg, rgba(23, 34, 28, 0.02) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(23, 34, 28, 0.014) 0 1px, transparent 1px 4px),
+    radial-gradient(120% 90% at 50% 0%, transparent 55%, rgba(23, 34, 28, 0.05) 100%);
+}
+
+@media (forced-colors: active) {
+  body::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body::before {
+    display: none;
+  }
 }
 
 a {
-  color: var(--c-gold-400);
+  color: var(--g-700);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: var(--lh-tight);
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--g-600);
+  outline-offset: 2px;
+}
+
+/* Eyebrow label — the system's signature move (design.md §3.1). */
+.eyebrow {
+  display: block;
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 1px solid var(--rule-strong);
+  padding-bottom: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+/* — Plate treatments (design.md §4.3) — */
+.plate {
+  background: var(--card);
+  border: var(--hairline);
+  border-radius: var(--r-md);
+  box-shadow: var(--plate-lift);
+  padding: var(--s-4);
+}
+
+.plate--headed {
+  position: relative;
+}
+
+.plate--headed > .plate__head {
+  background: var(--g-800);
+  color: var(--gold-300);
+  border-bottom: 3px solid var(--gold-500);
+  margin: calc(var(--s-4) * -1) calc(var(--s-4) * -1) var(--s-4);
+  padding: var(--s-2) var(--s-4);
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ledger {
+  border-collapse: collapse;
+  width: 100%;
+  background: var(--card);
+}
+
+.ledger thead th {
+  background: var(--g-800);
+  color: var(--gold-300);
+  border-bottom: 3px solid var(--gold-500);
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: var(--s-2) var(--s-3);
+}
+
+.ledger tbody tr:nth-child(even) {
+  background: var(--card-alt);
+}
+
+.ledger tbody td {
+  border-bottom: var(--hairline);
+  padding: var(--row-y-lg) var(--s-3);
+}
+
+.ledger tbody tr:hover {
+  background: var(--g-100);
+  transition: background 120ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger tbody tr:hover {
+    transition: none;
+  }
+}
+
+.figure {
+  border: var(--hairline-2);
+  background: var(--card);
+  padding: var(--s-4);
+}
+
+.figure > figcaption {
+  border-top: var(--hairline);
+  margin-top: var(--s-3);
+  padding-top: var(--s-2);
+  font: 400 var(--t-cap) / 1.4 var(--font-text);
+  color: var(--ink-3);
+}
+
+.section-break {
+  border-top: var(--double-rule);
+  margin-top: var(--s-8);
+  padding-top: var(--s-8);
+}
+
+/* Honesty states — shared across pages (D16, design.md §5.1). */
+.state-loading {
+  color: var(--state-loading);
+}
+
+.state-failed {
+  color: var(--state-failed);
+}
+
+.note {
+  color: var(--ink-3);
+}
+
+.field-absent {
+  color: var(--state-absent);
+  font-style: italic;
+}
+
+/* Index tabs (design.md §6.1). */
+.index-tab {
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--rule-strong);
+  border-bottom: none;
+  background: var(--card);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.index-tab.is-active {
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--gold-700);
+}
+
+/* Colophon — the D26 attribution band (design.md §5.5). Shared by Home,
+   History and match-detail's per-page footer. */
+.colophon {
+  background: var(--g-900);
+  color: var(--paper);
+  box-shadow: var(--collar);
+  padding: var(--s-4) var(--gutter);
+  margin-top: var(--s-8);
+  font: 400 var(--t-cap) / 1.4 var(--font-text);
+}
+
+.colophon a {
+  color: var(--gold-300);
+}
+
+@media (min-width: 720px) {
+  .colophon {
+    column-count: 2;
+    column-gap: var(--s-8);
+  }
+}
+
+/* Print stylesheet, ~15 lines — docs/design.md §8. */
+@media print {
+  body::before {
+    display: none;
+  }
+  body {
+    background: #fff;
+  }
+  .app-masthead,
+  .colophon {
+    background: none !important;
+    color: #000 !important;
+  }
+  .colophon a::after {
+    content: ' (' attr(href) ')';
+  }
 }
