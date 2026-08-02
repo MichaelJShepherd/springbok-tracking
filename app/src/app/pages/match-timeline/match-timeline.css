@@ -1,44 +1,33 @@
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--s-4);
 }
 
-.state-loading {
-  color: var(--c-state-loading);
+h1 {
+  font-size: var(--t-2xl);
 }
 
-.state-failed {
-  color: var(--c-state-failed);
-}
-
-.note {
-  color: var(--c-ink-300);
+h2 {
+  font-size: var(--t-xl);
+  margin-top: var(--s-4);
 }
 
 .lede {
-  color: var(--c-ink-300);
-  font-size: var(--fs-200);
-}
-
-.card {
-  background: var(--c-ink-900);
-  border: 1px solid var(--c-ink-700);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  padding: var(--sp-4);
+  color: var(--ink-3);
+  font-size: var(--t-sm);
 }
 
 .axis-wrap {
   position: relative;
-  padding: var(--sp-8) var(--sp-2) var(--sp-4);
+  padding: var(--s-8) var(--s-2) var(--s-4);
 }
 
 .axis-line {
   position: relative;
   height: 2px;
-  background: var(--c-ink-700);
-  margin: var(--sp-8) 0;
+  background: var(--rule-strong);
+  margin: var(--s-8) 0;
 }
 
 .axis-marker {
@@ -46,7 +35,7 @@
   top: -8px;
   width: 2px;
   height: 18px;
-  background: var(--c-gold-400);
+  background: var(--gold-700);
 }
 
 .axis-marker .label {
@@ -54,23 +43,23 @@
   top: -1.6rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: var(--fs-100);
-  color: var(--c-ink-300);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
   white-space: nowrap;
 }
 
 .events-list {
   list-style: none;
   padding: 0;
-  margin: var(--sp-2) 0 0;
+  margin: var(--s-2) 0 0;
 }
 
 .events-list li {
-  padding: var(--sp-2) 0;
-  border-bottom: 1px solid var(--c-ink-700);
-  font-size: var(--fs-200);
+  padding: var(--s-2) 0;
+  border-bottom: var(--hairline);
+  font-size: var(--t-sm);
   display: flex;
-  gap: var(--sp-3);
+  gap: var(--s-3);
 }
 
 .events-list li:last-child {
@@ -78,8 +67,8 @@
 }
 
 .events-list .min {
-  color: var(--c-gold-400);
-  font-family: var(--font-mono);
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums lining;
   width: 3.2rem;
   flex-shrink: 0;
 }
@@ -87,17 +76,20 @@
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-1);
-  font-size: var(--fs-100);
-  padding: 2px var(--sp-2);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--sp-2);
+  gap: var(--s-1);
+  font-size: var(--t-cap);
+  padding: 2px var(--s-2);
+  border-radius: var(--r-sm);
+  margin-bottom: var(--s-2);
 }
 
 .badge.computed {
-  background: var(--c-ink-800);
-  color: var(--c-gold-400);
-  border: 1px solid var(--c-gold-500);
+  background: var(--g-800);
+  color: var(--gold-300);
+  border: 2px solid var(--gold-500);
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .dot {
@@ -117,40 +109,40 @@
 .curve-labels {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-3);
+  gap: var(--s-3);
 }
 
 .curve-label {
   flex: 1 1 0;
   text-align: center;
-  font-size: var(--fs-100);
-  color: var(--c-ink-300);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
 }
 
 .mood-single {
-  font-size: var(--fs-400);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 600;
 }
 
 .mood-single.mood-pos {
-  color: var(--c-mood-pos);
+  color: var(--mood-pos);
 }
 
 .mood-single.mood-neg {
-  color: var(--c-mood-neg);
+  color: var(--mood-neg);
 }
 
 .mood-single.mood-neutral {
-  color: var(--c-mood-neutral);
+  color: var(--mood-neutral);
 }
 
 .method-link {
-  margin-top: var(--sp-2);
-  font-size: var(--fs-100);
+  margin-top: var(--s-2);
+  font-size: var(--t-cap);
 }
 
 .plain {
-  color: var(--c-gold-400);
-  text-decoration: none;
+  color: var(--g-700);
   font-weight: 600;
 }

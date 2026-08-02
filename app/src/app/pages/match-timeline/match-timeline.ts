@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { MatchRow, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
+import { ScoreProgression } from '../../shared/score-progression/score-progression';
 import {
   BUCKET_LABELS,
   CURVE_BUCKET_ORDER,
@@ -37,7 +38,7 @@ const AXIS_MARKER_MAX_PERCENT = 97;
 
 @Component({
   selector: 'app-match-timeline',
-  imports: [RouterLink, FieldValue],
+  imports: [RouterLink, FieldValue, ScoreProgression],
   templateUrl: './match-timeline.html',
   styleUrl: './match-timeline.css',
 })
@@ -66,6 +67,8 @@ export class MatchTimeline implements OnInit {
 
   /** True once at least one timed event exists — the axis line is only worth drawing then. */
   readonly hasTimedAxis = computed(() => this.timedEvents().length > 0);
+
+  readonly matchYear = computed(() => Number(this.match()?.match_date.slice(0, 4) ?? 0));
 
   /** Clamped so a marker at the final minute never pushes its centred label outside the card. */
   markerLeftPercent(minute: number | null): number {

@@ -22,8 +22,17 @@
           {{ opponentName(m) }} &middot; {{ m.match_date }}
         </p>
 
+        <h2>Score progression</h2>
+        <app-score-progression
+          [events]="events()"
+          [year]="matchYear()"
+          [finalSa]="m.springboks_score || 0"
+          [finalOpp]="m.opponent_score || 0"
+          [opponentLabel]="opponentName(m)"
+        />
+
         <h2>Events</h2>
-        <div class="card">
+        <div class="plate">
           @if (hasTimedAxis()) {
             <div class="axis-wrap" data-testid="events-axis">
               <div class="axis-line">
@@ -56,7 +65,7 @@
         </div>
 
         <h2>Fan mood</h2>
-        <div class="card" data-testid="mood-card">
+        <div class="plate" data-testid="mood-card">
           @switch (sentimentState()) {
             @case ('loading') {
               <p class="note" data-testid="mood-loading">Loading mood&hellip;</p>
@@ -112,16 +121,16 @@
                       [attr.y1]="curveMidY"
                       [attr.x2]="curveRight"
                       [attr.y2]="curveMidY"
-                      stroke="var(--c-ink-700)"
+                      stroke="var(--rule)"
                       stroke-dasharray="2,3"
                     />
-                    <polyline [attr.points]="curvePolyline()" fill="none" stroke="var(--c-gold-500)" stroke-width="2" />
+                    <polyline [attr.points]="curvePolyline()" fill="none" stroke="var(--gold-700)" stroke-width="2" />
                     @for (p of curvePoints(); track p.label) {
                       <circle
                         [attr.cx]="p.x"
                         [attr.cy]="p.y"
                         r="5"
-                        [attr.fill]="'var(--c-mood-' + p.colorClass + ')'"
+                        [attr.fill]="'var(--mood-' + p.colorClass + ')'"
                       />
                     }
                   </svg>
