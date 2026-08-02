@@ -49,10 +49,31 @@
   --mood-neutral: var(--ink-3);
 
   /* — Type — */
+  /* Rounder system serif (owner instruction, #92; amends D32 via D36):
+     Georgia-first, applied to display AND body per the ticket. Georgia is
+     the roundest cross-platform book face available without a font file —
+     ships on Windows, macOS and Android — so it leads both stacks; the
+     rest of each stack is the same old-style-serif fallback family v1 used,
+     kept in order behind Georgia rather than removed. */
   --font-display:
-    'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Hoefler Text', Georgia,
+    Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Hoefler Text',
     'Times New Roman', serif;
   --font-text:
+    Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', 'Hoefler Text',
+    'Times New Roman', serif;
+  /* Numeral exception (D36, docs/design.md §3.1): classic Georgia ships
+     old-style, non-tabular figures on this stack, and on Windows Chrome
+     `font-variant-numeric: lining-nums tabular-nums` plus the `tnum`/`lnum`
+     OpenType features do nothing to it — verified empirically by rendering
+     a digit column in Georgia with every numeric feature flag on and
+     comparing it side-by-side with the sans stack (screenshot recorded on
+     #92): Georgia's digits stayed old-style and non-tabular either way,
+     while the sans stack's aligned immediately. Numeric data contexts that
+     the design system requires to line up in a column or read as digits at
+     a glance — ledger figures, scores, kickoff times, era/head-to-head
+     percentages, W/L/D tallies — stay on this sans tabular stack instead of
+     --font-display/--font-text. Headings and prose still go Georgia. */
+  --font-numeric:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   --t-eyebrow: 0.6875rem;
@@ -282,6 +303,34 @@ h3 {
   margin-top: var(--s-2);
   font-size: var(--t-cap);
   color: var(--ink-3);
+}
+
+/* Numeral exception utility (D36, docs/design.md §3.1) — see the
+   --font-numeric token comment in :root above for why this exists. Apply to
+   any inline run of digits that must stay tabular/lining: dates, kickoff
+   times, score fragments inside prose. Table/component-scoped numeric
+   contexts (ledger cells, era/head-to-head percentages and tallies, score
+   heroes, shirt numbers, event minutes) set --font-numeric directly on
+   their own selectors instead of needing this class. */
+.num {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
+}
+
+/* History ledger: Date and Score columns are numeric data contexts (D36) —
+   everything else in the ledger (opponent, venue, competition, the W/D/L
+   letter mark) stays on --font-display/--font-text. */
+.ledger td[data-label='Date'],
+.ledger td[data-label='Score'] {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
+}
+
+/* Kickoff time is a numeric data context (D36) wherever it's rendered. */
+[data-testid='next-fixture-kickoff'],
+[data-testid='kickoff-value'] {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
 }
 
 .field-absent {

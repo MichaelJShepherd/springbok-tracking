@@ -38,7 +38,6 @@ h2 {
   font-size: var(--t-hero);
   font-weight: 600;
   letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums lining;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -46,6 +45,13 @@ h2 {
 .score-hero .team {
   font-size: var(--t-lg);
   color: var(--gold-300);
+}
+
+/* The score digits are a numeric data context (D36); team names above stay
+   on --font-display. */
+.score-hero .score {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
 }
 
 /* Below ~480px, even wrapped whole-item flex can clip a long team name
@@ -121,19 +127,21 @@ h2 {
   }
 }
 
+/* Head-to-head win % and tally are numeric data contexts (D36). */
 .h2h-pct {
-  font-family: var(--font-display);
+  font-family: var(--font-numeric);
   font-size: var(--t-xl);
   font-variant-numeric: tabular-nums lining;
 }
 
 .h2h-pct small {
-  font-family: var(--font-text);
+  font-family: var(--font-numeric);
   font-size: var(--t-cap);
   color: var(--ink-3);
 }
 
 .h2h-counts {
+  font-family: var(--font-numeric);
   font-size: var(--t-sm);
   font-variant-numeric: tabular-nums lining;
 }
@@ -170,8 +178,10 @@ h2 {
   flex: 1 1 240px;
 }
 
+/* Shirt number is a numeric data context (D36). */
 .shirt {
   color: var(--ink-3);
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums lining;
   width: 2.5ch;
 }
@@ -201,8 +211,10 @@ h2 {
   border-bottom: none;
 }
 
+/* Event clock minute is a numeric data context (D36). */
 .events-list .min {
   color: var(--gold-ink);
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums lining;
   width: 3.2rem;
   flex-shrink: 0;

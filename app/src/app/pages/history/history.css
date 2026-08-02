@@ -53,14 +53,15 @@ h1 {
   font-size: var(--t-lg);
 }
 
+/* Win % is a numeric data context (D36) — --font-numeric, not --font-display. */
 .era-pct {
-  font-family: var(--font-display);
+  font-family: var(--font-numeric);
   font-size: var(--t-2xl);
   font-variant-numeric: tabular-nums lining;
 }
 
 .era-pct small {
-  font-family: var(--font-text);
+  font-family: var(--font-numeric);
   font-size: var(--t-cap);
   color: var(--ink-3);
 }
@@ -104,7 +105,9 @@ h1 {
   );
 }
 
+/* P/W/L/D tally is a numeric data context (D36). */
 .era-counts {
+  font-family: var(--font-numeric);
   font-size: var(--t-cap);
   color: var(--ink-3);
   font-variant-numeric: tabular-nums lining;

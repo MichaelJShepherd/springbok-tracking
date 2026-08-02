@@ -229,20 +229,34 @@ carries it. A W/L/D dot with no letter does not ship.
 
 ## 3. Typography
 
-Two families. Both are **system or near-universally-installed** stacks; there
-is no `@font-face`, no webfont file in the repo, and no CDN (§1.2).
+Status: **amended by D36 (#92)**, owner instruction 2026-08-02 — v2's original
+Iowan/Palatino-first serif "sucks" and needed to be rounder. Both families
+below are still **system or near-universally-installed** stacks; there is
+still no `@font-face`, no webfont file in the repo, and no CDN (§1.2). D36
+also adds a third, narrower-scoped token — `--font-numeric` — for the
+numeral exception (§3.1a).
 
 ```css
 :root {
-  /* Display — the record book's voice. Scores, headings, W/L/D letters,
-     era numerals. Iowan/Palatino/Georgia are old-style book faces with
-     genuinely different personalities to a UI sans; Georgia is the
-     cross-platform anchor and ships on Windows, macOS and Android. */
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino,
-    "Book Antiqua", "Hoefler Text", Georgia, "Times New Roman", serif;
+  /* Display AND text — the record book's voice, now also the body's voice
+     (D36: the owner asked for the rounder serif everywhere, not just
+     headings). Georgia is the roundest cross-platform system serif
+     available without a font file — it ships on Windows, macOS and
+     Android — so it leads both stacks; the rest of each stack is the same
+     old-style-serif fallback family v1 used, kept in order behind Georgia.
+     --font-display and --font-text are now the same stack: there is no
+     longer a display/text split at the family level, only at the numeral
+     level (§3.1a). */
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Book Antiqua", "Hoefler Text", "Times New Roman", serif;
+  --font-text: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino,
+    "Book Antiqua", "Hoefler Text", "Times New Roman", serif;
 
-  /* Text — body copy, tables, chips, controls, captions. */
-  --font-text: system-ui, -apple-system, "Segoe UI", Roboto,
+  /* Numeric data contexts only (§3.1a) — ledger figures, scores, kickoff
+     times, era/head-to-head percentages, W/L/D tallies, shirt numbers,
+     event-clock minutes. This is the system sans stack v2 originally used
+     for all body text; D36 narrows its job to numerals only. */
+  --font-numeric: system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
 
   /* Scale — 11 / 12 / 14 / 16 / 20 / 28 / 40 / clamp(44–64) */
@@ -264,23 +278,19 @@ is no `@font-face`, no webfont file in the repo, and no CDN (§1.2).
 
 ### 3.1 Rules of use
 
-- **Display serif** = scores, page/section headings, card titles, W/L/D
-  letters, win-percentage numerals, the masthead. Never body copy, never
-  table cells, never controls. Headings set with `letter-spacing: -0.01em`
-  and `--lh-tight`; the hero score gets `-0.02em`.
-- **Text sans** = everything else, including all tabular data. A serif in a
-  600-row ledger is unreadable at 14px; the book's *voice* is the serif, the
-  book's *tables* were always set in something narrower.
+- **Display/text serif** (D36: now the same stack) = scores' surrounding
+  labels, page/section headings, card titles, W/L/D letters, prose, table
+  header labels, eyebrows, chips, controls, captions — everything, per the
+  owner's instruction, *except* the numeral contexts carved out in §3.1a.
+  Headings set with `letter-spacing: -0.01em` and `--lh-tight`; the hero
+  score's surrounding label gets `-0.02em`.
 - **Eyebrow labels** (`FORM · LAST FIVE TESTS`, `THE RECORD BY ERA`) are the
-  system's signature move: sans, 11px, 650 weight, `0.12em` tracking,
-  uppercase, `--ink-3` on paper or `--gold-300` on green, with a 1px
-  `--rule-strong` underline spanning the block. They replace v1's generic
-  `<h3>`s and are what makes a section read as a *plate in a book*.
-- **Numerals.** Every column of numbers and every score gets
-  `font-variant-numeric: tabular-nums lining;`. Scores additionally get
-  `font-feature-settings: "tnum" 1;` for the older stacks. Non-negotiable:
-  misaligned digits are the single fastest way to look amateur in a stats
-  product.
+  system's signature move: 11px, 650 weight, `0.12em` tracking, uppercase,
+  `--ink-3` on paper or `--gold-300` on green, with a 1px `--rule-strong`
+  underline spanning the block. As of D36 they render in `--font-text`
+  (Georgia-first) like everything else — they are no longer the one sans
+  note in a serif system, which is a deliberate simplification: one rule
+  ("serif everywhere except numerals") beats two.
 - **No italics except one job**: `absent_in_source` copy (§4). Italic means
   "the source didn't have this" everywhere in the system, so it is never
   spent on emphasis.
@@ -289,19 +299,62 @@ is no `@font-face`, no webfont file in the repo, and no CDN (§1.2).
   fallback via letter-spacing where unsupported. This is one flourish, not a
   motif.
 
+### 3.1a Numeral policy (D36 — decided empirically, #92)
+
+**The rule:** every numeral that has to line up in a column, or be read as a
+quantity at a glance, is set in `--font-numeric` (the system sans tabular
+stack), never in `--font-display`/`--font-text` (Georgia-first). Everything
+else — including the words and letters sitting right next to those numerals —
+stays on the Georgia-first stack.
+
+**Why, and how this was verified.** Classic Georgia has old-style,
+non-tabular numeral shapes: digits sit at varying heights and widths by
+design (it's a book face, not a data face). The obvious fix — `font-variant-
+numeric: lining-nums tabular-nums` plus `font-feature-settings: "tnum" 1,
+"lnum" 1` — is exactly what v1 already specified for numerals (§3.1's old
+text). It does not work on Georgia on this Windows/Chrome build: a rendered
+comparison (digit column set in Georgia with every numeric OpenType feature
+switched on, side by side with the same digits in the sans stack, screenshot
+recorded on #92) showed Georgia's digits staying old-style and misaligned
+regardless of the feature flags, while the sans stack aligned immediately
+with no extra CSS. Windows' Georgia build simply doesn't carry `tnum`/`lnum`
+substitution tables the way some other platforms' copies do, so the feature
+request is silently ignored rather than erroring — which is exactly the trap
+this row exists to document, so nobody re-discovers it by shipping wobbly
+columns.
+
+**Scope of the exception** — rendered in `--font-numeric` with
+`font-variant-numeric: tabular-nums lining`:
+- History ledger: the Date and Score columns (Opponent, Venue, Competition
+  and the W/D/L letter mark stay Georgia — a letter is not a numeral).
+- Score heroes and score lines (Home cards, match detail) — the digits only;
+  the team names beside them stay Georgia.
+- Kickoff times, wherever rendered.
+- Era and head-to-head win percentages, and their P/W/L/D tallies.
+- Form-guide opponent/score captions and the W/L/D summary tally.
+- Shirt numbers, event-clock minutes.
+- The score-progression chart's printed final scores and axis labels.
+
+**Everything else stays Georgia**, including: headings, prose, eyebrows,
+table header labels, chips, controls, captions, the W/L/D letter mark, and
+prose sentences that merely *contain* a number without needing column
+alignment (e.g. "the 105th meeting"). If a future reviewer finds a numeral
+context this list missed, it is a docs gap, not license to invent a fourth
+font stack — extend this list and `--font-numeric`'s call sites together.
+
 ### 3.2 Type specimen (what each surface uses)
 
 | Element | Family | Size | Weight/style |
 |---|---|---|---|
 | Masthead wordmark | display | `--t-xl` | 600, `-0.01em` |
 | Page title | display | `--t-2xl` | 600 |
-| Score hero (detail) | display | `--t-hero` | 600, tabular |
-| Card score (Home) | display | `--t-2xl` | 600, tabular |
+| Score hero (detail) | numeric (digits) / display (team names) | `--t-hero` | 600, tabular |
+| Card score (Home) | numeric (digits) / display (team names) | `--t-2xl` | 600, tabular |
 | Section heading | display | `--t-xl` | 600 |
 | Card title | display | `--t-lg` | 600 |
 | Eyebrow | text | `--t-eyebrow` | 650, uppercase, 0.12em |
 | Body / prose | text | `--t-base` | 400, `--lh-body` |
-| Table cell | text | `--t-sm` | 400, tabular where numeric |
+| Table cell | text, numeric where a ledger figure (§3.1a) | `--t-sm` | 400, tabular where numeric |
 | Table header | text | `--t-eyebrow` | 650, uppercase, on `--g-800` |
 | Chip / badge | text | `--t-cap`–`--t-sm` | 600 |
 | Caption / attribution / provenance | text | `--t-cap` | 400, `--ink-3` |

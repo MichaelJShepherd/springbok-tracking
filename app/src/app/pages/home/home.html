@@ -34,7 +34,7 @@
               @if (fixture.competition) {
                 <span>{{ fixture.competition }}</span>
               }
-              <span>{{ fixture.match_date }}</span>
+              <span class="num">{{ fixture.match_date }}</span>
               @if (fixture.kickoff_time) {
                 <span data-testid="next-fixture-kickoff">{{ formatKickoffSAST(fixture.kickoff_time) }}</span>
               }
@@ -56,13 +56,14 @@
                 <div class="meta-row">
                   <span
                     >Last result: South Africa
-                    <app-field-value
-                      [value]="last.springboks_score"
-                      [provenance]="last.springboks_score_provenance"
-                    />&ndash;<app-field-value
-                      [value]="last.opponent_score"
-                      [provenance]="last.opponent_score_provenance"
-                    />
+                    <span class="num"
+                      ><app-field-value
+                        [value]="last.springboks_score"
+                        [provenance]="last.springboks_score_provenance"
+                      />&ndash;<app-field-value
+                        [value]="last.opponent_score"
+                        [provenance]="last.opponent_score_provenance"
+                    /></span>
                     {{ opponentName(last) }}</span
                   >
                 </div>
@@ -77,13 +78,14 @@
             <div class="result-rule" [class]="last.result"></div>
             <div class="fixture-title score-line">
               South Africa
-              <app-field-value
-                [value]="last.springboks_score"
-                [provenance]="last.springboks_score_provenance"
-              />&ndash;<app-field-value
-                [value]="last.opponent_score"
-                [provenance]="last.opponent_score_provenance"
-              />
+              <span class="score"
+                ><app-field-value
+                  [value]="last.springboks_score"
+                  [provenance]="last.springboks_score_provenance"
+                />&ndash;<app-field-value
+                  [value]="last.opponent_score"
+                  [provenance]="last.opponent_score_provenance"
+              /></span>
               {{ opponentName(last) }}
             </div>
             <div class="meta-row">
@@ -93,7 +95,7 @@
                   [provenance]="last.competition_provenance"
                 />
               </span>
-              <span>{{ last.match_date }}</span>
+              <span class="num">{{ last.match_date }}</span>
             </div>
             <a class="plain" [routerLink]="['/match', last.match_id]">Open game detail &rarr;</a>
 
@@ -131,7 +133,7 @@
           @for (fixture of upcomingFixtures(); track fixture.id) {
             <div class="meta-row upcoming-row">
               <span>South Africa v {{ opponentName(fixture) }}</span>
-              <span>{{ fixture.match_date }}</span>
+              <span class="num">{{ fixture.match_date }}</span>
               @if (fixture.competition) {
                 <span>{{ fixture.competition }}</span>
               }
