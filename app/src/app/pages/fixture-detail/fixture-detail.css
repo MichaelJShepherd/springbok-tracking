@@ -9,30 +9,10 @@ h2 {
   margin-top: var(--s-4);
 }
 
-/* — Pre-match masthead: same dark-green/collar treatment as match-detail's
-   post-match masthead (docs/design.md §6.2), but no score hero — there is
-   no score yet. The `.detail-masthead` class name is reused deliberately so
-   the global `.detail-masthead .field-absent` WCAG AA override (src/styles.css)
-   applies here too without a second copy of that rule. — */
-.detail-masthead {
-  background: var(--g-900);
-  box-shadow: var(--collar);
-  color: var(--paper);
-  padding: var(--s-6) var(--gutter);
-  margin: 0 calc(var(--gutter) * -1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--s-2);
-}
-
-.detail-eyebrow {
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.04em;
-  color: var(--gold-300);
-  margin: 0;
-}
+/* `.detail-masthead` / `.detail-eyebrow` / `.detail-venue` base rules
+   (the dark-green/collar treatment, docs/design.md §6.2) live in
+   src/styles.css (Gate 2 dedupe, #95) — shared with match-detail's
+   post-match masthead. This page has no score hero: there is no score yet. */
 
 .fixture-title {
   font-family: var(--font-display);
@@ -66,16 +46,20 @@ h2 {
   color: var(--gold-300);
 }
 
+/* Kickoff/venue "not yet confirmed" copy is prose stating a fact the source
+   simply hasn't supplied yet — NOT the D16 `absent_in_source` provenance
+   state (fixtures_upstream carries no provenance columns at all), so it must
+   not use FieldValue's `.field-absent`, whose italic is reserved for that one
+   job (design.md §3.1, §6.2 Gate 2 finding). Same gold-300 colour, no italic. */
+.fixture-fact-absent {
+  color: var(--gold-300);
+  font-style: normal;
+}
+
 .match-day-note {
   color: var(--gold-300);
   font-size: var(--t-base);
   max-width: 40ch;
-  margin: 0;
-}
-
-.detail-venue {
-  color: var(--gold-300);
-  font-size: var(--t-sm);
   margin: 0;
 }
 
@@ -96,56 +80,6 @@ h2 {
   border-color: var(--gold-700);
 }
 
-/* — Head-to-head strip (docs/design.md §7.3/§6.2) — */
-.h2h {
-  background: var(--g-100);
-  border-color: var(--rule-strong);
-}
-
-.h2h-zones {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-
-@media (min-width: 720px) {
-  .h2h-zones {
-    flex-direction: row;
-  }
-
-  .h2h-zone {
-    flex: 1 1 0;
-    border-left: var(--hairline);
-    padding-left: var(--s-4);
-  }
-
-  .h2h-zone:first-child {
-    border-left: none;
-    padding-left: 0;
-  }
-}
-
-.h2h-pct {
-  font-family: var(--font-numeric);
-  font-size: var(--t-xl);
-  font-variant-numeric: tabular-nums lining;
-}
-
-.h2h-pct small {
-  font-family: var(--font-numeric);
-  font-size: var(--t-cap);
-  color: var(--ink-3);
-}
-
-.h2h-counts {
-  font-family: var(--font-numeric);
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums lining;
-}
-
-.h2h-line {
-  margin: 0;
-  font-size: var(--t-sm);
-}
-
-/* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */
+/* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2
+   dedupe); `.h2h`/`.h2h-*` rules live in
+   shared/head-to-head-strip/head-to-head-strip.css. */

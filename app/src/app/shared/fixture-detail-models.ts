@@ -22,10 +22,11 @@ export const FIXTURE_DETAIL_SELECT =
 
 /**
  * Formats a `fetched_at` timestamptz as a South Africa wall-clock date+time
- * for the D28-style provenance line (docs/design.md §6.2) — e.g.
- * "2026-08-01 10:13 SAST". Mirrors `formatKickoffSAST` (match-models.ts) but
- * includes the date, since a fetch timestamp (unlike a kickoff) is not
- * implicitly "today".
+ * for the D28-style provenance line (docs/design.md §6.2) — e.g. a
+ * `fetched_at` of "2026-08-01T10:13:54Z" (UTC) renders as
+ * "2026-08-01 12:13 SAST" (Africa/Johannesburg is UTC+2). Mirrors
+ * `formatKickoffSAST` (match-models.ts) but includes the date, since a
+ * fetch timestamp (unlike a kickoff) is not implicitly "today".
  */
 export function formatFetchedAtSAST(fetchedAt: string): string {
   const parts = new Intl.DateTimeFormat('en-CA', {

@@ -16,7 +16,13 @@ describe('fixtureRouteId / parseFixtureRouteId (docs/design.md §6.2, PRD D37)',
     expect(parseFixtureRouteId('2026-08-22')).toBeNull();
   });
 
-  it('slugifies multi-word and diacritic opponent names the same way ingestion does', () => {
+  it('slugifies multi-word and diacritic opponent names the same shape ingestion produces (not enforced across the package boundary — see the comment)', () => {
+    // The app and ingestion packages don't share this function, so nothing
+    // guarantees byte-identical output across the boundary — this test only
+    // pins this function's own, independently-reasonable slug shape (lowercase,
+    // hyphenated, diacritics stripped), which happens to look like
+    // ingestion's `match-normaliser.ts` slugify because both solve the same
+    // small problem the same obvious way, not because one enforces the other.
     expect(slugifyOpponent('British & Irish Lions')).toBe('british-irish-lions');
     expect(slugifyOpponent('Côte d’Ivoire')).toBe('cote-d-ivoire');
   });

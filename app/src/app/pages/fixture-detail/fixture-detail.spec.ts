@@ -24,6 +24,12 @@ const BASE_FIXTURE = {
   teams: { canonical_name: 'New Zealand' },
 };
 
+// A fixed, clearly-not-match-day clock — used as the default for every test
+// that isn't specifically exercising the D8 match-day state, so those tests
+// never depend on (or accidentally coincide with) whatever day they actually
+// run on.
+const FAR_FROM_MATCH_DAY = () => new Date('2000-01-01T00:00:00Z');
+
 function fixtureMatcher(rows: unknown[]): QueryMatcher {
   return { table: 'fixtures_upstream', match: () => true, result: { data: rows, error: null } };
 }
@@ -35,7 +41,7 @@ function h2hMatcher(rows: unknown[]): QueryMatcher {
 async function renderWith(
   matchers: QueryMatcher[],
   routeId = '2026-08-22-new-zealand',
-  clock?: () => Date,
+  clock: () => Date = FAR_FROM_MATCH_DAY,
 ): Promise<{ component: FixtureDetail; fixture: ComponentFixture<FixtureDetail>; html: HTMLElement }> {
   await TestBed.configureTestingModule({
     imports: [FixtureDetail],
@@ -50,9 +56,7 @@ async function renderWith(
   }).compileComponents();
 
   const fixture = TestBed.createComponent(FixtureDetail);
-  if (clock) {
-    fixture.componentRef.setInput('clock', clock);
-  }
+  fixture.componentRef.setInput('clock', clock);
   const component = fixture.componentInstance;
   fixture.detectChanges();
   await fixture.whenStable();
@@ -156,49 +160,130 @@ describe('FixtureDetail (docs/design.md §6.2, PRD D37, #95)', () => {
     expect(strip?.textContent).not.toMatch(/W\s*0\s*·\s*L\s*0\s*·\s*D\s*0/);
   });
 
-  it('renders the match-day (D8) state when the fixture date is today in SAST, via an injected clock', async () => {
-    const { html } = await renderWith(
-      [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
-      '2026-08-22-new-zealand',
-      () => new Date('2026-08-22T10:00:00Z'),
-    );
+  describe('D8 match-day state (Gate 2 finding 1: gated on kickoff having passed, not just the date)', () => {
+    it('pre-kickoff on match day: shows the ordinary kickoff time, and makes no under-way claim', async () => {
+      // Same SAST calendar day as the fixture (2026-08-22), but hours
+      // before the 19:05 kickoff — the page must still show the kickoff
+      // fact, not silently swap it for a premature "under way" claim.
+      const { html } = await renderWith(
+        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-22T07:00:00Z'), // 09:00 SAST, 10h before kickoff
+      );
 
-    expect(html.querySelector('[data-testid="match-under-way"]')?.textContent).toContain(
-      'Match under way',
-    );
-    expect(html.querySelector('[data-testid="fixture-kickoff"]')).toBeNull();
+      expect(html.querySelector('[data-testid="fixture-kickoff"]')?.textContent?.trim()).toBe(
+        '19:05 SAST',
+      );
+      expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
+      expect(html.querySelector('[data-testid="match-under-way-eyebrow"]')).toBeNull();
+    });
+
+    it('post-kickoff on match day: shows the under-way note AND the MATCH UNDER WAY eyebrow', async () => {
+      const { html } = await renderWith(
+        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-22T18:00:00Z'), // 20:00 SAST, after the 19:05 kickoff
+      );
+
+      expect(html.querySelector('[data-testid="match-under-way"]')?.textContent).toContain(
+        'Match under way',
+      );
+      expect(html.querySelector('[data-testid="match-under-way-eyebrow"]')?.textContent).toBe(
+        'MATCH UNDER WAY',
+      );
+    });
+
+    it('a SAST-midnight-boundary clock (just after SAST midnight, still before kickoff) proves the day comparison is SAST, not UTC', async () => {
+      // 2026-08-21T22:30:00Z is already 2026-08-22 00:30 in Africa/Johannesburg
+      // (UTC+2) — a UTC-day comparison would wrongly say "not match day yet"
+      // and hide the kickoff-passed check entirely; this clock is also before
+      // the 17:05 UTC kickoff instant, so under-way must still be false, but
+      // it must be false because kickoff hasn't passed, not because the
+      // (wrongly UTC) date doesn't match.
+      const { html, component } = await renderWith(
+        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-21T22:30:00Z'),
+      );
+
+      expect(component.isMatchUnderWay()).toBe(false);
+      expect(html.querySelector('[data-testid="fixture-kickoff"]')?.textContent?.trim()).toBe(
+        '19:05 SAST',
+      );
+    });
+
+    it('the same SAST calendar day, just past the kickoff instant, flips under-way true — proving the date half of the gate really resolved to the SAST day rather than silently never matching', async () => {
+      const { component } = await renderWith(
+        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-22T17:10:00Z'), // 19:10 SAST, 5 minutes after the 19:05 kickoff
+      );
+      expect(component.isMatchUnderWay()).toBe(true);
+    });
+
+    it('a null kickoff_time on match day never claims under-way, even after the calendar date matches', async () => {
+      const noKickoff = { ...BASE_FIXTURE, kickoff_time: null };
+      const { html } = await renderWith(
+        [fixtureMatcher([noKickoff]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-22T20:00:00Z'), // well after any plausible kickoff
+      );
+
+      expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
+      expect(html.querySelector('[data-testid="match-under-way-eyebrow"]')).toBeNull();
+      expect(html.querySelector('[data-testid="fixture-kickoff"]')?.textContent?.trim()).toBe(
+        'Kickoff not yet confirmed',
+      );
+    });
+
+    it('does not render the match-day state on a different day entirely', async () => {
+      const { html } = await renderWith(
+        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-10T10:00:00Z'),
+      );
+
+      expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
+      expect(html.querySelector('[data-testid="fixture-kickoff"]')?.textContent?.trim()).toBe(
+        '19:05 SAST',
+      );
+    });
   });
 
-  it('does not render the match-day state on a different day, via the same injected clock mechanism', async () => {
-    const { html } = await renderWith(
-      [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
-      '2026-08-22-new-zealand',
-      () => new Date('2026-08-10T10:00:00Z'),
-    );
+  describe('provenance line (D26/D28, docs/design.md §5.5/§6.2)', () => {
+    it('renders the Wikipedia-flavoured provenance line with the source article link, fetched timestamp, and the BY-SA "modified" clause', async () => {
+      const { html } = await renderWith([fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])]);
 
-    expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
-    expect(html.querySelector('[data-testid="fixture-kickoff"]')).toBeTruthy();
-  });
+      const provenance = html.querySelector('[data-testid="fixture-provenance"]');
+      expect(provenance?.textContent).toContain('Fixture via');
+      expect(provenance?.textContent).toContain('CC BY-SA 4.0');
+      expect(provenance?.textContent).toContain('2026-08-01 12:13 SAST');
+      // BY-SA 4.0 §3(a)(1)(B) requires indicating modifications made.
+      expect(provenance?.textContent).toContain('modified: parsed and normalised from wikitext');
+      const link = provenance?.querySelector('a[href*="2026_men"]');
+      expect(link).toBeTruthy();
+    });
 
-  it('renders the Wikipedia-flavoured provenance line with the source article link and fetched timestamp', async () => {
-    const { html } = await renderWith([fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])]);
+    it('renders "Wikipedia" unlinked (no dead anchor) when a wikipedia-sourced row has no source_article_url', async () => {
+      const noUrl = { ...BASE_FIXTURE, source_article_url: null };
+      const { html } = await renderWith([fixtureMatcher([noUrl]), h2hMatcher([])]);
 
-    const provenance = html.querySelector('[data-testid="fixture-provenance"]');
-    expect(provenance?.textContent).toContain('Fixture via');
-    expect(provenance?.textContent).toContain('CC BY-SA 4.0');
-    expect(provenance?.textContent).toContain('2026-08-01 12:13 SAST');
-    const link = provenance?.querySelector('a[href*="2026_men"]');
-    expect(link).toBeTruthy();
-  });
+      const provenance = html.querySelector('[data-testid="fixture-provenance"]');
+      expect(provenance?.textContent).toContain('Fixture via');
+      expect(provenance?.textContent).toContain('Wikipedia');
+      expect(provenance?.querySelector('a[href=""]')).toBeNull();
+      expect(provenance?.querySelectorAll('a').length).toBe(1); // only the CC BY-SA licence link
+    });
 
-  it('renders the plain D28 provenance note (no article link) for an api-sports-sourced fixture', async () => {
-    const apiFixture = { ...BASE_FIXTURE, source: 'api-sports', source_article_url: null };
-    const { html } = await renderWith([fixtureMatcher([apiFixture]), h2hMatcher([])]);
+    it('renders the plain D28 provenance note (no article link) for an api-sports-sourced fixture', async () => {
+      const apiFixture = { ...BASE_FIXTURE, source: 'api-sports', source_article_url: null };
+      const { html } = await renderWith([fixtureMatcher([apiFixture]), h2hMatcher([])]);
 
-    const provenance = html.querySelector('[data-testid="fixture-provenance"]');
-    expect(provenance?.textContent).toContain('Fixtures via API-Sports');
-    expect(provenance?.textContent).toContain('2026-08-01 12:13 SAST');
-    expect(provenance?.querySelector('a')).toBeNull();
+      const provenance = html.querySelector('[data-testid="fixture-provenance"]');
+      expect(provenance?.textContent).toContain('Fixtures via API-Sports');
+      expect(provenance?.textContent).toContain('2026-08-01 12:13 SAST');
+      expect(provenance?.querySelector('a')).toBeNull();
+    });
   });
 
   it('renders a status chip for a non-scheduled fixture', async () => {
@@ -223,6 +308,33 @@ describe('FixtureDetail (docs/design.md §6.2, PRD D37, #95)', () => {
     );
     expect(html.querySelector('[data-testid="fixture-venue"]')?.textContent?.trim()).toBe(
       'Venue not yet confirmed',
+    );
+    // Not yet confirmed is a fact about the source's current state, not the
+    // D16 absent_in_source provenance state — italic is reserved for that
+    // one job (design.md §3.1). This copy must use the page's own
+    // non-italic `.fixture-fact-absent` class, never FieldValue's
+    // `.field-absent` (which fixture-detail.css does not style as italic,
+    // but `.field-absent` itself, defined globally, is).
+    const kickoffSpan = html.querySelector('[data-testid="fixture-kickoff"] span');
+    const venueSpan = html.querySelector('[data-testid="fixture-venue"] span');
+    expect(kickoffSpan?.classList.contains('fixture-fact-absent')).toBe(true);
+    expect(kickoffSpan?.classList.contains('field-absent')).toBe(false);
+    expect(venueSpan?.classList.contains('fixture-fact-absent')).toBe(true);
+    expect(venueSpan?.classList.contains('field-absent')).toBe(false);
+  });
+
+  it('resolves the D14 api-sports-over-wikipedia precedence when both sources have a row for the same date+opponent', async () => {
+    const wikipediaRow = { ...BASE_FIXTURE, source: 'wikipedia', venue: 'Wikipedia-sourced venue' };
+    const apiSportsRow = { ...BASE_FIXTURE, source: 'api-sports', venue: 'API-Sports-sourced venue' };
+
+    const { html } = await renderWith([fixtureMatcher([wikipediaRow, apiSportsRow]), h2hMatcher([])]);
+
+    expect(html.querySelector('[data-testid="fixture-venue"]')?.textContent).toContain(
+      'API-Sports-sourced venue',
+    );
+    expect(html.textContent).not.toContain('Wikipedia-sourced venue');
+    expect(html.querySelector('[data-testid="fixture-provenance"]')?.textContent).toContain(
+      'Fixtures via API-Sports',
     );
   });
 

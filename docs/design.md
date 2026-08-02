@@ -586,13 +586,30 @@ it is.
   parsed and normalised from wikitext.`
 - **List pages (Home, History):** one site-level colophon naming the list
   article, same shape.
-- **Fixture rows:** `Fixtures via API-Sports, fetched <timestamp>` per D28,
-  rendered as a `--t-cap` `--ink-3` provenance line inside the fixture plate
-  (not in the colophon — it belongs to the fact).
+- **Fixture rows (API-Sports-sourced):** `Fixtures via API-Sports, fetched
+  <timestamp>` per D28, rendered as a `--t-cap` `--ink-3` provenance line
+  inside the fixture plate (not in the colophon — it belongs to the fact).
+  This bullet was written against API-Sports fixture rows specifically,
+  which carry no BY-SA obligation (D28's API-facts carve-out) — it is not a
+  blanket "fixtures never need the colophon's content" rule.
+- **Fixture rows (Wikipedia-sourced) — carve-out, added by §6.2/#95:** a
+  Wikipedia season-article fixture row is *still* a Wikipedia-derived,
+  CC BY-SA-obligated fact (D15/D26), unlike an API-Sports row — so its
+  provenance line carries the full attribution *content* this section
+  otherwise reserves for the colophon (source article link, licence link,
+  and BY-SA 4.0 §3(a)(1)(B)'s required "modified: parsed and normalised
+  from wikitext" clause — see §6.2 for the exact string), just rendered
+  in the same `--t-cap` per-fact line as the API-Sports case rather than
+  the full two-column colophon band. The closing sentence below still
+  holds: the obligation is met, just in a narrower, per-fact shape than a
+  played match's colophon, because a pre-match fixture plate is the whole
+  page's "the fact" here.
 - **Sentiment:** the §5.3 stamp, in place, on the card.
 
-A page that renders a Wikipedia-derived fact without its colophon is a bug of
-the same severity as a wrong score.
+A page that renders a Wikipedia-derived fact without its required attribution
+is a bug of the same severity as a wrong score — the two fixture-row bullets
+above are how that attribution is met on this page shape, not an exemption
+from it.
 
 ---
 
@@ -635,15 +652,27 @@ second vocabulary — the only genuinely new thing is what replaces the score
 hero, because there is no score yet.
 
 **Identity.** `fixtures_upstream` carries no `match_id`-style text key (D13's
-convention belongs to `matches`); the route id is derived client-side from the
-table's own unique key (`match_date`, `opponent_team_id`, §9 of the initial
-schema), mirroring the `matches` convention (`date-slugified_opponent-sequence`)
-as `date-slugified_opponent` — no sequence suffix, because a fixture's unique
-constraint is per `(match_date, opponent_team_id, source)`, not per same-day
-double-header, so the disambiguator `matches` needs does not apply here. If a
-future fixture set legitimately has the same opponent twice on the same date,
-that is itself new territory needing its own decision row, not a design
-assumption made now.
+convention belongs to `matches`); the route id is derived client-side as
+`date-slugified_opponent`, mirroring the `matches` convention
+(`date-slugified_opponent-sequence`) minus the sequence suffix. Honestly,
+though: unlike a `matches` id, this pair does **not** identify a single
+`fixtures_upstream` row — the table's real unique key is `(match_date,
+opponent_team_id, source)`, and D14 means a Wikipedia row and an API-Sports
+row for the *same* date/opponent can legitimately coexist side by side until
+one source's fetch supersedes the other. The route id therefore identifies a
+**fixture**, not a row: the page queries `fixtures_upstream` by date, filters
+the results to the matching opponent slug (which may still leave more than
+one candidate row), and only then applies **D14's precedence — an
+api-sports row is preferred over a wikipedia row for the same (date,
+opponent) pair** — as an explicit, named tie-break (`shared/fixture-id.ts`'s
+doc comment and `pages/fixture-detail/fixture-detail.ts`'s
+`PREFERRED_FIXTURE_SOURCE` constant carry this same reasoning so a future
+reader doesn't have to re-derive it from the code alone). No sequence suffix
+is added to the route id itself, because there is no same-day double-header
+case here for a sequence to disambiguate — the source tie-break solves the
+actual multiplicity this table has instead. If a future fixture set
+legitimately has the same opponent twice on the same date *from the same
+source*, that is itself new territory needing its own decision row.
 
 **Masthead.** Same full-bleed `--g-900` band, collar, small-caps eyebrow and
 centred layout as the game-detail masthead (§6's table row above) — but the
@@ -655,13 +684,20 @@ score hero position is replaced by:
 - **Date + kickoff** — the date and, where the source has confirmed it,
   the kickoff in SAST (`formatKickoffSAST`, `--font-numeric`, tabular, per
   D36); where kickoff is null, the honest line reads *"Kickoff not yet
-  confirmed"* in the masthead's absent styling (`--gold-300`, no italic —
-  italic is reserved for the `absent_in_source` provenance state per §3.1,
-  and `fixtures_upstream` carries no provenance columns at all, so this is
-  prose stating a fact about the source, not a D16 state rendering).
+  confirmed"*. The kickoff line **is never suppressed or replaced on match
+  day before kickoff has actually passed** — it is the one fact a fan
+  checking the page hours before kickoff came for (see the match-day state
+  below for exactly when it's superseded).
 - **Venue** — shown where present; *"Venue not yet confirmed"* where null,
-  same treatment as kickoff above, for the same reason (no provenance column
-  to route through FieldValue).
+  same treatment as kickoff above.
+- Both absent variants render in the masthead's gold-300 ink but
+  **upright, never italic**: italic is reserved for the `absent_in_source`
+  D16 provenance state per §3.1, and `fixtures_upstream` carries no
+  provenance columns at all — "not yet confirmed" is prose stating a fact
+  about the source's current state, not a D16 state rendering. In code this
+  is a page-local `.fixture-fact-absent` class, deliberately distinct from
+  `FieldValue`'s `.field-absent` (which is legitimately italic elsewhere,
+  for the real D16 state).
 - **Competition small caps** — shown only where the source supplied it
   (today's real data is Wikipedia season-article fixtures, which do not
   carry a competition field — see `ingestion/src/scripts/fixtures.ts`'s
@@ -677,14 +713,27 @@ score hero's position — the score hero element does not exist on this
 surface at all. This is the one absolute of the ticket and is mechanically
 checkable (no `.score` / `score-hero` markup renders).
 
-**Match-day state (D8).** When the fixture's `match_date` equals *today's
-calendar date in Africa/Johannesburg* (not the browser's local date — a fan
-on a UTC-behind or ahead device must see the same day SA does), the masthead
-eyebrow reads `MATCH UNDER WAY` in place of the date/kickoff line, and the
-body carries D8's verbatim copy: *"Match under way — no live coverage here;
+**Match-day state (D8).** The under-way state is gated on the kickoff having
+**actually passed** — the fixture's `match_date` matching *today's calendar
+date in Africa/Johannesburg* (not the browser's local date — a fan on a
+UTC-behind or ahead device must see the same day SA does) is necessary but
+not sufficient. A fixture dated today with a 19:05 kickoff is not "under way"
+at 09:00, and treating date-equality alone as the trigger would both falsely
+claim a live match hours early *and* suppress the kickoff line the fan is
+there to read (an error this document's first draft made and #95's Gate 2
+review caught). The concrete gate: `match_date` equals today in SAST **and**
+`kickoff_time` is non-null **and** the clock has passed it. A null
+`kickoff_time` can never satisfy "passed", so it never triggers this state —
+it falls through to the ordinary date/kickoff-TBD rendering above regardless
+of what day it is.
+
+Once genuinely under way: the masthead eyebrow reads `MATCH UNDER WAY` in
+place of the date line (the kickoff line stays visible beneath it, now
+showing a kickoff that has already happened — not hidden), and the body
+carries D8's verbatim copy: *"Match under way — no live coverage here;
 result appears after full time."* This mirrors Home's existing match-day
-card treatment exactly (`pages/home/home.html`'s `MATCH UNDER WAY` head) —
-one D8 state, one wording, reused rather than re-invented.
+card treatment (`pages/home/home.html`'s `MATCH UNDER WAY` head) — one D8
+state, one wording, reused rather than re-invented.
 
 **Head-to-head strip** — the existing §7.3 component/computation
 (`buildHeadToHead`), unmodified, queried the same way match-detail already
@@ -724,17 +773,26 @@ page always renders the timestamped form, split by `source`:
 - `source = 'wikipedia'` (today's real data): the fixture is still a
   Wikipedia-derived, CC BY-SA-obligated fact per D15/D26, so the line reads
   *"Fixture via Wikipedia (⟶ source article link), fetched \<fetched_at,
-  SAST⟶ CC BY-SA 4.0."* — a `--t-cap` `--ink-3` line inside the page (§5.5's
-  rule: fixture provenance belongs to the fact, not the colophon), not the
-  full two-column colophon band match-detail's actually-played pages carry.
+  SAST\>; available under CC BY-SA 4.0; modified: parsed and normalised from
+  wikitext."* — the trailing modified-clause is not decorative: BY-SA 4.0
+  §3(a)(1)(B) requires indicating what was changed, exactly as D26's
+  match-detail colophon already does, and a fixture provenance line making
+  the same CC BY-SA claim without it would be non-compliant. This still
+  renders as a `--t-cap` `--ink-3` line inside the page (§5.5's fixture
+  carve-out, amended below), not the full two-column colophon band
+  match-detail's actually-played pages carry.
 - `source = 'api-sports'`: D28's plain provenance note applies as originally
   specified — *"Fixtures via API-Sports, fetched \<fetched_at, SAST\>."*, no
   article link (no public per-record page exists for an API fact).
 
-If a future row ever arrives with `fetched_at` null (should not happen — the
-column is `not null default now()`), the fallback is source name + article
-link only, with no fetch timestamp claimed; this is a contingency note, not
-implemented against any real row today.
+If a `source = 'wikipedia'` row's `source_article_url` is ever null (should
+not happen for a real Wikipedia-sourced row, but the column is nullable),
+the line renders the word "Wikipedia" unlinked rather than a dead `<a href="">`
+anchor — a broken link is worse than no link. If a future row ever arrives
+with `fetched_at` null (should not happen either — the column is
+`not null default now()`), the fallback is source name + article link only,
+with no fetch timestamp claimed; this is a contingency note, not implemented
+against any real row today.
 
 **Reachability.** Home's next-fixture card and every upcoming-fixtures row
 become links to this route (one interaction from Home, satisfying D10's
@@ -1067,10 +1125,10 @@ the honest cost is a full second contrast pass.
 | §5.2 sources-differ | `app/src/app/shared/sources-differ-badge/*` |
 | §7.1 form guide | `pages/home/*` (+ a shared result-mark partial) |
 | §7.2 era strip | `pages/history/*` |
-| §7.3 head-to-head | `pages/match-detail/*` (one extra `anon` read) |
+| §7.3 head-to-head | `pages/match-detail/*` (one extra `anon` read); markup/CSS now in `shared/head-to-head-strip/*` (#95), reused by fixture-detail |
 | §7.4 score progression | `pages/match-detail/*`, `pages/match-timeline/*`, era-points constant beside `match-detail-models.ts` |
 | §6 /method additions | `pages/method/*` |
-| §6.2 fixture detail (pre-match) | `pages/fixture-detail/*` (new), `pages/home/*` (links), `shared/fixture-id.ts` (new) — task #95 |
+| §6.2 fixture detail (pre-match) | `pages/fixture-detail/*` (new), `pages/home/*` (links), `shared/fixture-id.ts` (new), `shared/head-to-head-strip/*` (new — extracted shared component, also used by match-detail) — task #95 |
 
 #89 changes **none** of these. It ships this document, the prototype, and the
 D32–D34 decision rows only.

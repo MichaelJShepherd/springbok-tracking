@@ -1,12 +1,14 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { HeadToHeadRow, buildHeadToHead } from '../../shared/head-to-head';
+import { HeadToHeadStrip } from '../../shared/head-to-head-strip/head-to-head-strip';
 import { HEAD_TO_HEAD_SELECT } from '../../shared/match-detail-models';
 import {
   FIXTURE_DETAIL_SELECT,
   FixtureDetailRow,
+  FixtureSource,
   FixtureStatus,
   formatFetchedAtSAST,
 } from '../../shared/fixture-detail-models';
@@ -23,6 +25,24 @@ const STATUS_LABELS: Record<FixtureStatus, string> = {
 };
 
 /**
+ * D14 precedence: an api-sports row is preferred over a wikipedia row for
+ * the same (date, opponent) pair. This is *why* `fixtures_upstream`'s
+ * unique key is `(match_date, opponent_team_id, source)` rather than just
+ * `(match_date, opponent_team_id)` — the pair alone does not identify one
+ * row when both sources have written a fixture for the same date/opponent,
+ * which is exactly the case this tie-break resolves (docs/design.md §6.2,
+ * PRD D37).
+ *
+ * NOTE for future maintainers: D9's fixtures-ingestion trigger could
+ * invert this precedence (Wikipedia becoming primary), and the deployment
+ * work tracked under #94/D39 will likely remove this tie-break entirely
+ * once `ingest:fixtures`' own dedupe (D14, `fixtures.ts`) means only one
+ * row survives per fixture upstream of the app altogether. Don't assume
+ * this constant is permanent.
+ */
+const PREFERRED_FIXTURE_SOURCE: FixtureSource = 'api-sports';
+
+/**
  * Pre-match game-detail page (docs/design.md §6.2, PRD D37, #95). Reads
  * `fixtures_upstream` for the fixture facts and `matches` only for the
  * head-to-head aggregate — the two tables' rows are never merged into one
@@ -30,7 +50,7 @@ const STATUS_LABELS: Record<FixtureStatus, string> = {
  */
 @Component({
   selector: 'app-fixture-detail',
-  imports: [RouterLink],
+  imports: [HeadToHeadStrip],
   templateUrl: './fixture-detail.html',
   styleUrl: './fixture-detail.css',
 })
@@ -63,12 +83,24 @@ export class FixtureDetail implements OnInit {
   readonly formatFetchedAtSAST = formatFetchedAtSAST;
   readonly statusLabel = (status: FixtureStatus): string => STATUS_LABELS[status];
 
-  readonly isMatchDay = computed(() => {
+  /**
+   * D8's "match under way" state — gated on kickoff having actually
+   * *passed*, not merely on the calendar date matching (Gate 2 finding 1):
+   * a fixture dated today with a 19:05 kickoff is not "under way" at 09:00,
+   * and claiming so would suppress the one fact — the kickoff time — a fan
+   * checking the page that morning came for. A null kickoff_time can never
+   * be "passed", so it never triggers this state either — it falls through
+   * to the ordinary date/kickoff-TBD rendering instead (docs/design.md §6.2).
+   */
+  readonly isMatchUnderWay = computed(() => {
     const f = this.fixture();
-    return !!f && f.match_date === todayInSAST(this.clock());
+    if (!f || !f.kickoff_time) return false;
+    if (f.match_date !== todayInSAST(this.clock())) return false;
+    return this.clock()().getTime() >= new Date(f.kickoff_time).getTime();
   });
 
   readonly provenanceIsWikipedia = computed(() => this.fixture()?.source === 'wikipedia');
+  readonly provenanceIsApiSports = computed(() => this.fixture()?.source === PREFERRED_FIXTURE_SOURCE);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -101,9 +133,7 @@ export class FixtureDetail implements OnInit {
         this.state.set('not_found');
         return;
       }
-      // D14 precedence: an api-sports row beats a wikipedia row for the same
-      // (date, opponent) pair, mirroring ingest:fixtures' own dedupe rule.
-      const fixture = candidates.find((r) => r.source === 'api-sports') ?? candidates[0];
+      const fixture = candidates.find((r) => r.source === PREFERRED_FIXTURE_SOURCE) ?? candidates[0];
 
       this.fixture.set(fixture);
       this.state.set('loaded');

@@ -1,0 +1,63 @@
+/* — Head-to-head strip (docs/design.md §7.3/§6.2) — shared by match-detail
+   and fixture-detail (#95 Gate 2 dedupe); previously duplicated per page. */
+.h2h {
+  background: var(--g-100);
+  border-color: var(--rule-strong);
+}
+
+.h2h-zones {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+@media (min-width: 720px) {
+  .h2h-zones {
+    flex-direction: row;
+  }
+
+  .h2h-zone {
+    flex: 1 1 0;
+    border-left: var(--hairline);
+    padding-left: var(--s-4);
+  }
+
+  .h2h-zone:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+/* Head-to-head win % and tally are numeric data contexts (D36). */
+.h2h-pct {
+  font-family: var(--font-numeric);
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-pct small {
+  font-family: var(--font-numeric);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+}
+
+.h2h-counts {
+  font-family: var(--font-numeric);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-line {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-sm);
+}
+
+.h2h-form {
+  display: flex;
+  gap: var(--s-1);
+  list-style: none;
+  padding: 0;
+  margin: var(--s-2) 0 0;
+}
+
+/* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */
