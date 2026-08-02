@@ -1,6 +1,11 @@
 # Deployment plan — Springbok Tracking (#94)
 
-> **Status.** Proposal for the repo owner. Nothing here is implemented and no
+> **Status.** Decided by the owner on 2026-08-02 — see §0. §§1–3 are the
+> research and options as originally presented; §4's static-first
+> recommendation was **considered and overridden**, and is kept verbatim
+> because a decision's rationale is worth nothing without the alternative it
+> beat. **§4A is the implementation plan for the architecture actually
+> chosen.** Nothing here is implemented and no
 > application code changes with this document. Written against `main` at
 > commit `57fc028`, read on 2026-08-02. Every price, quota and free-tier rule
 > below was checked live on **2026-08-02** against the vendor's own
@@ -12,8 +17,60 @@
 > This plan closes PRD **D22** ("deployment explicitly deferred") and makes
 > AGENTS.md §3's "every merge to `main` auto-deploys" actually true. It also
 > has to answer Backlog **#71**/D20 (retention infrastructure must be
-> revisited *before* any real deployment) — §7 does that, and the plan is not
+> revisited *before* any real deployment) — §4A.5 does that (§7 is the rejected option's version), and the plan is not
 > executable until that answer is accepted.
+
+## 0. Owner decision (2026-08-02)
+
+Michael read this plan and decided. Four calls, and **the static-first
+recommendation in §4 was considered and overridden**:
+
+| # | Decision |
+|---|---|
+| 1 | **Architecture = Cloudflare Workers + D1** — option **C** in §3, not the recommended option D. Accepted with eyes open: the 5–8 day migration and the loss of Postgres RLS. |
+| 2 | **No Supabase at all, anywhere.** Not paid, not free, not private, not as ingestion's datastore. **D1 is the only datastore in the project**, including for ingestion. This goes further than the constraint originally given on #94 ("don't want to pay for more Supabase") and is the clearer rule. |
+| 3 | **Cloudflare Pages: yes.** Michael creates the account and issues the API token. |
+| 4 | **Both licence calls accepted.** The Wikipedia-derived dataset may be published (draft **D38**, in principle). API-Sports is **dropped permanently** (draft **D39**): the #67 API-Sports key errand is dead, and D9's 🟡 trigger closes by owner decision rather than by a live-fetch test. |
+
+**Why the override is coherent**, stated as the owner's reasoning and not as
+a grudging note — three things this plan's §4 under-weighted:
+
+- **One vendor, one bill, one console.** The recommendation shipped a
+  *two-vendor* answer (Cloudflare for serving, Supabase for ingestion's
+  datastore) and asked the owner to keep an account he had just said he
+  wanted less of. Options are not free: every vendor is another set of
+  terms, another dashboard, another quota to watch and another thing to
+  cancel. Workers + D1 + Pages is one account for the site, the API, the
+  database and the CDN. That is a real simplicity argument (rule 1.3),
+  applied to *operations* rather than to lines of code — the axis §4 did
+  not price.
+- **No grey area to live in.** §2.1 could only say that a second free
+  Supabase organization is documented but not clearly permitted — an
+  Acceptable Use Policy judgement, enforced case-by-case. Building a
+  deployment on a permission nobody can point to is a standing risk with no
+  owner. D1's free tier needs no interpretation.
+- **A real API tier, sized for where the product is going.** Backlog **#96**
+  (multi-nation expansion, ~10 nations) explicitly names #94 as its
+  prerequisite because it multiplies the data roughly tenfold, and it will
+  need per-nation queries rather than one whole-table download. A static
+  JSON export is at its best at exactly 570 rows and one team; a query
+  endpoint is what survives ~5,700 matches and a nation switcher. Choosing
+  the shape that does not have to be re-chosen in three months is
+  scalability breaking a near-tie (rule 1.3's second clause), not
+  speculative abstraction.
+
+**What the override costs, recorded honestly** so nobody re-discovers it in
+Phase B: Postgres RLS goes away, and with it the property that public
+read-only access is enforced by the database rather than by code we wrote
+(`docs/architecture.md` §3.3). D18's rationale — "by architecture, not
+discipline" — is genuinely weakened here, and the mitigation is tests, not
+hope: §4A Phase B specifies the Worker's read-only guarantee as executable
+checks (GET-only, allow-listed tables, parameterised SQL, no outbound
+`fetch`, internal tables unreachable). That mitigation is the price of this
+decision, and it is a real one.
+
+Everything below §4A supersedes §5's static-first cron design, which is
+retained only as the record of the rejected option.
 
 ## 1. What we are deploying, and what the owner asked for
 
@@ -65,10 +122,10 @@ important fact in this document.
 | AGENTS.md 1.3 | Simplicity first. The winner is the one that is easiest to read and delete, not the most capable. |
 | AGENTS.md 1.4 | Politeness unchanged by deployment: serial fetches, ≥1.5s interval, honest User-Agent, back-off on 429 (`wikipedia-client.ts`). A move to CI must not multiply fetch volume. |
 | AGENTS.md §3 | `main` must always be deployable; merge to `main` auto-deploys. |
-| D15 | API-Sports rows must **never** be mixed into a redistributable export, and v1 offers no bulk download. A world-readable JSON file *is* a bulk download — see §6.3. |
+| D15 | API-Sports rows must **never** be mixed into a redistributable export, and v1 offers no bulk download. A world-readable JSON file *is* a bulk download — see §6.3 for the rejected static shape, and draft D39 in §9 for how the owner closed it. |
 | D18 | All upstream calls server-side; no key beyond a public anon key ever reaches the browser. |
 | D19 | No user request ever triggers an upstream fetch. |
-| D20 / #71 | Guardian/Reddit source text lives only in the ingestion process's memory; only derived scores + URLs + dates persist; logs must never contain it. **Must be revisited before any real deployment** — §7. |
+| D20 / #71 | Guardian/Reddit source text lives only in the ingestion process's memory; only derived scores + URLs + dates persist; logs must never contain it. **Must be revisited before any real deployment** — §4A.5 (and §7 for the rejected shape). |
 | D24 | Budget math: one-off backfill ≈650 Wikipedia fetches; steady state ≤10 Wikipedia fetches/day, 1–2 API-Sports calls/day, match-day Reddit reads. |
 | D25 | A failed ingestion run must fail **visibly** — non-zero exit, red `ingestion_runs` row, never silently thin data. |
 | D26 | Attribution (Wikipedia source article + CC BY-SA + "modified") must survive whatever serving shape is chosen. |
@@ -116,11 +173,68 @@ you either adopt Neon's beta Data API or host PostgREST yourself.
 | Workers free | 100,000 requests/day; **10 ms CPU per invocation**; 50 subrequests/request | [limits](https://developers.cloudflare.com/workers/platform/limits/) |
 | Static assets | **Free and unlimited on all plans** — asset requests are not charged and do not count against plan usage; 20,000 files/version (free), 25 MiB/file | [limits](https://developers.cloudflare.com/workers/platform/limits/) |
 | Cron Triggers | Available on free; **max 5 per account** on free; max 15-minute wall clock for a scheduled invocation on both free and paid; the 10 ms CPU cap still applies. Whether cron invocations draw from the 100k/day request pool is **unverified** | [limits](https://developers.cloudflare.com/workers/platform/limits/) |
-| D1 free | 5M rows read/day, 100k rows written/day, 5 GB storage account-wide, 500 MB per database (the docs' per-DB/DB-count figures are inconsistent between the pricing and limits pages — **re-check before quoting**) | [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/) |
+| D1 free — re-verified 2026-08-02 for §4A, see §2.3a | 10 databases; 500 MB per database; 5 GB per account; 5M rows read/day; 100k rows written/day | [D1 limits](https://developers.cloudflare.com/d1/platform/limits/), [D1 pricing](https://developers.cloudflare.com/d1/platform/pricing/) |
 | KV free | 100k reads/day but only **1,000 writes/day** | [pricing](https://developers.cloudflare.com/workers/platform/pricing/) |
 | R2 free | 10 GB-month storage, 1M Class A + 10M Class B ops/month, **zero egress fees on all tiers** | [pricing](https://developers.cloudflare.com/workers/platform/pricing/) |
 | Pages status | **Not** documented as deprecated; still fully supported. Docs frame Workers as the broader-feature option; claims that Cloudflare now steers new projects away from Pages are community interpretation, **not** a vendor statement | [migrate-from-Pages guide](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/) |
 | SPA routing | Workers static assets: `not_found_handling = "single-page-application"` returns 200 + `index.html`. Pages: omit a top-level `404.html` and Pages serves `index.html` for unmatched routes — no `_redirects` needed for basic SPA fallback | [Workers static assets](https://developers.cloudflare.com/workers/static-assets/), [Pages serving](https://developers.cloudflare.com/pages/configuration/serving-pages/) |
+
+### 2.3a D1, re-verified properly (these figures are now load-bearing)
+
+§2.3's D1 row was written when D1 was one option among four and flagged the
+pricing and limits pages as inconsistent. With the owner's decision they
+decide real design choices, so they were re-verified from the vendor's docs
+on **2026-08-02**. The two pages turn out not to contradict each other — each
+is simply silent where the other speaks. All figures below are free plan
+unless stated.
+
+| Fact | Free | Paid | Source |
+|---|---|---|---|
+| Databases per account | **10** | 50,000 | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| Max size, single database | **500 MB** | 10 GB (cannot be raised) | [limits](https://developers.cloudflare.com/d1/platform/limits/) — the pricing page states no per-database ceiling at all |
+| Storage per account | **5 GB** | 1 TB included, then $0.75/GB-month | [limits](https://developers.cloudflare.com/d1/platform/limits/), [pricing](https://developers.cloudflare.com/d1/platform/pricing/) (these agree) |
+| Rows read / written | **5M read/day, 100k written/day** | 25B read + 50M written per month included | [pricing](https://developers.cloudflare.com/d1/platform/pricing/) — the limits page does not mention these at all |
+| **How a row read is counted** | **every row scanned, not every row returned** — a full table scan of 5,000 rows reports `rows_read: 5000`, and a `WHERE` on an unindexed column bills everything it examined | same | [D1 FAQ](https://developers.cloudflare.com/d1/reference/faq/) |
+| Queries per Worker invocation | **50** | 1,000 | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| Bound parameters per query | 100 | 100 | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| Max SQL statement length | 100,000 bytes | same | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| Max columns per table | 100 | same | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| Max query/batch duration; max row size | 30 s; 2 MB | same | [limits](https://developers.cloudflare.com/d1/platform/limits/) |
+| **Time Travel** (backup / point-in-time recovery to any minute) | **7 days** | 30 days | [Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/) |
+| Row-level security, roles, per-table grants | **No such concept exists.** D1's own Data Security page covers encryption at rest, TLS, and compliance only — there is no mention of RLS, roles or per-row access control anywhere in the D1 docs. Access control is entirely at the API-token and Worker-binding level | | [D1 data security](https://developers.cloudflare.com/d1/reference/data-security/) |
+| Workers Logs | 200,000 events/day, **3-day retention** | 20M/month included, 7-day retention | [Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/) |
+
+**What these numbers mean for this project, arithmetic stated so it can be
+checked:** the whole dataset is ~570 matches plus detail rows, so the 500 MB
+per-database ceiling is not a constraint on the *match* data — only
+`source_snapshots` (raw wikitext, unbounded growth) can ever approach it, and
+even #96's tenfold multi-nation expansion leaves the match tables trivial.
+The read accounting is the figure that actually bites: `/api/matches` scans
+all ~570 rows, so 5M row-reads/day divides to roughly **8,700 uncached
+History loads per day** before the free allowance is touched — ample, and
+Phase B's edge caching makes it ample by a further order of magnitude. Rows
+written (100k/day) is far above D24's steady state of a handful of upserts.
+Time Travel at **7 days on free** is a real backup story but a short one, and
+it is the only one this architecture has.
+
+Bulk loading and out-of-Worker writes, also verified 2026-08-02:
+
+- **`wrangler d1 execute --remote --file=x.sql`** is Cloudflare's documented
+  bulk-load path; the file ceiling is 5 GiB and per-statement 100 KB, with
+  splitting recommended beyond that. [import/export](https://developers.cloudflare.com/d1/best-practices/import-export-data/)
+- **D1 HTTP query API** exists: `POST /client/v4/accounts/{account_id}/d1/database/{database_id}/query`, Bearer token, plus `/raw`, `/export` and `/import` variants. No D1-specific rate or request-size limit is documented; the general Cloudflare API ceiling of **1,200 requests per 5 minutes per token** applies. [API reference](https://developers.cloudflare.com/api/resources/d1/subresources/database/methods/query/), [API limits](https://developers.cloudflare.com/fundamentals/api/reference/limits/)
+- **`wrangler d1 import` does not exist** as a command — bulk loading is `execute --file`.
+- **Migrations** are first class: `wrangler d1 migrations create|list|apply`, with applied files tracked in a `d1_migrations` **table inside the database** (name configurable), migration files sequential in a `migrations/` folder. [migrations](https://developers.cloudflare.com/d1/reference/migrations/)
+- **Local dev needs no Docker**: `wrangler dev` runs local by default on Miniflare/workerd, local D1 is a real SQLite file on disk, relocatable with `--persist-to`, and seeding is `wrangler d1 execute <DB> --file=./seed.sql --local`. [local dev](https://developers.cloudflare.com/d1/best-practices/local-development/), [local data](https://developers.cloudflare.com/workers/development-testing/local-data/)
+- **SPA + API in one Worker**: `assets.not_found_handling = "single-page-application"` gives the SPA fallback, and `assets.run_worker_first` forces the Worker to handle matching paths (e.g. `/api/*`) instead of the asset handler. [SPA routing](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/), [advanced routing](https://developers.cloudflare.com/workers/static-assets/routing/advanced/)
+
+**Still unverified after a genuine attempt** (flagged, not guessed): whether
+`wrangler d1 migrations apply` supports `--remote`; the exact current
+`run_worker_first` syntax (boolean vs. array of path globs); any maximum
+number of statements in a single `d1.batch()`; a maximum table count per D1
+database; and whether `wrangler tail` is plan-gated. The local-D1 SQLite file
+path (`.wrangler/state/v3/d1/…/db.sqlite`) is corroborated by search but not
+quoted from a fetched vendor page.
 
 ### 2.4 Cloudflare D1/SQLite vs this project's Postgres schema
 
@@ -139,9 +253,11 @@ Checked against [D1 SQL statements](https://developers.cloudflare.com/d1/sql-api
 - RLS: **architecturally absent** — no roles, no `GRANT`, no `CREATE POLICY`.
   The entire §3.3 posture (anon SELECT on seven display tables,
   default-deny on `source_snapshots`/`ingestion_runs`) has to be
-  reimplemented as hand-written scoping in a Worker. Note this is inferred
-  from the complete absence of role/policy syntax in the SQL reference,
-  not from a quotable "D1 has no RLS" sentence.
+  reimplemented as hand-written scoping in a Worker. Confirmed on re-check
+  (§2.3a): D1's own Data Security page covers encryption at rest, TLS and
+  compliance and contains no mention of row-level security, roles or
+  per-row access control — access control lives at the API-token and
+  Worker-binding level, outside the database.
 
 ### 2.5 GitHub Actions
 
@@ -170,6 +286,13 @@ Checked against [D1 SQL statements](https://developers.cloudflare.com/d1/sql-api
 | SPA deep links | Documented: `not_found_handling = "single-page-application"` (Workers) or omit `404.html` (Pages) | The `404.html` copy-of-index trick — **community convention, not documented by GitHub** | `_redirects` with `/* /index.html 200` |
 | Custom domain + HTTPS | Free | Free on all plans incl. Free, Let's Encrypt auto-provisioned | Free |
 | Gotchas | Cloudflare account needed | Pages ToS prohibits commercial/e-commerce/SaaS use (fine here — the project is non-commercial per #64, and that is also the basis of the 1.4 posture); publishing from a **private** repo needs Pro | Credit model landed 2025-09-04 and was repriced 2026-04-14; a new signup gets the credit model, not the legacy 100 GB |
+
+> **Settled by §0.** The owner chose Cloudflare, so this comparison is now
+> history: GitHub Pages' undocumented `404.html` SPA convention and its
+> 100 GB soft cap are **moot**, and Netlify's credit model is moot. The one
+> live consequence is that §4A.1 serves the SPA from the **same Worker** that
+> serves `/api/*`, which is a shape none of the three columns below
+> contemplated — one deployment, one origin, no CORS.
 
 **Hosting call: Cloudflare Pages (or Workers static assets — same product
 family, same config file), deployed by direct upload from GitHub Actions.**
@@ -311,7 +434,12 @@ verification gates.
 | **Decision rows touched** | D22 | D21, D22 | D18, D19, D21, D22, and `architecture.md` §3 | D15, D17, D20, D22 | D15, D20, D21, D22, D35 |
 | **1.3 verdict** | Simplest diff, most fragile result | More work for the same architecture | Most work, least honest invariants | Simple runtime, complicated pipeline | **Simplest thing that stays up** |
 
-## 4. Recommendation
+## 4. Recommendation (CONSIDERED AND OVERRIDDEN — see §0; §4A is the plan of record)
+
+> Kept verbatim, not edited down. The owner chose option C over this, for the
+> reasons in §0; a rejected recommendation still has to be readable, or the
+> decision that beat it cannot be judged later.
+
 
 **Adopt D-db: a purely static public site, with a private free Supabase
 project used only as ingestion's datastore.**
@@ -367,7 +495,444 @@ write call sites onto a plain Postgres driver — roughly +2 days and one
 more dependency; or (ii) accept D-repo's repository-as-database and file a decision
 row retiring D17's snapshot table. Both are worse; neither is unreasonable.
 
-## 5. Ingestion cron design (for the recommended option)
+## 4A. Implementation plan — Cloudflare Workers + D1 (the chosen architecture)
+
+This section replaces §4's recommendation as the plan of record. Five phases,
+each independently mergeable behind AGENTS.md §3's "keep it small and inert"
+rule, and each ending in something verifiable. Total **7–8 days** for one
+agent, at the top of the owner-accepted 5–8 day range — the D1 port and the
+ingestion write-layer refactor are the two that will not compress.
+
+| Phase | Deliverable | Effort |
+|---|---|---|
+| A | D1 schema port + local dev story | 1.5 d |
+| B | Worker read API (5 endpoints, public read-only, tested) | 1.5 d |
+| C | Ingestion write-layer refactor (no `supabase-js` anywhere) | 2 d |
+| D | App data-layer swap (`supabase-js` → `fetch`) | 1 d |
+| E | Pages + CI + deploy + daily cron | 1.5 d |
+| — | Contingency (Phase C's bulk-load path is the likeliest overrun) | 0.5–1 d |
+
+Target end state: one Cloudflare account holding one Worker (serving both
+the SPA's static assets and `/api/*`), one D1 database, and one GitHub
+repository holding the app, the ingestion scripts, the D1 migrations and
+three workflows. No Supabase, no Postgres, no PostgREST, no second vendor.
+
+### Phase A — D1 schema port and local development (1.5 days)
+
+**A.1 The Postgres → SQLite mapping, column class by column class.** These
+are the actual constructs in `supabase/migrations/` (three files today:
+initial schema, service-role grants, and #79's `fixtures_upstream`
+`status`/`source` columns), not a generic list:
+
+| Postgres construct (ours) | Where it appears | D1/SQLite translation | Consequence |
+|---|---|---|---|
+| `uuid primary key default gen_random_uuid()` | `teams`, `match_officials`, `match_lineups`, `match_events`, `fixtures_upstream`, `sentiment_scores`, `source_snapshots`, `ingestion_runs` | `text primary key`, value generated by the writer (`crypto.randomUUID()`, available in Node and in Workers) | No `pgcrypto`, no server-side default. The writer must always supply the id — a missing id becomes a NOT NULL failure, which is the honest outcome. |
+| `text` PK (`matches.match_id`) | `matches` | unchanged | The one table that already had a natural key ports for free. |
+| `text[] not null default '{}'` | `teams.aliases` | `text not null default '[]'`, holding a JSON array; read with `JSON.parse`, query with `json_each()` only if ever needed | Nothing queries by alias today — alias resolution happens in ingestion memory in `team-directory.ts` — so this is a storage-format change with no query cost. |
+| `numeric(4,3)` + range CHECK | `sentiment_scores.score` | `real` + the same `check (score >= -1 and score <= 1)` | Precision moves from the database to the writer: round to 3 dp before insert. Add a unit test on the rounding, because the CHECK will not catch `0.12345`. |
+| `boolean not null default false` | `sentiment_scores.too_few` | `integer not null default 0 check (too_few in (0,1))` | The Worker must map 0/1 back to a JSON boolean so the app's `SentimentScoreRow.too_few: boolean` contract is unchanged. |
+| `timestamptz ... default now()` | `created_at`/`fetched_at`/`computed_at`/`started_at`/`finished_at` on nearly every table; `matches.kickoff_time`; `fixtures_upstream.kickoff_time` | `text` holding ISO-8601 UTC, written explicitly by the writer; **not** `CURRENT_TIMESTAMP` as a default | SQLite's `CURRENT_TIMESTAMP` yields `YYYY-MM-DD HH:MM:SS` (space, no `Z`) which is **not** what the app parses today. Writing explicit ISO strings keeps `formatKickoffSAST` and the timeline's bucketing working untouched. This is the single most likely source of a silent bug in the port — pin it with a test per timestamp column. |
+| `date` | `matches.match_date`, `fixtures_upstream.match_date` | `text` `YYYY-MM-DD` | No change in practice: the app already treats `match_date` as a string and slices the year off it. |
+| `smallint` / `integer` | `sequence`, scores, `minute`, `sequence_no`, run counters | `integer` | Straight through. |
+| `check (x in (...))` — 20+ of them, incl. every D16 provenance column | everywhere | **supported, keep verbatim** | D16's four-state provenance model ports unchanged, which is the constraint that mattered most. |
+| `references ... on delete cascade` / `on delete set null` | detail tables → `matches`; `source_snapshots` → `matches` | supported, but SQLite enforces FKs only with `PRAGMA foreign_keys = ON`; D1 also offers `PRAGMA defer_foreign_keys` for migration-time reordering | Verify enforcement with a test that deletes a match and asserts children vanish — do not assume it is on. |
+| `unique (match_date, opponent_team_id, sequence)`, `unique (match_id, sequence_no)`, `unique (match_id, bucket, source)`, `unique` on `api_sports_fixture_id` | `matches`, `match_events`, `sentiment_scores`, `fixtures_upstream` | supported | These are what make ingestion's upserts idempotent, so they must land before any write path is tested. |
+| `on conflict ... do update` (supabase-js `.upsert()`) | every ingestion write | `insert ... on conflict(<cols>) do update set ...` — SQLite supports upsert, but the conflict target must be named explicitly | Phase C's real work. The implicit conflict target `supabase-js` infers has to become an explicit column list at each of the write sites. |
+| RLS: `enable row level security`, `for select using (true)` on seven display tables, default-deny on `source_snapshots`/`ingestion_runs`, `GRANT SELECT` to `anon`, full grants to `service_role` | migrations 1 and 2, whole posture | **nothing — no roles, no grants, no policies exist in D1** | The entire access-control layer becomes Worker code. This is the override's cost; Phase B is where it is paid, in tests. |
+| `create extension pgcrypto` | migration 1 | delete | Only used for `gen_random_uuid()`. |
+| `create index ... (match_date desc)` | `matches` | supported | Keep it: History's default sort and the head-to-head query both lean on it. |
+
+**A.2 Append-only migrations, D1-flavoured.** The repo's convention (schema
+changes are new files, never edits) is preserved by using Wrangler's
+first-class migrations system — `wrangler d1 migrations create|list|apply`
+over a sequential `migrations/` folder, with applied files recorded in a
+`d1_migrations` table inside the database itself (§2.3a). That is the same
+append-only discipline the Postgres migrations already follow, enforced by
+the tool instead of by a comment. Practical rules to write into the migration
+directory's own header comment, mirroring the existing one: new file per
+change; never edit an applied file; and because SQLite has **no
+`ALTER COLUMN`**, a column-type or constraint change is a
+create-copy-drop-rename migration written out longhand. The three existing
+Postgres migrations collapse into **one** initial D1 migration (the
+service-role grants file has no D1 equivalent at all, and #79's added columns
+are folded in) — the Postgres migrations stay in the repo, unapplied, until
+Phase D lands, then are deleted in one commit with the `supabase/` directory.
+
+**A.3 Local development — what replaces `supabase start`.** `wrangler dev`
+runs local by default on Miniflare/workerd, with a **local D1 that is a real
+SQLite file on disk** (relocatable via `--persist-to`), and the docs describe
+**no Docker requirement anywhere** — so the local loop gets faster and
+lighter than today's Docker-based `supabase start`, not heavier. Seeding is a
+documented one-liner: `wrangler d1 execute <DB> --file=./seed.sql --local`.
+The `npm run db:*` scripts change meaning but keep their names, so
+AGENTS.md §7's command vocabulary survives:
+
+| Today | Becomes |
+|---|---|
+| `npm run db:start` (`supabase start`, Docker, slow first run) | deleted — there is no service to start; `npm run dev:api` (`wrangler dev`) both serves the API and creates the local DB on demand |
+| `npm run db:stop` | deleted |
+| `npm run db:reset` (re-applies migrations + `seed.sql`) | `npm run db:reset` — drop the local D1 file, apply all migrations locally, then load `seed.sql` (ported to SQLite: the same three documented matches) |
+| `npm run app:serve` (`ng serve` → local Supabase) | unchanged, but proxies `/api` to `wrangler dev` |
+| local anon key in `app/src/environments/environment.ts` | deleted — there is no key. The environment file carries only the API base URL |
+
+Ingestion's local runs point at the same local D1 (Phase C), so the
+end-to-end local loop is: `db:reset` → `ingest:*` → `dev:api` → `app:serve`,
+with no container runtime anywhere.
+
+**Phase A is done when:** migrations apply to a fresh local D1 and to the
+remote D1; the seed loads; a test deletes a match and its children cascade;
+and a test asserts every timestamp column round-trips as parseable ISO-8601.
+
+### Phase B — the Worker read API (1.5 days)
+
+**B.1 Endpoints, derived from the app's actual queries.** Today's thirteen
+`supabase-js` calls (enumerated in §1.1) collapse into **five** endpoints.
+The collapse is deliberate: Workers bill CPU per invocation and D1 allows
+**50 queries per invocation on the free plan** (§2.3a), so page-shaped
+endpoints mean one round trip per surface instead of four, with an order of
+magnitude of headroom against that ceiling — the busiest endpoint below uses
+five queries.
+
+| Endpoint | Replaces | Returns | Notes |
+|---|---|---|---|
+| `GET /api/home` | `Home`'s 4 calls (`fixtures_upstream` from today; today's unfinished match; latest finished match; last five) | `{ nextFixture, upcomingFixtures, liveMatch, latestResult, formGuide }` | Four D1 queries in one invocation. `?today=` is **not** a parameter — the Worker uses its own clock, so a client cannot ask about another date. |
+| `GET /api/matches` | `History`'s 1 call | all matches + opponent name, `match_date` desc | The whole-table read History already does. ~570 rows; gzipped by the platform. |
+| `GET /api/match/:id` | `MatchDetail`'s 4 blocking calls **and** `MatchTimeline`'s 3 | `{ match, officials, lineups, events, sentiment }` | One bundle serves both surfaces (D7: events are one dataset with two renderings). 404 when the match does not exist, which `MatchDetail` already models as `not_found`. |
+| `GET /api/match/:id/head-to-head` | `MatchDetail`'s deferred 5th call | opponent history rows | Deliberately separate: the app fires this without awaiting it so a slow or failed head-to-head never blocks the page. Keeping it separate preserves that. |
+| `GET /api/meta` | — (new) | `{ generated_at, row_counts, last_run: { status, finished_at } }` | The D25/health surface. Reads **three allow-listed columns** of the newest `ingestion_runs` row — never `notes` (which carries the completeness JSON), never a snapshot. |
+
+The joins the app currently gets from PostgREST's embed syntax
+(`teams:opponent_team_id(canonical_name)`) become ordinary SQL joins, and the
+response field names stay **byte-identical** to today's row shapes
+(`match-models.ts`, `match-detail-models.ts`), so Phase D is a transport
+change and not a model change. Any renaming here would silently double
+Phase D's cost.
+
+**B.2 The read-only guarantee, as code and as tests.** This is what replaces
+RLS, and it is the part of the override that must not be waved through:
+
+1. **Method allow-list.** Anything that is not `GET` (or `HEAD`) returns 405
+   before routing. The D1 binding is used only through prepared `SELECT`s.
+2. **Table allow-list.** A single module holds every SQL string; the seven
+   display tables appear in it and `source_snapshots` / `ingestion_runs` do
+   not, except `/api/meta`'s three-column read. A test greps the Worker's
+   source for `source_snapshots` and for `wikitext` and fails on any hit
+   outside that one query.
+3. **Parameterised only.** Every path or query parameter goes through D1
+   bound parameters; a test asserts no SQL string in the module is built by
+   interpolation, and a request with `'; drop table matches; --` as a match
+   id returns 404 with the database intact.
+4. **D19, structurally.** The Worker makes **no outbound `fetch()` at all**.
+   A test asserts the source contains no `fetch(` call to any external host,
+   so no user request can ever reach Wikipedia, Reddit or the Guardian —
+   D19's guarantee, moved from "the browser has no upstream path" to "the
+   only server we run has no upstream path".
+5. **No write binding.** The Worker's D1 binding is the same database
+   (D1 has no read-only binding mode to lean on), so (1)–(3) are the whole
+   defence — which is precisely why they are tests and not comments. Write
+   access is by Cloudflare API token, held only by CI (Phase C).
+6. **Caching, sized against the read accounting.** D1 bills **rows scanned,
+   not rows returned** (§2.3a), so `/api/matches` costs ~570 row-reads every
+   time it is served uncached — roughly 8,700 uncached History loads a day
+   inside the 5M/day free allowance. That is already ample, and a short
+   `Cache-Control` (5–15 minutes) on the data endpoints pushes repeat traffic
+   onto Cloudflare's edge instead of D1, since the data only changes once a
+   day anyway. `/api/meta` carries `no-store` so a health check never reads a
+   cached answer. Also from the read accounting: keep the `match_date` index
+   and add one on `matches.opponent_team_id` for the head-to-head query — an
+   unindexed `WHERE` bills every row it examines.
+
+Tests run under Vitest with the Workers pool against a local D1, seeded from
+`seed.sql` — the same fixtures-only, offline discipline D27 already mandates.
+
+**B.3 One Worker, two jobs.** The same Worker serves the SPA's static assets
+and `/api/*`, using the two documented settings from §2.3a:
+`assets.not_found_handling = "single-page-application"` so unmatched non-API
+paths fall back to `index.html` (Angular's deep links `/history`,
+`/match/:id/timeline` keep working), and `assets.run_worker_first` so the
+asset handler does not swallow `/api/*` before the Worker sees it. The exact
+current `run_worker_first` syntax (boolean vs. array of path globs) is on
+§4A.6's verify-first list — get it from the live docs, not from here. This is
+one deployment, one domain and therefore **no CORS configuration at all** —
+a genuine simplification over today's cross-origin `localhost:4200` →
+`localhost:54321` setup.
+
+**Phase B is done when:** all five endpoints return today's row shapes from a
+local D1, the six guarantees above have passing tests, and a deep link and
+`/api/*` are both served correctly by one `wrangler dev`.
+
+### Phase C — ingestion write layer (2 days)
+
+The largest phase, and the one the owner's "no Supabase anywhere" call
+creates. `@supabase/supabase-js` is ingestion's only runtime dependency
+today; it goes, and with it `lib/supabase-client.ts`.
+
+**C.1 What actually has to change.** Ingestion's shape is deliberately
+narrow: four scripts, one client module, and a guardrail module that reads
+and writes `ingestion_runs`. The fetch/parse/normalise libraries — every
+`wiki-*`, `rugbybox-parser`, `match-normaliser`, `sentiment-*`,
+`team-directory` file — touch no database and must not be edited at all. The
+write sites are: `teams`, `matches`, `match_officials` (delete+insert),
+`match_lineups`, `match_events`, `fixtures_upstream`, `source_snapshots`,
+`ingestion_runs`, plus the guardrail's two reads.
+
+**C.2 How CI writes to D1.** A GitHub Actions runner is not a Worker, so it
+needs an out-of-band path. The options, and the recommendation:
+
+- **Cloudflare's D1 HTTP query API** (`POST /client/v4/accounts/{id}/d1/database/{id}/query`, Bearer token) — a plain
+  `fetch` from Node, parameterised, no CLI in the loop. **Recommended** for
+  the incremental daily writes: it is the closest analogue to what
+  `supabase-js` was doing, keeps ingestion a plain Node program, and needs one
+  secret. Three verified limits shape the client: no D1-specific rate limit is
+  documented, but the **general Cloudflare API ceiling of 1,200 requests per
+  5 minutes per token** applies, so writes must be **batched, never
+  row-at-a-time**; **100 bound parameters per query** caps how many rows fit
+  in one multi-row upsert (a 20-column table ⇒ 5 rows per statement, so chunk
+  deliberately); and **100 KB per SQL statement** is the other ceiling to
+  chunk against.
+- **`wrangler d1 execute --remote --file=x.sql`** — Cloudflare's *documented*
+  bulk-load path, and the right tool for the **one-off loads** (initial
+  backfill, #85's ~650-page detail crawl), where one statement file beats
+  hundreds of HTTP round trips. File ceiling 5 GiB, statement ceiling 100 KB.
+  Note there is **no `wrangler d1 import` command** — `execute --file` is the
+  mechanism.
+- Rejected: a write-capable Worker endpoint. It would put a mutation surface
+  on the public internet guarded by a shared secret, which is exactly the
+  attack surface Phase B exists to avoid, and it would inherit the Worker CPU
+  limit for a job that runs for minutes.
+
+So: a small `lib/d1-client.ts` replaces `lib/supabase-client.ts`, exposing
+the handful of operations the scripts actually use (`insertRows`,
+`upsertRows` with an explicit conflict target, `deleteWhere`, `queryOne`,
+`queryMany`) over the HTTP API, batching statements to stay inside the API's
+request-size limits. The scripts change only where they call it; their
+control flow, politeness and logging do not move.
+
+**C.3 What must be preserved, explicitly.**
+
+- **Politeness (1.4) is untouched.** `wikipedia-client.ts` is not edited in
+  this phase — same serial fetches, same 1.5 s interval, same 5 s/15 s
+  back-off honouring `Retry-After`, same honest User-Agent. The only change
+  is where the process runs.
+- **D17 snapshots survive.** `source_snapshots` is a real table in D1 and
+  every fetched page's wikitext is still written there before any
+  parse-dependent write, so re-parses stay reproducible and a Wikipedia
+  restructure stays diffable. Watch the size budget: this is the one table
+  that grows without bound, so Phase C adds a row-count and bytes figure to
+  the run summary and a note in the migration header that snapshot pruning
+  gets its own decision row if D1's **500 MB per-database** ceiling (§2.3a)
+  is ever approached — the match tables never will; wikitext might.
+  (This is also the constraint that killed the rejected "repository as the
+  database" variant in §3, and it applies just as much here.)
+- **D25 guardrail semantics are preserved exactly.** `evaluateGuardrail`'s
+  two conditions (zero `matches` rows written; >20-point completeness drop
+  against the previous run) are pure functions over numbers and do not change
+  at all. Only `getPreviousRun`/`writeIngestionRun` change transport. The
+  previous-run completeness snapshot keeps round-tripping as JSON in the
+  run row's `notes` column — which is also why `/api/meta` never exposes
+  that column.
+- **Idempotency.** Every write stays an upsert against the unique
+  constraints listed in A.1, so a re-run after a partial failure converges
+  instead of duplicating. D1 has no transaction spanning separate HTTP calls,
+  so a chunked write that fails halfway leaves partial data — upsert
+  idempotency plus the guardrail is the answer, and the run is simply re-run.
+  (Time Travel, §2.3a, is the backstop if a run corrupts rather than merely
+  half-writes: restore to any minute within **7 days** on the free plan.)
+
+**Phase C is done when:** a full local `ingest:backfill` + `ingest:refresh`
++ `ingest:fixtures` run writes to local D1 with identical row counts to
+today's Postgres run, `@supabase/supabase-js` is gone from
+`ingestion/package.json`, and the guardrail's zero-rows and
+completeness-drop paths both still fail the process with a non-zero exit.
+
+### Phase D — app data layer (1 day)
+
+Replace `SupabaseService` with a `DataService` that does typed `fetch()`
+against the five Phase B endpoints. Files touched:
+`core/supabase.service.ts` (deleted, replaced), the four page components
+(thirteen call sites → five), `shared/testing/supabase-stub.ts` (becomes a
+`fetch`/`HttpClient` stub), the four page spec files, and
+`app/src/environments/environment*.ts` (one `apiBaseUrl`, no key).
+
+Non-negotiables carried across unchanged, because every one of them is
+already tested: each page keeps its `'loading' | 'loaded' | 'error'` state
+machine and must still degrade to a visible, honest state rather than throw
+or blank (D16); `MatchDetail` keeps `not_found` as a distinct state, now
+driven by a 404; the head-to-head strip and the timeline's sentiment layer
+stay non-blocking and independently failable; `FieldValue` and every
+provenance rendering path are untouched because the row shapes are
+identical.
+
+Two by-products worth naming: **`@supabase/supabase-js` leaves the app's
+dependency list**, which is the revisit D35 deferred to deployment time; and
+**no key or credential of any kind remains in the Angular bundle** — the
+production environment file holds a URL, so D18 stops being a property to
+re-check at every change.
+
+**Phase D is done when:** `npm test` is green with no Supabase import
+anywhere under `app/`, the production build is under D35's 600 kB warning
+(measure and record the new figure), and all five surfaces render against
+`wrangler dev` + local D1.
+
+### Phase E — Pages, CI, deploy and the daily cron (1.5 days)
+
+**E.1 Hosting shape.** One Worker with static assets serves the SPA and
+`/api/*` (B.3), deployed by `wrangler-action` from GitHub Actions. Michael
+creates the Cloudflare account and issues a scoped API token; CI holds
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` as repository secrets.
+Custom domain optional and free.
+
+**E.2 `ci.yml` — the lean merge gate.** Triggers on `pull_request` and
+`push` to `main`; one job; `paths-ignore` for `docs/**` and `**/*.md` with a
+skip-path no-op so branch protection still passes. Steps: install → `npm run
+lint` → `npm test` (app + ingestion + Worker, including Phase B's read-only
+guarantee tests and the D20 retention suite) → `npm run build` → **one smoke
+check**: start the Worker locally against a seeded local D1 and assert `/`
+serves the shell, `/history` deep-links (SPA fallback works), and
+`/api/matches` returns a non-empty array. That is the minimum that catches
+what the local loop structurally cannot: that the built artefact plus the
+routing config actually serve. Everything else stays in the local loop per
+AGENTS.md §4 — per-PR CI is the largest recurring cost in this model.
+
+**E.3 `deploy.yml` — auto-deploy on merge.** Triggers on `push` to `main`
+(docs-only paths excluded) and `workflow_dispatch`. Steps: build the app →
+apply any pending D1 migrations to the remote database → deploy the Worker →
+**health check**, four assertions, all plain `curl` + `node -e`:
+
+1. `GET /` ⇒ 200 and the HTML contains the app root element.
+2. `GET /history` ⇒ 200 (SPA fallback intact).
+3. `GET /api/meta` ⇒ 200, valid JSON, `generated_at` parseable, `matches`
+   count > 0.
+4. `GET /api/matches` ⇒ 200 and a non-empty array.
+
+Migrations run **before** the Worker deploy and are append-only and
+forward-only, so a rollback of code never needs a rollback of schema — the
+practical rule that follows is that a migration must never break the
+previous Worker version's queries (additive columns only, or a two-step
+deploy).
+
+**E.4 Rollback.** App or API regression: revert the commit on `main` and let
+auto-deploy run (trunk-based, forward-fix first); if the deploy itself is
+broken, redeploy the previous build — Wrangler keeps prior Worker versions
+and can roll back to one. Data regression: re-run the ingestion workflow
+(every write is an idempotent upsert), and if the data itself is corrupt,
+**D1 Time Travel** restores the database to any minute within the last
+**7 days** on the free plan (30 on paid) via `wrangler d1 time-travel
+restore --timestamp=…`. Two caveats to state plainly rather than discover:
+the restore is destructive and overwrites in place, and **7 days is the
+entire backup horizon** — a corruption noticed on the eighth day is
+unrecoverable except by re-running ingestion from source, which is why D17's
+snapshots and the ability to rebuild from scratch remain load-bearing.
+
+**E.5 `ingest.yml` — the daily cron.** Schedule and budget are unchanged
+from §5, which the owner's decision does not touch: one daily run at
+**20:00 UTC** (`ingest:fixtures` + a windowed `ingest:refresh`), inside
+D24's ≤10 Wikipedia fetches/day steady state; `ingest:backfill` and #85's
+~650-fetch detail crawl are `workflow_dispatch`-only; `ingest:sentiment` is
+**not scheduled** until #88 restores its D25 guardrail. `concurrency: {group:
+ingest, cancel-in-progress: false}` so a delayed run can never overlap the
+next and double the request rate. Secrets: `CLOUDFLARE_API_TOKEN` (D1 write
+scope) and `CLOUDFLARE_ACCOUNT_ID`; **no `API_SPORTS_KEY` ever** (D39);
+`REDDIT_*`/`GUARDIAN_API_KEY` only after #88 and §4A.5's gates.
+
+**D25 visibility, adapted to a database-backed serving path.** The gating
+trick that made this cheap under static serving does **not** transfer: with a
+live database, a failed run has already written whatever it wrote before it
+failed, and the site serves it immediately. So visibility here rests on four
+things, and the last one is new:
+
+1. Non-zero exit from the guardrail ⇒ red workflow run.
+2. A `failed` row in `ingestion_runs`, surfaced by `GET /api/meta`.
+3. Failure email — with the caveat found in §2.5 and worth repeating: GitHub
+   has no dedicated cron-failure feature, and notifications for scheduled
+   runs go to **whoever created or last edited the cron line**, so the
+   `schedule:` block must be committed by the owner's own account or the mail
+   lands nowhere useful. Enable Settings → Notifications → System → Actions,
+   "only notify for failed workflow runs".
+4. An `if: failure()` step opening or commenting on a single tracking issue.
+5. **Because a bad run's rows are already live**, the app must never present
+   a thin dataset as complete: `/api/meta`'s last-run status is rendered as a
+   visible "data as of / last update failed" line (the honest-degradation
+   discipline D16 and D8 already establish). Deciding exactly where that line
+   renders is a UI question for the implementation ticket, not a licence to
+   hide it.
+
+**When Wikipedia restructures**, the mechanism is unchanged and still works:
+completeness drops >20 points against the previous run ⇒ non-zero exit ⇒ red
+run, issue, `failed` in `/api/meta`, and the raw wikitext of the breaking run
+is in `source_snapshots` for a diff against the last good snapshot without
+re-fetching anything.
+
+### 4A.5 — #71 / D20 retention, under Workers + D1
+
+The answer is the same in substance as §7's and needs three edits for this
+architecture. Ingestion still runs on an ephemeral GitHub-hosted runner, so
+the core claim is unchanged and stronger than a laptop: Guardian article and
+headline text and Reddit comment bodies are fetched, scored and discarded
+inside one job, never written to disk, never cached, never passed to a
+subprocess, and the host is destroyed with the run. What changes:
+
+1. **"Never in D1" is now an explicit invariant, not a side effect.** There
+   is no column for a comment body, headline or standfirst in the ported
+   schema, and the retention suite's structural whitelist already asserts
+   the exact D20-permitted column set for `sentiment_scores`. Phase A must
+   not add a "raw" or "debug" column to any table, and Phase C's
+   `d1-client.ts` must never gain a generic "log the payload" helper — the
+   static scan in the retention suite is what catches both.
+2. **Public logs remain the sharp edge.** This is a public repository, so
+   workflow logs are world-readable, and the no-source-text-in-logs rule is
+   a disclosure control rather than tidiness. The retention suite
+   (`ingestion/src/lib/sentiment-retention.spec.ts`, four independent
+   checks) runs as a **blocking gate** both in `ci.yml` on every PR and as
+   the **first step of `ingest.yml`**, so a violating `main` cannot fetch
+   anything at all. `ingest.yml` uploads **no artefacts of any kind**.
+3. **One new surface to check: the Worker.** Workers Logs retain **200,000
+   events/day for 3 days on the free plan** (§2.3a) — short, but not zero, so
+   they count as a retention surface and #71's answer has to name them. The
+   Worker must never log request or response bodies for `/api/*`. The
+   exposure is structurally small: the Worker never touches sentiment source
+   text at all, only the derived `sentiment_scores` columns B.2's allow-list
+   permits. Add the Worker's source directory to the retention suite's glob
+   so a future edit there is scanned like every other file, and note that
+   Workers Logs are visible to whoever can read the Cloudflare account — not
+   the world, unlike the workflow logs in (2).
+
+Sequencing is unchanged: these gates land with Phase E, and the sentiment
+cron waits for #88. #71 is answerable now, in this shape, and this section is
+the proposed answer.
+
+### 4A.6 — What still needs verifying before Phase A starts
+
+The owner's choice made a pile of D1 figures load-bearing that were merely
+interesting when D1 was option C, so they were re-verified: **§2.3a now
+carries them all**, including the two that could have invalidated design
+choices (the 500 MB per-database ceiling against `source_snapshots`' growth,
+and Time Travel's 7-day free retention as the only backup story). §2.3's
+earlier "the pages disagree" flag is resolved — the pages are silent in
+different places, not contradictory.
+
+What genuinely remains open, all of it small, none of it able to change the
+architecture — resolve each from the live docs as the first act of the phase
+that needs it, and record the answer on the implementation ticket:
+
+| Open item | Needed by | If it comes back badly |
+|---|---|---|
+| Does `wrangler d1 migrations apply` support `--remote`? | Phase A / E.3 | Fall back to `wrangler d1 execute --remote --file=<migration>.sql` and track applied files ourselves — annoying, not blocking |
+| Exact current `run_worker_first` syntax (boolean vs. array of path globs) | Phase B.3 | Split the SPA and the API into two Workers on one domain; costs a route config, not a redesign |
+| Maximum statements per `d1.batch()` (undocumented) | Phase C.2 | Chunk conservatively; the 100-bound-parameter and 100 KB statement ceilings already force chunking |
+| Maximum tables per D1 database (not stated anywhere) | Phase A | We need nine; implausible as a constraint |
+| Is `wrangler tail` plan-gated? | Phase E debugging | Workers Logs (§2.3a) already cover the need |
+| Local D1 SQLite file path — search-corroborated, not quoted from a vendor page | Phase A `db:reset` | Read it off `wrangler dev`'s own output instead of hard-coding it |
+
+Two items from the pre-decision research are now **moot** and should not be
+re-investigated: GitHub Pages' undocumented `404.html` SPA-routing
+convention, and Netlify's credit model — neither host was chosen. Whether
+Workers **cron** invocations draw on the free request allowance stays
+unverified but is inconsequential here: one scheduled run a day cannot
+threaten a 100,000/day allowance, and in this architecture the cron lives in
+GitHub Actions anyway, not in a Worker.
+
+## 5. Ingestion cron design for the REJECTED static option (superseded by §4A Phase E — retained as the record of what was compared)
 
 **Where:** GitHub Actions scheduled workflow, `ingest.yml`, on
 `ubuntu-latest`. Free for public repositories on standard runners (§2.5).
@@ -448,7 +1013,7 @@ activity, and gives us a free data history to roll back to. If that turns
 out not to reset the 60-day clock, the fallback is that the owner re-enables
 the workflow — flagged in §8 as something only he can do.
 
-## 6. Pipeline wiring
+## 6. Pipeline wiring for the REJECTED static option (superseded by §4A Phase E)
 
 Three workflows, deliberately small. The governing principle: the full
 verification suite lives in the local loop where it is free, and CI carries
@@ -557,7 +1122,7 @@ already has (`source_article_url` per match, the list-article URL in
   re-running backfill, and `source_snapshots` means a re-parse needs no new
   fetches.
 
-## 7. #71 / D20 — the retention answer for this architecture
+## 7. #71 / D20 retention for the REJECTED static option (superseded by §4A.5, which carries the answer of record)
 
 #71 exists because D20's guarantee is phrased as "source text exists only
 inside the ingestion process's memory", and that sentence quietly assumed
@@ -633,66 +1198,75 @@ deploy.
 
 | # | Action | Blocking? |
 |---|---|---|
-| 1 | **Accept or reject the recommendation** and the proposed decision rows in §9, especially D38 (publishing a Wikipedia-only bulk dataset) and D39 (dropping API-Sports fixtures). | Blocks everything |
-| 2 | **Create the Cloudflare account** (or say "GitHub Pages instead"), create the Pages project, and issue a scoped API token + account ID as repository secrets. | Blocks deploy |
-| 3 | **Create the free Supabase project** for ingestion — in whichever organization he judges appropriate, given §2.1's grey area on multiple free orgs — and add its URL and service-role key as repository secrets. This costs nothing; the request is not for paid Supabase. | Blocks cron |
-| 4 | **Decide on a custom domain** (free on both hosts) or accept the platform subdomain. If a domain: buy it, point DNS. | Not blocking |
+| 1 | ~~Accept or reject the recommendation~~ — **done, 2026-08-02 (§0)**: architecture, no-Supabase, Cloudflare Pages and both licence calls all decided. What remains is accepting the redrafted rows in §9 (D37–D44) when the implementation ticket lands them in `prd.md`. | Blocks the implementation ticket |
+| 2 | **Create the Cloudflare account**, create the Worker/Pages project and the D1 database, and issue a **scoped API token** (Workers + D1 edit for this project only) plus the account ID as repository secrets. Confirmed as his to do (§0 decision 3). | Blocks Phases A, C and E |
+| 3 | ~~Create a free Supabase project~~ — **cancelled by §0 decision 2.** No Supabase anywhere. D1 is the only datastore. | — |
+| 4 | **Decide on a custom domain** (free on Cloudflare) or accept the `workers.dev` subdomain. If a domain: buy it, point DNS. | Not blocking |
 | 5 | **Commit the `schedule:` block himself, or accept that cron-failure email goes to the committing account** — GitHub sends scheduled-run notifications to whoever created or last edited the cron line. Then enable Settings → Notifications → System → Actions, "only notify for failed workflow runs". | Blocks D25 visibility |
 | 6 | **Re-enable the ingestion workflow** if the repo goes 60 days without activity and GitHub disables it. Nobody else can. | Recurring |
-| 7 | **Re-confirm the AGENTS.md 1.4 posture** at deploy time: the ambiguous-terms "proceed at the owner's risk" stance rests on the project being non-commercial (#64), and a public deployment is the moment to say so out loud. GitHub Pages' ToS also forbids commercial use, if that host is chosen. | Blocks first deploy |
-| 8 | Confirm that **API-Sports and Reddit/Guardian keys stay unissued** for now, or accept §7's sequencing if he wants them sooner. | Not blocking |
+| 7 | **Re-confirm the AGENTS.md 1.4 posture** at deploy time: the ambiguous-terms "proceed at the owner's risk" stance rests on the project being non-commercial (#64), and a public deployment is the moment to say so out loud. | Blocks first deploy |
+| 8 | ~~Confirm API-Sports keys stay unissued~~ — **settled by §0 decision 4**: API-Sports is dropped permanently, so no key is ever requested and #67's API-Sports errand is closed. Still his to confirm: that **Reddit/Guardian keys stay unissued** until #88 and §4A.5's gates are in place. | Not blocking |
 
 ## 9. Proposed decision-log rows (drafts — for the owner to accept)
 
-**Not** written into `docs/prd.md`'s table by this ticket; that table is the
-owner's to change. Numbering starts at D37 to leave D36 for work in flight;
-renumber on acceptance.
+**Still drafts, and still not written into `docs/prd.md`'s table by this
+ticket** — even though §0's decisions are made. The implementation ticket
+lands the real rows, deliberately: in-flight branches are editing `prd.md`,
+and two agents appending to the same table is how a merge conflict eats a
+decision. Rows below are redrafted to match §0; numbering starts at D37 to
+leave D36 for work in flight, and renumbering on acceptance is expected.
 
 | ID | Draft decision | Draft rationale |
 |---|---|---|
-| **D37** | **Serving shape: the public site is fully static.** The Angular SPA is deployed as static files to a CDN and reads its data from versioned static JSON (`/data/meta.json`, `/data/matches.json`, `/data/fixtures.json`, `/data/match/<match_id>.json`) produced by an ingestion-time exporter. There is **no runtime backend, no database and no API in the public request path**; `@supabase/supabase-js` is removed from the app's dependencies. D21's Supabase stack is retained **on the ingestion side only** (a private, free project no public request touches). D19's "no user request triggers an upstream fetch" and D18's "no keys client-side" become structural facts rather than invariants to police. Supersedes D22. | Rule 1.3: the site is public and read-only and its data changes only when ingestion runs, so a request-time database buys nothing and costs an uptime dependency, a credential surface and a client library. Every alternative's worst day is an outage; this one's worst day is a stale page. Also discharges D35's deferred bundle question by deletion. |
-| **D38** | **The exported dataset is a published, Wikipedia-only artefact.** D15's "no bulk download in v1" is amended: the static JSON *is* a bulk download and is accepted as one, on three conditions — (a) the exporter uses an explicit table+column **allow-list**, never `SELECT *`, and never exports `source_snapshots` or `ingestion_runs`; (b) every exported row is Wikipedia-derived, published under CC BY-SA with D26's attribution and modification note carried in `meta.json` and per-row `source_article_url`; (c) no row from any other source is present. | Static serving requires publishing the data; the licence-mixing problem D15 was actually protecting against is solved by exporting one licence's data only, which is a stronger guarantee than "we have no export feature". |
-| **D39** | **API-Sports fixtures are dropped from v1; Wikipedia is the fixtures source.** D9's ladder inverts permanently under D37: `fixtures_upstream` keeps its `source` column, only `source = 'wikipedia'` rows are exported, and no API-Sports key is requested. D14's fixtures precedence and D28's API-facts carve-out become dormant (retained in the log; unused in v1). Revisit only if a fixtures requirement appears that Wikipedia demonstrably cannot serve. | D1 already narrowed API-Sports to fixtures only; the Wikipedia fixtures path works today (#79) with no key, no quota and no licence question. Keeping a second licensed source alive to serve one card on Home is what 1.3 forbids. |
-| **D40** | **D20 restated for CI-hosted ingestion.** Source text (Guardian article/headline/standfirst, Reddit comment bodies) is fetched, scored and discarded inside a single ephemeral CI job: never written to disk, never cached, never passed to a subprocess, never printed, and the runner is destroyed with the run. The "24h" figure is retired as a laptop-era artefact. Because this repository is public, **workflow logs are public**, so the no-source-text-in-logs rule is a disclosure control: `sentiment-retention.spec.ts` is a **blocking gate** both on every PR and as the first step of the ingestion workflow, the ingestion workflow uploads **no artefacts of any kind**, and the exporter's allow-list is deny-by-default. Closes #71. | #71 asked what replaces "it never leaves the process's memory" when the process runs in CI. Answer: a shorter-lived host plus three automated gates — a stronger guarantee than the laptop it replaces, provided the log surface is treated as published, which it now is. |
+| **D37** | **Deployment architecture (owner decision, overriding the plan's recommendation): Cloudflare Workers + D1 + Pages, one vendor, one account.** One Worker serves both the Angular SPA's static assets and a public read-only `/api/*` (five page-shaped endpoints); **D1 is the only datastore in the project, for serving and for ingestion alike**; ingestion runs from GitHub Actions and writes to D1 out-of-band via the D1 HTTP API (incremental) and `wrangler d1 execute --remote --file` (bulk). **Supabase is removed entirely** — from the app, from ingestion, from local development — superseding D21's Supabase clause while leaving D21's Angular-SPA and plain-Node-ingestion clauses intact. `@supabase/supabase-js` is deleted from both `app/` and `ingestion/`, discharging D35's deferred bundle question. Supersedes D22. **Recorded consequence: D1 has no roles, grants or row-level security**, so §3.3's public-read posture becomes Worker code, and D18's "by architecture, not discipline" standard is met instead by executable checks (GET-only, table allow-list, parameterised SQL, no outbound `fetch`, internal tables unreachable) — see §4A Phase B. | Owner decision, 2026-08-02, on #94. The plan recommended a static-first shape (§4); Michael overrode it for three reasons the plan under-weighted: one vendor and one bill is operationally simpler than two even when it is more code (rule 1.3 applied to operations); no reliance on a documented-but-unclear multiple-free-organization allowance; and a real query API is the shape that survives #96's multi-nation expansion, which names #94 as its prerequisite precisely because it multiplies the data tenfold. |
+| **D38** | **Publishing the Wikipedia-derived dataset is accepted in principle; the export's shape is deferred.** D15's "no bulk download in v1" is amended: a public, Wikipedia-only dataset export **may** be published, on three standing conditions — (a) an explicit table+column **allow-list**, never `SELECT *`, never `source_snapshots` or `ingestion_runs`; (b) every row Wikipedia-derived and published under CC BY-SA with D26's attribution and "parsed and normalised from wikitext" modification note travelling with the data; (c) no row from any other source present. **No export is built by the deployment work itself** — under D37 the site is served by an API, not by published files, so this row grants permission rather than scheduling a feature. The concrete artefact (endpoint or file, and its licence header) gets its own ticket and its own row if and when it is wanted. | The owner accepted the licence reasoning: the problem D15 was actually protecting against is licence *mixing*, and exporting exactly one licence's rows is a stronger guarantee than having no export feature. Deferring the shape avoids building a bulk download nothing currently needs (1.3), while settling the question that was blocking the architecture. |
+| **D39** | **API-Sports is dropped permanently. Wikipedia is the fixtures source, not the fallback.** D9's 🟡 provisional trigger is **closed by owner decision** rather than by its live-fetch pass condition, and D9's ladder inverts for good. No API-Sports key is requested or held: **the #67 client action's API-Sports errand is dead** (its Reddit-OAuth errand survives, gated behind #88). D14's fixtures precedence clause and D28's API-facts carve-out become **dormant** — retained in the log, unused in v1 — and D15's licence-separation requirement for fixtures becomes **moot**, since only one source will ever populate `fixtures_upstream`. The table keeps its `source` and `status` columns: `source` because a dormant decision may be revived, and `status` because **#84** (splitting the Home fixture chip into scheduled/postponed/TBD/cancelled) reads it and is unaffected — those values come from Wikipedia season articles, not from API-Sports. Revisit only if a fixtures requirement appears that Wikipedia demonstrably cannot serve. | D1 already narrowed API-Sports to fixtures alone; #79 shipped a working Wikipedia fixtures path needing no key, no quota and no third-party licence. Keeping a second licensed source alive to fill one card on Home is what 1.3 forbids, and closing the trigger by decision beats leaving a 🟡 row waiting on a key nobody will now request. |
+| **D40** | **D20 restated for CI-hosted ingestion.** Source text (Guardian article/headline/standfirst, Reddit comment bodies) is fetched, scored and discarded inside a single ephemeral CI job: never written to disk, never cached, never passed to a subprocess, never printed, and the runner is destroyed with the run. The "24h" figure is retired as a laptop-era artefact. Because this repository is public, **workflow logs are public**, so the no-source-text-in-logs rule is a disclosure control: `sentiment-retention.spec.ts` is a **blocking gate** both on every PR and as the first step of the ingestion workflow, the ingestion workflow uploads **no artefacts of any kind**, and the Worker's source is added to that suite's scan glob. **Source text is never written to D1**: no column for a body, headline or standfirst exists in the ported schema, none may be added, and `sentiment_scores` keeps exactly the D20-permitted column set the retention suite already pins. Workers Logs (200k events/day, 3-day retention on free) are named as a retention surface and must never carry `/api/*` request or response bodies. Closes #71. | #71 asked what replaces "it never leaves the process's memory" when the process runs in CI. Answer: a shorter-lived host than the laptop it replaces, plus automated gates — provided both log surfaces are treated as retention surfaces, the public one (workflow logs) as a disclosure control and the private one (Workers Logs) as a shorter-lived one. |
 | **D41** | **Ingestion runs as a GitHub Actions scheduled workflow**, one daily run at 20:00 UTC (`ingest:fixtures` + a windowed `ingest:refresh`) within D24's ≤10 Wikipedia fetches/day steady state; full backfill and the ~650-fetch detail crawl are `workflow_dispatch`-only; `ingest:sentiment` is **not** scheduled until #88 restores its D25 guardrail. Politeness is unchanged (serial, ≥1.5 s, back-off, honest User-Agent) and a single `concurrency` group prevents overlapping runs. Accepted caveats, recorded not waved at: scheduled runs may be delayed or dropped by GitHub, and are auto-disabled after 60 days of repository inactivity. | A cron on a runner that is free for public repositories, with the politeness code unchanged, is the cheapest home that keeps D24's arithmetic true. The caveats are tolerable because a missed run means yesterday's data, not an outage. |
-| **D42** | **D25 visibility is enforced by gating, not by watching.** Export and deploy are conditional on ingestion exiting 0, so a failed guardrail publishes nothing and the last good data stays live; failure additionally surfaces as a red workflow run, a failure email to the owner, and an auto-opened tracking issue. `/data/meta.json` carries `generated_at`, row counts and the last run's status as the publicly checkable health surface. | "Fail loudly" and "never serve silently thin data" become one mechanism instead of two. A red run nobody looks at is not visibility; a gate is. |
-| **D43** | **CI carries a lean merge gate only:** one job — lint, unit tests (including the D40 retention suite), production build, and one smoke check that the built artefact serves `/` and a deep link — with docs-only paths skipped. The full verification suite stays in the local loop per AGENTS.md §4, and auto-deploy on merge to `main` plus a four-assertion post-deploy health check complete the pipeline. Rollback: revert on `main` for app changes, revert the data branch and redeploy for data. | Per-PR CI is the largest recurring cost in an agent-driven repo, and every job added multiplies by the PR count. The gate's job is to catch what the local loop structurally cannot: that the built artefact actually serves. |
-| **D44** | **Hosting: Cloudflare Pages (static assets), deployed by direct upload from GitHub Actions.** Documented SPA fallback, no metered bandwidth ceiling for static assets on any plan, free custom domain and TLS; deploying prebuilt output from CI bypasses the platform's own build quotas. GitHub Pages is the accepted fallback if a Cloudflare account is unwelcome (cost: an undocumented `404.html` SPA-routing convention and a 100 GB/month soft cap). Netlify is rejected: its free plan is a hard 300-credit monthly cap with no rollover since 2025-09-04, repriced 2026-04-14. | Verified 2026-08-02. The only option of the three with both documented SPA routing and no bandwidth cliff. |
+| **D42** | **D25 visibility, with a live database in the serving path.** A failed run surfaces four ways: a non-zero exit ⇒ red workflow run; a `failed` row in `ingestion_runs`; a failure email to the owner (with the caveat that GitHub sends scheduled-run notifications to whoever created or last edited the `schedule:` line, so the owner must commit it); and an auto-opened tracking issue. `GET /api/meta` exposes the last run's status, `generated_at` and row counts — three allow-listed columns, never `notes`. **Because a failed run's rows are already live** (unlike the rejected static shape, where gating the deploy hid them), the app must render the last-run status as a visible "data as of / last update failed" line rather than presenting a thin dataset as complete, per D16/D8's honest-degradation discipline. | The gating trick that made this free under static serving does not transfer to a database-backed path, and pretending otherwise would leave D25 weaker after deployment than before. Naming the UI surface is what keeps "fail visibly" true when the failure is already being served. |
+| **D43** | **CI carries a lean merge gate only:** one job — lint, unit tests (app + ingestion + Worker, including Phase B's read-only guarantee tests and the D40 retention suite), production build, and one smoke check that the Worker serves `/`, a deep link, and `/api/matches` against a seeded local D1 — with docs-only paths skipped. The full verification suite stays in the local loop per AGENTS.md §4. Auto-deploy on merge to `main` applies pending D1 migrations, deploys the Worker, then runs a four-assertion health check. **Migrations are forward-only and must never break the previous Worker version's queries** (additive columns, or a two-step deploy), so a code rollback never needs a schema rollback. Rollback: revert on `main` and let auto-deploy run, or redeploy the previous Worker version; data corruption falls back to D1 Time Travel (7 days on free). | Per-PR CI is the largest recurring cost in an agent-driven repo, and every job added multiplies by the PR count. The gate's job is to catch what the local loop structurally cannot: that the deployed artefact actually serves both the SPA and the API. The migration rule is what makes a one-command rollback honest. |
+| **D44** | **Hosting: one Cloudflare Worker serves both the SPA (static assets) and `/api/*`**, deployed from GitHub Actions via `wrangler-action`. SPA deep links via `assets.not_found_handling = "single-page-application"`; `/api/*` reaches the Worker via `assets.run_worker_first`. Static asset requests are free and uncharged on every Cloudflare plan. One origin means **no CORS configuration at all**, and one deployment means the app and the API can never drift apart in version. GitHub Pages and Netlify are rejected and their trade-offs are moot (§2.6). | Verified 2026-08-02. Two deployments serving one product is an integration surface with no benefit here; collapsing them removes CORS, a second domain, and the possibility of a half-deployed release. |
 
-## 10. Open questions only Michael can answer
+## 10. Open questions
 
-1. **Is a free, private Supabase project acceptable**, or does "no more
-   Supabase" mean none at all — including a free one nothing public touches?
-   The answer picks between the recommendation and the Aiven-plus-driver-
-   rewrite fallback (+2 days, one more dependency).
-2. **Given §2.1's grey area**, is he comfortable putting that project in a
-   second free organization, or would he rather it sit in an existing org
-   (using one of its two free slots), or on a paid org he already runs
-   (~$10/mo compute — the only line item in this whole plan that isn't $0)?
-3. **Cloudflare account: yes or no?** If no, GitHub Pages, and we accept the
-   undocumented SPA trick.
-4. **Custom domain: yes, and which?** Or platform subdomain for now.
-5. **D39 — is dropping API-Sports fixtures acceptable?** It is the one
-   genuine capability this plan gives up, and #79's remaining lane goes with
-   it.
-6. **D38 — is publishing the Wikipedia-derived dataset as public JSON
-   acceptable?** It is a bulk download, which D15 declined for v1; the
-   licence case is clean, but it is his call.
-7. **Sentiment sequencing:** confirm the sentiment cron waits for #88 and
-   the D40 gates, i.e. that #67's Reddit registration is not urgent.
-8. **Non-commercial confirmation** at deploy time (AGENTS.md 1.4 / #64), and
-   whether GitHub Pages' no-commercial-use ToS matters if that host is
-   chosen.
+Questions 1, 2, 3, 5 and 6 of the original list are **answered by §0** — no
+Supabase anywhere (so the free-organization grey area is irrelevant),
+Cloudflare yes, API-Sports dropped, dataset publishing accepted in principle.
+What is still genuinely open:
+
+1. **Custom domain: yes, and which?** Or the platform subdomain for now.
+   His call, not blocking.
+2. **Sentiment sequencing:** confirm the sentiment cron waits for #88 and
+   §4A.5's gates — i.e. that #67's *Reddit* registration is not urgent (its
+   API-Sports half is closed by D39).
+3. **Non-commercial confirmation** at deploy time (AGENTS.md 1.4 / #64). The
+   ambiguous-terms posture that permits the Wikipedia fetching rests on it.
+4. **Where the "data as of / last update failed" line renders** (D42). It has
+   to render somewhere, because a failed run's rows are live immediately under
+   this architecture; which surface is a design question, and the honest
+   default is the site footer plus the /method page.
+5. **Does he want the 500 MB `source_snapshots` growth watched, or pruned?**
+   D17 requires keeping snapshots; D1's free per-database ceiling is 500 MB;
+   #85's full 650-page crawl and #96's ten nations both push at it. The plan's
+   position is watch first (report bytes on every run), prune only when a real
+   limit is approached (1.3) — but a pruning policy is a decision row, so it
+   is flagged rather than assumed.
+6. **Accepting a 7-day backup horizon** (D1 Time Travel on free). Corruption
+   noticed on day eight means rebuilding from source. The alternative is a
+   paid plan, which the plan does not recommend for a rebuildable dataset.
 
 ## 11. What this plan deliberately does not include
 
 - Any code, workflow file, migration or config change. This ticket is the
-  plan; implementation tickets get cut after the owner's decision.
-- SSR, prerendering or an SEO story (D21 rules SSR out for v1; a static SPA
-  with a client-rendered shell is what D21 already chose).
+  plan; implementation tickets get cut from §4A's five phases.
+- SSR, prerendering or an SEO story (D21 rules SSR out for v1; an SPA with a
+  client-rendered shell is what D21 already chose).
 - Monitoring, alerting or uptime services beyond the four-assertion health
-  check — a static site's failure surface is small enough that a paid
-  monitor would be infrastructure "for later" (1.3).
+  check and `/api/meta` — a paid monitor would be infrastructure "for later"
+  (1.3). Workers Logs come free with the platform and cover debugging.
+- Any multi-nation work (#96). D37 was chosen partly *because* it survives
+  that expansion, but nothing in §4A builds for it: the schema stays
+  SA-relative and #96 keeps its own discovery pass.
 - Staging or preview environments. Trunk-based with a lean gate and a
   one-command rollback is the whole environment topology; a second
   environment would double the deploy surface for a read-only site with no
