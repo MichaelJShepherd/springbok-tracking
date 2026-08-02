@@ -578,7 +578,7 @@ repo as fixtures (`ingestion/src/lib/__fixtures__/`); no test ever calls a
 live API. `app/src/app`: 13 spec files, **124** `it`/`test` cases (page
 specs for all six routes plus unit specs for `era-points`, `fixture-id`,
 `head-to-head`/`head-to-head-strip`, `match-models`, `team-abbrev`).
-`ingestion/src`: 16 spec files (all under `lib/`), **179** `it`/`test`
+`ingestion/src`: 16 spec files (all under `lib/`), **175** `it`/`test`
 cases, covering every parser (golden-file, per-era regression),
 the D25 guardrail, and the D20 retention scanner described in §5.4. Parser
 regressions are era-stratified per D27; sentiment gets unit tests on the
