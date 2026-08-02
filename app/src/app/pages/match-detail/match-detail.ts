@@ -4,9 +4,9 @@ import { SupabaseService } from '../../core/supabase.service';
 import { formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
 import { SourcesDifferBadge } from '../../shared/sources-differ-badge/sources-differ-badge';
-import { ResultMark } from '../../shared/result-mark/result-mark';
 import { ScoreProgression } from '../../shared/score-progression/score-progression';
-import { HeadToHeadRow, buildHeadToHead, ordinal } from '../../shared/head-to-head';
+import { HeadToHeadStrip } from '../../shared/head-to-head-strip/head-to-head-strip';
+import { HeadToHeadRow, buildHeadToHead } from '../../shared/head-to-head';
 import {
   DisagreeableField,
   EVENT_TYPE_LABELS,
@@ -31,7 +31,7 @@ const LIST_ARTICLE_URL =
 
 @Component({
   selector: 'app-match-detail',
-  imports: [RouterLink, FieldValue, SourcesDifferBadge, ResultMark, ScoreProgression],
+  imports: [RouterLink, FieldValue, SourcesDifferBadge, HeadToHeadStrip, ScoreProgression],
   templateUrl: './match-detail.html',
   styleUrl: './match-detail.css',
 })
@@ -88,7 +88,6 @@ export class MatchDetail implements OnInit {
   );
 
   readonly matchYear = computed(() => Number(this.match()?.match_date.slice(0, 4) ?? 0));
-  readonly ordinal = ordinal;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

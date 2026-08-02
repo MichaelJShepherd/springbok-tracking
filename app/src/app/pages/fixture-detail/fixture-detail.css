@@ -1,0 +1,72 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+h2 {
+  font-size: var(--t-xl);
+  margin-top: var(--s-4);
+}
+
+/* `.detail-masthead` / `.detail-eyebrow` / `.detail-venue` base rules
+   (the dark-green/collar treatment, docs/design.md §6.2) live in
+   src/styles.css (Gate 2 dedupe, #95) — shared with match-detail's
+   post-match masthead. This page has no score hero: there is no score yet. */
+
+.fixture-title {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  /* The masthead's `align-items: center` (cross-axis centring, not
+     stretch) leaves a column flex child's width at its unconstrained
+     fit-content size — for a long opponent name at --t-2xl that is wider
+     than a phone viewport, which overflowed invisibly off-screen instead
+     of wrapping (J3: nothing may scroll/overflow sideways). Capping the
+     item to the container's width forces normal word-wrap within it. */
+  max-width: 100%;
+}
+
+/* Below ~480px, drop to --t-xl so a long opponent name ("South Africa v
+   British & Irish Lions") wraps onto comfortably few lines rather than
+   fighting the hero size for room (mirrors match-detail.css's own
+   sub-480px score-hero adjustment). */
+@media (max-width: 479px) {
+  .fixture-title {
+    font-size: var(--t-xl);
+  }
+}
+
+.fixture-kickoff {
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums lining;
+  font-size: var(--t-lg);
+  margin: 0;
+  color: var(--gold-300);
+}
+
+/* Kickoff/venue "not yet confirmed" copy is prose stating a fact the source
+   simply hasn't supplied yet — NOT the D16 `absent_in_source` provenance
+   state (fixtures_upstream carries no provenance columns at all), so it must
+   not use FieldValue's `.field-absent`, whose italic is reserved for that one
+   job (design.md §3.1, §6.2 Gate 2 finding). Same gold-300 colour, no italic. */
+.fixture-fact-absent {
+  color: var(--gold-300);
+  font-style: normal;
+}
+
+.match-day-note {
+  color: var(--gold-300);
+  font-size: var(--t-base);
+  max-width: 40ch;
+  margin: 0;
+}
+
+/* `.chip`/`.chip.tbd` base rules (Home's chip vocabulary, docs/design.md §6.2)
+   live in src/styles.css (Gate 2/3 dedupe, #95) — this was the third
+   duplicate copy, which is this repo's own extraction trigger. */
+
+/* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2
+   dedupe); `.h2h`/`.h2h-*` rules live in
+   shared/head-to-head-strip/head-to-head-strip.css. */

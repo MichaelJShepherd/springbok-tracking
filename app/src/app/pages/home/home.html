@@ -29,7 +29,9 @@
               Match under way — no live coverage here; result appears after full time.
             </p>
           } @else if (nextFixture(); as fixture) {
-            <div class="fixture-title">South Africa v {{ opponentName(fixture) }}</div>
+            <a class="plain plain--card-title" [routerLink]="['/fixture', fixtureRouteId(fixture)]" data-testid="next-fixture-link">
+              <div class="fixture-title">South Africa v {{ opponentName(fixture) }}</div>
+            </a>
             <div class="meta-row">
               @if (fixture.competition) {
                 <span>{{ fixture.competition }}</span>
@@ -131,7 +133,7 @@
         <div class="upcoming" data-testid="upcoming-fixtures">
           <span class="eyebrow">UPCOMING FIXTURES</span>
           @for (fixture of upcomingFixtures(); track fixture.id) {
-            <div class="meta-row upcoming-row">
+            <a class="meta-row upcoming-row upcoming-row--link" [routerLink]="['/fixture', fixtureRouteId(fixture)]" data-testid="upcoming-fixture-link">
               <span>South Africa v {{ opponentName(fixture) }}</span>
               <span class="num">{{ fixture.match_date }}</span>
               @if (fixture.competition) {
@@ -140,7 +142,7 @@
               @for (chip of fixtureChipsFor(fixture); track chip.label) {
                 <span class="chip tbd">{{ chip.label }}</span>
               }
-            </div>
+            </a>
           }
         </div>
       }

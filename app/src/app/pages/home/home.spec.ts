@@ -312,6 +312,87 @@ describe('Home', () => {
     expect(methodLink?.textContent?.trim()).toBe('Method');
   });
 
+  describe('fixture-detail links (docs/design.md §6.2, PRD D37, #95)', () => {
+    it('links the next-fixture card to /fixture/:id, reachable in one interaction from Home', async () => {
+      const fixture = {
+        id: 'fx-nz',
+        match_date: '2026-08-22',
+        kickoff_time: '2026-08-22T17:05:00+00:00',
+        venue: 'Ellis Park Stadium, Johannesburg',
+        competition: null,
+        teams: { canonical_name: 'New Zealand' },
+      };
+
+      const fixturesMatcher: QueryMatcher = {
+        table: 'fixtures_upstream',
+        match: () => true,
+        result: { data: [fixture], error: null },
+      };
+
+      const { html } = await renderWith([
+        fixturesMatcher,
+        NO_LIVE_MATCH,
+        latestResultMatcher(null),
+        formGuideMatcher(),
+      ]);
+
+      const link = html.querySelector('[data-testid="next-fixture-link"]') as HTMLAnchorElement;
+      expect(link).toBeTruthy();
+      expect(link.getAttribute('href')).toBe('/fixture/2026-08-22-new-zealand');
+    });
+
+    it('links every upcoming-fixtures row to its own /fixture/:id', async () => {
+      const fixtures = [
+        {
+          id: 'fx-1',
+          match_date: '2026-08-08',
+          kickoff_time: null,
+          venue: null,
+          competition: null,
+          teams: { canonical_name: 'Argentina' },
+        },
+        {
+          id: 'fx-2',
+          match_date: '2026-08-22',
+          kickoff_time: null,
+          venue: null,
+          competition: null,
+          teams: { canonical_name: 'New Zealand' },
+        },
+        {
+          id: 'fx-3',
+          match_date: '2026-08-29',
+          kickoff_time: null,
+          venue: null,
+          competition: null,
+          teams: { canonical_name: 'New Zealand' },
+        },
+      ];
+
+      const fixturesMatcher: QueryMatcher = {
+        table: 'fixtures_upstream',
+        match: () => true,
+        result: { data: fixtures, error: null },
+      };
+
+      const { html } = await renderWith([
+        fixturesMatcher,
+        NO_LIVE_MATCH,
+        latestResultMatcher(null),
+        formGuideMatcher(),
+      ]);
+
+      const links = Array.from(
+        html.querySelectorAll('[data-testid="upcoming-fixture-link"]'),
+      ) as HTMLAnchorElement[];
+      // fixtures[0] is the next fixture (linked separately above); the
+      // remaining two are the "upcoming" rows this test targets.
+      expect(links.length).toBe(2);
+      expect(links[0].getAttribute('href')).toBe('/fixture/2026-08-22-new-zealand');
+      expect(links[1].getAttribute('href')).toBe('/fixture/2026-08-29-new-zealand');
+    });
+  });
+
   describe('form guide (docs/design.md §7.1, D34)', () => {
     it('renders five marks, oldest to newest, with the tally and points caption', async () => {
       const rows = [

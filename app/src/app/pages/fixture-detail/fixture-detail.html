@@ -1,0 +1,102 @@
+@switch (state()) {
+  @case ('loading') {
+    <p class="state-loading" data-testid="fixture-loading">Loading…</p>
+  }
+  @case ('error') {
+    <p class="state-failed" data-testid="fixture-error">
+      &#9888; Fixture temporarily unavailable — is local Supabase running?
+    </p>
+  }
+  @case ('not_found') {
+    <p class="state-failed" data-testid="fixture-not-found">Fixture not found.</p>
+  }
+  @case ('loaded') {
+    @if (fixture(); as f) {
+      <section class="detail" data-testid="fixture-detail">
+        <div class="detail-masthead fixture-masthead" data-testid="fixture-masthead">
+          <p class="detail-eyebrow">
+            @if (f.competition) {
+              <span>{{ f.competition }}</span>
+              &middot;
+            }
+            @if (isMatchUnderWay()) {
+              <span data-testid="match-under-way-eyebrow">MATCH UNDER WAY</span>
+            } @else {
+              <span class="num">{{ f.match_date }}</span>
+            }
+          </p>
+
+          <div class="fixture-title" data-testid="fixture-title">South Africa v {{ opponentName(f) }}</div>
+
+          <!-- The kickoff line is never suppressed on match day (Gate 2 finding 1)
+               — a fan checking hours before kickoff still needs it, and "match
+               under way" is only ever true once kickoff has actually passed. -->
+          <p class="fixture-kickoff" data-testid="fixture-kickoff">
+            @if (f.kickoff_time) {
+              {{ formatKickoffSAST(f.kickoff_time) }}
+            } @else {
+              <span class="fixture-fact-absent">Kickoff not yet confirmed</span>
+            }
+          </p>
+
+          @if (isMatchUnderWay()) {
+            <p class="match-day-note" data-testid="match-under-way">
+              Match under way — no live coverage here; result appears after full time.
+            </p>
+          }
+
+          <p class="detail-venue" data-testid="fixture-venue">
+            @if (f.venue) {
+              {{ f.venue }}
+            } @else {
+              <span class="fixture-fact-absent">Venue not yet confirmed</span>
+            }
+          </p>
+
+          @if (f.status !== 'scheduled') {
+            <span class="chip tbd" data-testid="fixture-status-chip">{{ statusLabel(f.status) }}</span>
+          }
+        </div>
+
+        @if (headToHead(); as h2h) {
+          <app-head-to-head-strip [opponentName]="opponentName(f)" [summary]="h2h" />
+        }
+
+        <h2>Lineups</h2>
+        <div class="plate">
+          <p class="note" data-testid="lineups-not-yet">Lineups not yet announced.</p>
+        </div>
+
+        <h2>Officials</h2>
+        <div class="plate">
+          <p class="note" data-testid="officials-not-yet">Officials not yet announced.</p>
+        </div>
+
+        <h2>Events</h2>
+        <div class="plate">
+          <p class="note" data-testid="events-not-yet">
+            This match has not been played — events will appear after full time.
+          </p>
+        </div>
+
+        <p class="count-caption" data-testid="fixture-provenance">
+          @if (provenanceIsWikipedia()) {
+            Fixture via
+            @if (f.source_article_url) {
+              <a [href]="f.source_article_url" target="_blank" rel="noopener">Wikipedia</a>
+            } @else {
+              Wikipedia
+            }, fetched
+            <span class="num">{{ formatFetchedAtSAST(f.fetched_at) }}</span>; available under
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener"
+              >CC BY-SA 4.0</a
+            >; modified: parsed and normalised from wikitext.
+          } @else if (provenanceIsApiSports()) {
+            Fixtures via API-Sports, fetched
+            <span class="num">{{ formatFetchedAtSAST(f.fetched_at) }}</span>.
+          }
+        </p>
+      </section>
+    }
+  }
+}

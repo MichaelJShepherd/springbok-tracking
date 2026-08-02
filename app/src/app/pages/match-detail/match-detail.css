@@ -9,26 +9,9 @@ h2 {
   margin-top: var(--s-4);
 }
 
-/* — Detail masthead: full-bleed dark green band with collar (docs/design.md §6) — */
-.detail-masthead {
-  background: var(--g-900);
-  box-shadow: var(--collar);
-  color: var(--paper);
-  padding: var(--s-6) var(--gutter);
-  margin: 0 calc(var(--gutter) * -1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: var(--s-2);
-}
-
-.detail-eyebrow {
-  font-variant-caps: all-small-caps;
-  letter-spacing: 0.04em;
-  color: var(--gold-300);
-  margin: 0;
-}
+/* `.detail-masthead` / `.detail-eyebrow` / `.detail-venue` base rules live in
+   src/styles.css (Gate 2 dedupe, #95) — shared with fixture-detail's
+   pre-match masthead, which needs the identical dark-green/collar treatment. */
 
 .score-hero {
   display: flex;
@@ -73,12 +56,6 @@ h2 {
   }
 }
 
-.detail-venue {
-  color: var(--gold-300);
-  font-size: var(--t-sm);
-  margin: 0;
-}
-
 /* The `.detail-masthead .field-absent` WCAG AA override lives in
    src/styles.css, not here: this component's styles are emulated-encapsulated
    (Angular shims them with this component's own `_ngcontent` attribute), but
@@ -107,66 +84,8 @@ h2 {
   background: var(--g-800);
 }
 
-/* — Head-to-head strip (docs/design.md §7.3) — */
-.h2h {
-  background: var(--g-100);
-  border-color: var(--rule-strong);
-}
-
-.h2h-zones {
-  display: flex;
-  flex-direction: column;
-  gap: var(--s-4);
-}
-
-@media (min-width: 720px) {
-  .h2h-zones {
-    flex-direction: row;
-  }
-
-  .h2h-zone {
-    flex: 1 1 0;
-    border-left: var(--hairline);
-    padding-left: var(--s-4);
-  }
-
-  .h2h-zone:first-child {
-    border-left: none;
-    padding-left: 0;
-  }
-}
-
-/* Head-to-head win % and tally are numeric data contexts (D36). */
-.h2h-pct {
-  font-family: var(--font-numeric);
-  font-size: var(--t-xl);
-  font-variant-numeric: tabular-nums lining;
-}
-
-.h2h-pct small {
-  font-family: var(--font-numeric);
-  font-size: var(--t-cap);
-  color: var(--ink-3);
-}
-
-.h2h-counts {
-  font-family: var(--font-numeric);
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums lining;
-}
-
-.h2h-line {
-  margin: 0 0 var(--s-1);
-  font-size: var(--t-sm);
-}
-
-.h2h-form {
-  display: flex;
-  gap: var(--s-1);
-  list-style: none;
-  padding: 0;
-  margin: var(--s-2) 0 0;
-}
+/* `.h2h`/`.h2h-*` rules live in shared/head-to-head-strip/head-to-head-strip.css
+   (Gate 2 dedupe, #95) — shared with fixture-detail via `<app-head-to-head-strip>`. */
 
 /* `.note` and `.meta-row` base rules live in src/styles.css (Gate 2 dedupe). */
 

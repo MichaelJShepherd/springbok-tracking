@@ -1,0 +1,81 @@
+<div class="plate h2h" data-testid="head-to-head">
+  <span class="eyebrow">SOUTH AFRICA V {{ opponentName().toUpperCase() }} &middot; ALL TIME</span>
+  @if (summary().total > 0) {
+    <div class="h2h-zones">
+      <div class="h2h-zone">
+        @if (summary().winPercent !== null) {
+          <div class="h2h-pct">{{ summary().winPercent }}%<small> won</small></div>
+        } @else {
+          <div class="h2h-pct h2h-pct--empty"><small>No recorded results</small></div>
+        }
+        <div class="h2h-counts">
+          P {{ summary().played }} &middot; W {{ summary().wins }} &middot; L {{ summary().losses }} &middot; D
+          {{ summary().draws }}
+          @if (summary().unrecorded) {
+            &middot; {{ summary().unrecorded }} not recorded
+          }
+        </div>
+      </div>
+      <div class="h2h-zone">
+        <p class="h2h-line">
+          @if (summary().biggestWin; as win) {
+            Biggest win
+            <a [routerLink]="['/match', win.matchId]" class="num">{{ win.scoreLabel }} ({{ win.matchDate.slice(0, 4) }})</a
+            >{{ win.tied ? ' (equalled)' : '' }}
+          }
+          @if (summary().biggestWin && summary().biggestDefeat) {
+            &middot;
+          }
+          @if (summary().biggestDefeat; as defeat) {
+            Biggest defeat
+            <a [routerLink]="['/match', defeat.matchId]" class="num"
+              >{{ defeat.scoreLabel }} ({{ defeat.matchDate.slice(0, 4) }})</a
+            >{{ defeat.tied ? ' (equalled)' : '' }}
+          }
+          @if (!summary().biggestWin && !summary().biggestDefeat) {
+            {{ summary().extremesCaption }}
+          }
+        </p>
+      </div>
+      @if (summary().matchFound) {
+        <div class="h2h-zone">
+          @if (summary().isFirstMeeting) {
+            <p class="h2h-line">The first meeting</p>
+          } @else {
+            <p class="h2h-line">The {{ ordinal(summary().meetingNumber) }} meeting</p>
+            @if (summary().before; as before) {
+              <p class="h2h-line" data-testid="h2h-before">
+                Before this match:
+                <span class="num">W {{ before.wins }} &middot; L {{ before.losses }} &middot; D {{ before.draws }}</span>
+              </p>
+            }
+            @if (summary().previousMeetings.length) {
+              <ol class="h2h-form">
+                @for (prev of summary().previousMeetings; track prev.match_id) {
+                  <li>
+                    <a [routerLink]="['/match', prev.match_id]">
+                      <app-result-mark
+                        [result]="prev.result"
+                        [ariaLabel]="
+                          (prev.result || 'Unrecorded') +
+                          ' — South Africa v ' +
+                          opponentName() +
+                          ', ' +
+                          prev.match_date
+                        "
+                        size="sm"
+                      />
+                    </a>
+                  </li>
+                }
+              </ol>
+            }
+          }
+        </div>
+      }
+    </div>
+    <p class="count-caption" data-testid="h2h-count-caption">{{ summary().countCaption }}</p>
+  } @else {
+    <p class="note" data-testid="h2h-absent">No meetings recorded against this opponent yet.</p>
+  }
+</div>
