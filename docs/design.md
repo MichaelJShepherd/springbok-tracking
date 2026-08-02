@@ -338,9 +338,15 @@ columns.
 **Everything else stays Georgia**, including: headings, prose, eyebrows,
 table header labels, chips, controls, captions, the W/L/D letter mark, and
 prose sentences that merely *contain* a number without needing column
-alignment (e.g. "the 105th meeting"). If a future reviewer finds a numeral
-context this list missed, it is a docs gap, not license to invent a fourth
-font stack — extend this list and `--font-numeric`'s call sites together.
+alignment (e.g. "the 105th meeting"). The same reasoning is why the era
+strip's column headings ("Pre-1950", "1996–2010") stay Georgia rather than
+routing to `--font-numeric` like the ledger's Date column does: a heading is
+one label naming its column, not a value being compared row-to-row, so there
+is nothing for it to misalign against — the ledger Date column, by contrast,
+is exactly that comparison, one value per row, stacked. If a future reviewer
+finds a numeral context this list missed, it is a docs gap, not license to
+invent a fourth font stack — extend this list and `--font-numeric`'s call
+sites together.
 
 ### 3.2 Type specimen (what each surface uses)
 

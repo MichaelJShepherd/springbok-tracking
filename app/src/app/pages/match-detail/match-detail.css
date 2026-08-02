@@ -54,6 +54,15 @@ h2 {
   font-variant-numeric: tabular-nums lining;
 }
 
+/* .score-hero .score's numeric font-family inherits into the nested
+   sources-differ badge (Gate 2, #92) — the badge's copy ("sources differ:",
+   source names, "vs") is prose, not a numeral, so it must not inherit
+   --font-numeric. Reset it back to the page's default serif explicitly. */
+.score-hero .score app-sources-differ-badge {
+  font-family: var(--font-text);
+  font-variant-numeric: normal;
+}
+
 /* Below ~480px, even wrapped whole-item flex can clip a long team name
    next to the hero score; stack team/score/team vertically instead
    (J3: nothing overflows sideways). */
