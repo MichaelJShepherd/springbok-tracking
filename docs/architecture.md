@@ -578,7 +578,7 @@ repo as fixtures (`ingestion/src/lib/__fixtures__/`); no test ever calls a
 live API. `app/src/app`: 13 spec files, **124** `it`/`test` cases (page
 specs for all six routes plus unit specs for `era-points`, `fixture-id`,
 `head-to-head`/`head-to-head-strip`, `match-models`, `team-abbrev`).
-`ingestion/src`: 16 spec files (all under `lib/`), **175** `it`/`test`
+`ingestion/src`: 16 spec files (all under `lib/`), **179** `it`/`test`
 cases, covering every parser (golden-file, per-era regression),
 the D25 guardrail, and the D20 retention scanner described in §5.4. Parser
 regressions are era-stratified per D27; sentiment gets unit tests on the
@@ -661,11 +661,12 @@ cron), an estimated 7–8 engineering-days total, none started. Draft
 decision rows **D37–D44** (deployment-plan.md §9) restate and extend the
 PRD's own decision log for this move but are deliberately **not yet
 written into `docs/prd.md`** — the implementation ticket lands them, to
-avoid two in-flight branches editing the same table. (Note: this ticket's
-brief mentioned "#97–#101" as the phase tickets; no such ticket numbers
-exist anywhere in this repository as of this commit — the phases are
-currently identified only as Phases A–E within #94/deployment-plan.md §4A.
-Don't take this document's phase letters as ticket numbers.) The
+avoid two in-flight branches editing the same table. **Numbering caveat:**
+the plan's drafts were written before #95 landed, and the PRD's real D37
+is now taken by the `/fixture/:id` decision — the deployment drafts must
+be renumbered (D38+) when they land. (The phase tickets exist on the
+project board as #97–#101, one per Phase A–E; those numbers appear only
+on the board, not in this repository's files.) The
 consequence called out most clearly for this document specifically:
 §0 states plainly that Postgres RLS goes away under this plan, "and with
 it the property that public read-only access is enforced by the database
