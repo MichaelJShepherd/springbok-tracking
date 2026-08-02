@@ -45,6 +45,26 @@ function h2hMatcher(rows: unknown[]): QueryMatcher {
   };
 }
 
+/**
+ * Reads the real, on-disk src/styles.css text so the WCAG AA masthead test
+ * below can assert against the actual rule rather than a DOM query that
+ * can't tell a global rule from one shimmed out of reach by Angular's
+ * emulated style encapsulation (see that test for the full explanation).
+ * `node:fs`/`node:path` aren't resolvable as static import specifiers under
+ * this project's esbuild/browser-platform test bundle, so the specifier is
+ * built dynamically to keep esbuild from trying to bundle it — the actual
+ * test process is real Node.js (jsdom only swaps `window`/`document`), so
+ * the dynamic `import()` resolves at runtime exactly as it would in any
+ * plain Node script.
+ */
+async function readGlobalStylesText(): Promise<string> {
+  const fsModuleName = ['node', 'fs'].join(':');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fs = (await import(/* @vite-ignore */ fsModuleName)) as any;
+  const cwd = (globalThis as unknown as { process: { cwd(): string } }).process.cwd();
+  return fs.readFileSync(`${cwd}/src/styles.css`, 'utf8') as string;
+}
+
 function officialsMatcher(rows: unknown[]): QueryMatcher {
   return { table: 'match_officials', match: () => true, result: { data: rows, error: null } };
 }
@@ -107,12 +127,38 @@ describe('MatchDetail', () => {
     const competitionCell = html.querySelector('.detail-eyebrow app-field-value');
     expect(competitionCell?.textContent?.trim()).toBe('not recorded');
 
-    // WCAG AA fix: `.field-absent` on the dark masthead must be reachable by
-    // the `.detail-masthead .field-absent` override selector (--gold-300,
-    // 11.91:1) rather than the shared --ink-3 (2.90:1 on this background).
+    // WCAG AA fix: `.field-absent` on the dark masthead must resolve to
+    // --gold-300 (11.91:1), not the shared --ink-3 (2.90:1 on this
+    // background). The override must live in the *global* src/styles.css,
+    // not match-detail.css: Angular's emulated encapsulation shims
+    // match-detail.css's rules with match-detail's own `_ngcontent`
+    // attribute, but `.field-absent` is rendered by FieldValue's own
+    // template carrying FieldValue's own `_ngcontent` id — a masthead-scoped
+    // rule written in match-detail.css would never actually match it, and a
+    // plain `querySelector('.detail-masthead .field-absent')` on the DOM
+    // can't tell the difference (a DOM query, unlike the real CSS cascade,
+    // ignores the `_ngcontent` shim entirely — it would pass even with the
+    // override rule deleted or moved back into match-detail.css).
+    //
+    // Two dead ends, tried and confirmed before landing on the check below:
+    // (1) getComputedStyle in this jsdom rig never resolves CSS custom
+    //     properties — it returns the literal string `var(--gold-300)`,
+    //     never a resolved colour, aliased or not.
+    // (2) document.styleSheets is empty for every Angular unit test in this
+    //     project: TestBed never loads index.html's global <link
+    //     rel="stylesheet">, only a rendered component's own emulated
+    //     per-component <style> block — so global src/styles.css is never
+    //     injected into the test document at all, by any technique.
+    // With neither the cascade nor the CSSOM reachable, the only assertion
+    // left that still goes red if the rule is deleted (or re-scoped to the
+    // wrong file) is against the rule's real, on-disk source text.
     const mastheadAbsent = html.querySelector('.detail-masthead .field-absent');
     expect(mastheadAbsent).toBeTruthy();
     expect(mastheadAbsent?.textContent?.trim()).toBe('not recorded');
+    const globalStylesText = await readGlobalStylesText();
+    expect(globalStylesText).toMatch(
+      /\.detail-masthead\s+\.field-absent\s*\{\s*color:\s*var\(--gold-300\);?\s*\}/,
+    );
     expect(html.querySelector('[data-testid="lineups-absent"]')).toBeTruthy();
     expect(html.querySelector('[data-testid="events-absent"]')).toBeTruthy();
     // Fallback attribution: no source_article_url -> the list article.
@@ -497,6 +543,33 @@ describe('MatchDetail', () => {
         'before 1894',
       );
       expect(html.querySelector('[data-testid="events-list"]')).toBeTruthy();
+    });
+
+    it('suppresses the chart with the no-final-score reason, not "don\'t add up", when the final score is absent', async () => {
+      // Timed events that reconstruct to a non-zero, non-matching total —
+      // if the absent springboks_score were coerced to 0 (the bug Gate 2
+      // caught), this would render the generic "mismatch" copy instead of
+      // honestly saying the final score itself isn't recorded.
+      const match = {
+        ...BASE_MATCH,
+        springboks_score: null,
+        springboks_score_provenance: 'absent_in_source',
+      };
+      const timedEvents = [
+        { sequence_no: 1, event_type: 'try', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 10, minute_provenance: 'present' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher(timedEvents),
+      ]);
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeNull();
+      const degraded = html.querySelector('[data-testid="score-progression-degraded"]');
+      expect(degraded?.textContent).toContain('No recorded final score');
+      expect(degraded?.textContent).not.toContain("don't add up");
     });
   });
 });

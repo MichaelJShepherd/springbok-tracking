@@ -100,6 +100,20 @@ describe('computeProgression (the reconciliation gate, docs/design.md §7.4)', (
     }
   });
 
+  it('fails the gate with a distinct reason when the final score is absent, never coercing it to 0', () => {
+    const events: MatchEventRow[] = [ev({ team_side: 'springboks', event_type: 'penalty', minute: 10 })];
+    // A null final score must never be silently treated as 0 — a real 0
+    // final would then be indistinguishable from a missing one, and a
+    // non-zero reconstruction would be blamed on a "mismatch" that never
+    // actually happened.
+    const result = computeProgression(events, 2015, null, 0);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reason).toBe('no_final_score');
+      expect(progressionFailureCopy(result)).toContain('No recorded final score');
+    }
+  });
+
   it('fails the gate when the reconstruction does not equal the stored final score', () => {
     const events: MatchEventRow[] = [ev({ team_side: 'springboks', event_type: 'penalty', minute: 10 })];
     // Reconstructed SA total is 3 (one penalty), but the stored final score says 6.

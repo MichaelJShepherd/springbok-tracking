@@ -22,8 +22,19 @@ h2 {
   line-height: var(--lh-body);
 }
 
-/* `.note` and the card-plate look are shared globally (src/styles.css's
-   `.note` / `.plate`) — no per-page redeclaration needed here. */
+/* Method's body copy is prose, not the meta/caption text design.md §3.2
+   reserves --ink-3 for — override the shared `.note` (src/styles.css) back
+   to --ink-2 here. Safe to scope in this component stylesheet (unlike the
+   masthead field-absent fix): every `.note` on this page is rendered
+   directly by Method's own template, not by a child component, so Angular's
+   `_ngcontent` shim attaches to the same elements this rule targets. */
+.note {
+  color: var(--ink-2);
+  line-height: var(--lh-body);
+}
+
+/* The card-plate look is shared globally (src/styles.css's `.plate`) — no
+   per-page redeclaration needed for that one. */
 
 .plate {
   display: flex;

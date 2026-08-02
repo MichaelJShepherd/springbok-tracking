@@ -254,6 +254,23 @@ describe('History', () => {
       expect(column?.querySelector('.era-empty')?.textContent).toContain('No tests recorded');
     });
 
+    it('renders "No recorded results" (never a dishonest 0%) for an era with tests but no recorded result', async () => {
+      const rows = [
+        match({ match_id: 'a', match_date: '2000-01-01', result: null }),
+        match({ match_id: 'b', match_date: '2005-01-01', result: null }),
+      ];
+      const { html } = await renderWith(rows);
+
+      const column = Array.from(html.querySelectorAll('[data-testid="era-column"]')).find((el) =>
+        el.textContent?.includes('1996–2010'),
+      );
+      expect(column?.querySelector('.era-empty')?.textContent).toContain('No recorded results');
+      // Both rows are unrecorded, so a naive win% (dividing by max(played,1)
+      // instead of excluding the unrecorded rows from the denominator)
+      // would render "0%" here — that must never appear.
+      expect(column?.textContent).not.toContain('0%');
+    });
+
     it('applies the era filter when a column is clicked', async () => {
       const rows = [
         match({ match_id: 'old', match_date: '1930-01-01', result: 'win' }),

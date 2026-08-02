@@ -289,6 +289,20 @@ h3 {
   font-style: italic;
 }
 
+/* WCAG AA fix (Gate 2): the base `.field-absent` colour (--ink-3, aliased as
+   --state-absent) is only 2.90:1 against the match-detail masthead's dark
+   --g-900 background — fails AA. This override must live here, globally,
+   rather than in match-detail.css: Angular's emulated style encapsulation
+   shims match-detail.css's rules with match-detail's own `_ngcontent`
+   attribute, but the `.field-absent` span is rendered by FieldValue's own
+   template and carries FieldValue's `_ngcontent` id — a masthead-scoped rule
+   written inside match-detail.css would therefore never actually match it.
+   Global stylesheet rules carry no `_ngcontent` shim, so this one reaches
+   across the component boundary correctly. --gold-300 is 11.91:1. */
+.detail-masthead .field-absent {
+  color: var(--gold-300);
+}
+
 /* Index tabs (design.md §6.1). */
 .index-tab {
   font: 650 var(--t-eyebrow) / 1 var(--font-text);

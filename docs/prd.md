@@ -15,7 +15,8 @@ lands there first, then cascades.**
 Rows D1–D30 answer all 29 gap findings (G-numbers from discovery v2) plus
 record further material decisions; D31 (added by #87) records the Home
 attribution footer; D32–D34 (added by #89) record the design-v2 direction
-and the derived-data scope. Status: ✅ decided · 🟡 provisional (named
+and the derived-data scope; D35 (added by #90) records a bundle-budget
+adjustment made during design-v2 implementation. Status: ✅ decided · 🟡 provisional (named
 trigger will confirm or overturn).
 
 G→D coverage map (mechanically checkable): G1→D1, G2→D2, G3→D3, G4→D4,

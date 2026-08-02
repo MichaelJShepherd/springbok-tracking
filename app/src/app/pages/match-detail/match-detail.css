@@ -64,12 +64,14 @@ h2 {
   margin: 0;
 }
 
-/* WCAG AA fix: the shared `.field-absent` colour (--ink-3) is 2.90:1 against
-   this masthead's dark --g-900 background — fails AA. Scoped override to
-   --gold-300 (11.91:1), keeping the italic "not recorded" treatment. */
-.detail-masthead .field-absent {
-  color: var(--gold-300);
-}
+/* The `.detail-masthead .field-absent` WCAG AA override lives in
+   src/styles.css, not here: this component's styles are emulated-encapsulated
+   (Angular shims them with this component's own `_ngcontent` attribute), but
+   the `.field-absent` span is rendered inside FieldValue's own template and
+   carries FieldValue's `_ngcontent` id instead — so a rule written here would
+   never actually match it. Global stylesheet rules carry no `_ngcontent`
+   shim and match across component boundaries, which is exactly why the CSS
+   dedupe elsewhere in this file relies on the same global-stylesheet fact. */
 
 .plain--on-dark {
   color: var(--gold-300);
