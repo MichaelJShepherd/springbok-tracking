@@ -193,22 +193,74 @@ describe('FixtureDetail (docs/design.md §6.2, PRD D37, #95)', () => {
       );
     });
 
-    it('a SAST-midnight-boundary clock (just after SAST midnight, still before kickoff) proves the day comparison is SAST, not UTC', async () => {
-      // 2026-08-21T22:30:00Z is already 2026-08-22 00:30 in Africa/Johannesburg
-      // (UTC+2) — a UTC-day comparison would wrongly say "not match day yet"
-      // and hide the kickoff-passed check entirely; this clock is also before
-      // the 17:05 UTC kickoff instant, so under-way must still be false, but
-      // it must be false because kickoff hasn't passed, not because the
-      // (wrongly UTC) date doesn't match.
+    it('a fixture dated the SAST-previous day is NOT under way even though its UTC date and kickoff-passed check would both say yes (proves the day comparison is SAST, not UTC)', async () => {
+      // fixture match_date = 2026-08-21, kickoff = 2026-08-21T21:00:00Z
+      // (23:00 SAST on the 21st). clock = 2026-08-21T22:30:00Z, which is
+      // already 2026-08-22 00:30 in Africa/Johannesburg (UTC+2).
+      //
+      // Correct SAST logic: today-in-SAST at the clock is 2026-08-22, which
+      // does NOT equal the fixture's match_date (2026-08-21) — not match
+      // day, so under-way must be false, full stop (never even reaches the
+      // kickoff-passed check).
+      //
+      // A UTC-mutated version of the gate (e.g. comparing match_date against
+      // clock.toISOString().slice(0,10) instead of the SAST-converted date)
+      // would compute "today" as 2026-08-21 (the clock's UTC date), which
+      // DOES equal match_date — and the kickoff (21:00Z) has already passed
+      // the clock (22:30Z) — so the mutant reports under-way = true. This is
+      // the case the previous version of this test failed to cover: its
+      // clock/kickoff pair produced `false` under both the correct logic and
+      // a UTC mutant, for different reasons, so the mutant went undetected.
+      // This pair makes the two interpretations diverge in the observable
+      // result, not just in internal reasoning.
+      const yesterdayFixture = {
+        ...BASE_FIXTURE,
+        match_date: '2026-08-21',
+        kickoff_time: '2026-08-21T21:00:00Z',
+      };
+
       const { html, component } = await renderWith(
-        [fixtureMatcher([BASE_FIXTURE]), h2hMatcher([])],
-        '2026-08-22-new-zealand',
+        [fixtureMatcher([yesterdayFixture]), h2hMatcher([])],
+        '2026-08-21-new-zealand',
         () => new Date('2026-08-21T22:30:00Z'),
       );
 
       expect(component.isMatchUnderWay()).toBe(false);
-      expect(html.querySelector('[data-testid="fixture-kickoff"]')?.textContent?.trim()).toBe(
-        '19:05 SAST',
+      expect(html.querySelector('[data-testid="match-under-way"]')).toBeNull();
+      expect(html.querySelector('[data-testid="match-under-way-eyebrow"]')).toBeNull();
+    });
+
+    it('mirror case: a fixture whose SAST match-day has begun but whose UTC calendar date has not IS under way (same divergence, opposite direction)', async () => {
+      // fixture match_date = 2026-08-22, kickoff = 2026-08-21T22:10:00Z
+      // (00:10 SAST on the 22nd — an early-morning SAST kickoff). clock =
+      // 2026-08-21T23:00:00Z, which is 2026-08-22 01:00 in SAST.
+      //
+      // Correct SAST logic: today-in-SAST at the clock is 2026-08-22, which
+      // equals match_date — match day — and the clock (23:00Z) is after the
+      // kickoff instant (22:10Z), so under-way must be true.
+      //
+      // A UTC-mutated gate would compute "today" as the clock's UTC date,
+      // 2026-08-21, which does NOT equal match_date (2026-08-22) — the
+      // mutant short-circuits false, wrongly hiding a match that has, in
+      // South African time, genuinely started.
+      const earlyKickoffFixture = {
+        ...BASE_FIXTURE,
+        match_date: '2026-08-22',
+        kickoff_time: '2026-08-21T22:10:00Z',
+      };
+
+      const { html, component } = await renderWith(
+        [fixtureMatcher([earlyKickoffFixture]), h2hMatcher([])],
+        '2026-08-22-new-zealand',
+        () => new Date('2026-08-21T23:00:00Z'),
+      );
+
+      expect(component.isMatchUnderWay()).toBe(true);
+      expect(html.querySelector('[data-testid="match-under-way"]')?.textContent).toContain(
+        'Match under way',
+      );
+      expect(html.querySelector('[data-testid="match-under-way-eyebrow"]')?.textContent).toBe(
+        'MATCH UNDER WAY',
       );
     });
 

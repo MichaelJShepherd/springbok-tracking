@@ -63,22 +63,9 @@ h2 {
   margin: 0;
 }
 
-/* Reuses Home's chip vocabulary (docs/design.md §6.2) — duplicated per
-   AGENTS.md 1.3 (simplicity first; no shared component exists yet to
-   extract into without inventing one for a third consumer). */
-.chip {
-  display: inline-block;
-  font-size: var(--t-cap);
-  padding: 0 var(--s-2);
-  border-radius: var(--r-sm);
-  border: 1px solid var(--rule-strong);
-  color: var(--ink-2);
-}
-
-.chip.tbd {
-  color: var(--gold-ink);
-  border-color: var(--gold-700);
-}
+/* `.chip`/`.chip.tbd` base rules (Home's chip vocabulary, docs/design.md §6.2)
+   live in src/styles.css (Gate 2/3 dedupe, #95) — this was the third
+   duplicate copy, which is this repo's own extraction trigger. */
 
 /* `.note` and `.count-caption` base rules live in src/styles.css (Gate 2
    dedupe); `.h2h`/`.h2h-*` rules live in

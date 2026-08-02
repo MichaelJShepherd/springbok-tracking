@@ -403,6 +403,23 @@ h3 {
   margin: 0;
 }
 
+/* Fixture-fact chip (postponed/TBD/cancelled status, docs/design.md §6/§6.2).
+   Shared by Home's fixture cards and fixture-detail's status chip (Gate 2/3
+   dedupe, #95) — this was the third duplicate copy of these two rules. */
+.chip {
+  display: inline-block;
+  font-size: var(--t-cap);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
+}
+
+.chip.tbd {
+  color: var(--gold-ink);
+  border-color: var(--gold-700);
+}
+
 /* Colophon — the D26 attribution band (design.md §5.5). Shared by Home,
    History and match-detail's per-page footer. */
 .colophon {

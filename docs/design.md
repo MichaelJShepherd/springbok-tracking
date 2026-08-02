@@ -772,9 +772,9 @@ page always renders the timestamped form, split by `source`:
 
 - `source = 'wikipedia'` (today's real data): the fixture is still a
   Wikipedia-derived, CC BY-SA-obligated fact per D15/D26, so the line reads
-  *"Fixture via Wikipedia (⟶ source article link), fetched \<fetched_at,
-  SAST\>; available under CC BY-SA 4.0; modified: parsed and normalised from
-  wikitext."* — the trailing modified-clause is not decorative: BY-SA 4.0
+  *"Fixture via Wikipedia (linked to the source article), fetched
+  \<fetched_at, SAST\>; available under CC BY-SA 4.0; modified: parsed and
+  normalised from wikitext."* — the trailing modified-clause is not decorative: BY-SA 4.0
   §3(a)(1)(B) requires indicating what was changed, exactly as D26's
   match-detail colophon already does, and a fixture provenance line making
   the same CC BY-SA claim without it would be non-compliant. This still
