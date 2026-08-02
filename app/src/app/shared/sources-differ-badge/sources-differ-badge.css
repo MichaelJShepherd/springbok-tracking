@@ -1,18 +1,24 @@
 .badge.differ {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-1);
-  font-size: var(--fs-100);
-  padding: 1px var(--sp-2);
-  border-radius: var(--radius-sm);
-  background: rgba(212, 175, 55, 0.12);
-  color: var(--c-gold-400);
-  border: 1px solid var(--c-gold-500);
-  margin-left: var(--sp-1);
+  gap: var(--s-1);
+  font-size: var(--t-cap);
+  padding: 1px var(--s-2);
+  border-radius: var(--r-sm);
+  background: var(--card);
+  color: var(--gold-ink);
+  border: 1px solid var(--gold-700);
+  margin-left: var(--s-1);
   flex-wrap: wrap;
 }
 
 .badge.differ a {
   color: inherit;
   text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .badge.differ[open] {
+    transition: background 150ms ease;
+  }
 }
