@@ -28,6 +28,33 @@ function latestResultMatcher(row: unknown): QueryMatcher {
   };
 }
 
+function formGuideMatcher(rows: unknown[] = []): QueryMatcher {
+  return {
+    table: 'matches',
+    match: (calls) => calls.some((c) => c.method === 'lte'),
+    result: { data: rows, error: null },
+  };
+}
+
+const FORM_GUIDE_ROW = (overrides: Record<string, unknown> = {}) => ({
+  match_id: '2026-07-04-england-1',
+  match_date: '2026-07-04',
+  competition: 'Test Series',
+  competition_provenance: 'present',
+  venue: 'Twickenham',
+  venue_provenance: 'present',
+  kickoff_time: null,
+  kickoff_time_provenance: 'not_yet_fetched',
+  springboks_score: 45,
+  springboks_score_provenance: 'present',
+  opponent_score: 21,
+  opponent_score_provenance: 'present',
+  result: 'win',
+  source_article_url: null,
+  teams: { canonical_name: 'England' },
+  ...overrides,
+});
+
 async function renderWith(matchers: QueryMatcher[]): Promise<{
   component: Home;
   fixture: ComponentFixture<Home>;
@@ -70,7 +97,12 @@ describe('Home', () => {
       teams: { canonical_name: 'New Zealand' },
     };
 
-    const { html } = await renderWith([NO_FIXTURES, NO_LIVE_MATCH, latestResultMatcher(lastResult)]);
+    const { html } = await renderWith([
+      NO_FIXTURES,
+      NO_LIVE_MATCH,
+      latestResultMatcher(lastResult),
+      formGuideMatcher(),
+    ]);
 
     const offSeason = html.querySelector('[data-testid="off-season"]');
     expect(offSeason?.textContent).toContain('No test scheduled');
@@ -102,7 +134,12 @@ describe('Home', () => {
       teams: { canonical_name: 'Wales' },
     };
 
-    const { html } = await renderWith([NO_FIXTURES, NO_LIVE_MATCH, latestResultMatcher(lastResult)]);
+    const { html } = await renderWith([
+      NO_FIXTURES,
+      NO_LIVE_MATCH,
+      latestResultMatcher(lastResult),
+      formGuideMatcher(),
+    ]);
 
     const resultCard = html.querySelector('[data-testid="latest-result-card"]');
     // A failed score fetch must render the D16 "temporarily unavailable"
@@ -131,6 +168,7 @@ describe('Home', () => {
       fixturesMatcher,
       NO_LIVE_MATCH,
       latestResultMatcher(null),
+      formGuideMatcher(),
     ]);
 
     const chips = html.querySelectorAll('[data-testid="fixture-chips"] .chip');
@@ -156,7 +194,12 @@ describe('Home', () => {
       result: { data: [fixture], error: null },
     };
 
-    const { html } = await renderWith([fixturesMatcher, NO_LIVE_MATCH, latestResultMatcher(null)]);
+    const { html } = await renderWith([
+      fixturesMatcher,
+      NO_LIVE_MATCH,
+      latestResultMatcher(null),
+      formGuideMatcher(),
+    ]);
 
     const kickoff = html.querySelector('[data-testid="next-fixture-kickoff"]');
     expect(kickoff?.textContent?.trim()).toBe('18:00 SAST');
@@ -190,7 +233,12 @@ describe('Home', () => {
       },
     };
 
-    const { html } = await renderWith([NO_FIXTURES, liveMatchMatcher, latestResultMatcher(null)]);
+    const { html } = await renderWith([
+      NO_FIXTURES,
+      liveMatchMatcher,
+      latestResultMatcher(null),
+      formGuideMatcher(),
+    ]);
 
     expect(html.querySelector('[data-testid="match-under-way"]')?.textContent).toContain(
       'Match under way',
@@ -205,7 +253,12 @@ describe('Home', () => {
       result: { data: null, error: { message: 'network error' } },
     };
 
-    const { component, html } = await renderWith([failing, NO_LIVE_MATCH, latestResultMatcher(null)]);
+    const { component, html } = await renderWith([
+      failing,
+      NO_LIVE_MATCH,
+      latestResultMatcher(null),
+      formGuideMatcher(),
+    ]);
 
     expect(component.state()).toBe('error');
     expect(html.querySelector('[data-testid="home-error"]')?.textContent).toContain(
@@ -236,7 +289,12 @@ describe('Home', () => {
   });
 
   it('renders the site-level attribution footer with a working /method link (#87, PRD D31)', async () => {
-    const { html } = await renderWith([NO_FIXTURES, NO_LIVE_MATCH, latestResultMatcher(null)]);
+    const { html } = await renderWith([
+      NO_FIXTURES,
+      NO_LIVE_MATCH,
+      latestResultMatcher(null),
+      formGuideMatcher(),
+    ]);
 
     const footer = html.querySelector('[data-testid="home-footer"]');
     expect(footer).toBeTruthy();
@@ -252,5 +310,81 @@ describe('Home', () => {
     const methodLink = footer?.querySelector('a[href="/method"]');
     expect(methodLink).toBeTruthy();
     expect(methodLink?.textContent?.trim()).toBe('Method');
+  });
+
+  describe('form guide (docs/design.md §7.1, D34)', () => {
+    it('renders five marks, oldest to newest, with the tally and points caption', async () => {
+      const rows = [
+        FORM_GUIDE_ROW({ match_id: 'm5', match_date: '2026-07-18', result: 'win', teams: { canonical_name: 'Wales' }, springboks_score: 43, opponent_score: 0 }),
+        FORM_GUIDE_ROW({ match_id: 'm4', match_date: '2026-07-11', result: 'win', teams: { canonical_name: 'Scotland' }, springboks_score: 42, opponent_score: 28 }),
+        FORM_GUIDE_ROW({ match_id: 'm3', match_date: '2026-07-04', result: 'win', teams: { canonical_name: 'England' }, springboks_score: 45, opponent_score: 21 }),
+        FORM_GUIDE_ROW({ match_id: 'm2', match_date: '2026-06-20', result: 'loss', teams: { canonical_name: 'New Zealand' }, springboks_score: 11, opponent_score: 22 }),
+        FORM_GUIDE_ROW({ match_id: 'm1', match_date: '2026-06-13', result: 'draw', teams: { canonical_name: 'Australia' }, springboks_score: 20, opponent_score: 20 }),
+      ];
+      // DB returns newest-first; the component reverses to oldest-first for display.
+      // The form guide sits inside the Latest Result plate (docs/design.md §6), so a
+      // latest result must also be present for it to render at all.
+      const { html } = await renderWith([
+        NO_FIXTURES,
+        NO_LIVE_MATCH,
+        latestResultMatcher(rows[0]),
+        formGuideMatcher([...rows].reverse()),
+      ]);
+
+      const strip = html.querySelector('[data-testid="form-guide"]');
+      expect(strip).toBeTruthy();
+      expect(strip?.textContent).toContain('FORM · LAST FIVE TESTS');
+      const marks = html.querySelectorAll('[data-testid="form-mark"]');
+      expect(marks.length).toBe(5);
+      // Oldest (Wales win) first, newest (Australia draw) last.
+      expect(marks[0].textContent).toContain('WAL');
+      expect(marks[4].textContent).toContain('AUS');
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('3W');
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1L');
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1D');
+      expect(html.querySelector('[data-testid="form-caption"]')?.textContent).toContain('Points 161–91 (+70)');
+    });
+
+    it('excludes not_yet_fetched/unrecorded results from the tally and relabels the eyebrow honestly', async () => {
+      const rows = [
+        FORM_GUIDE_ROW({ match_id: 'm2', match_date: '2026-07-18', result: 'win', springboks_score: 20, opponent_score: 10 }),
+        FORM_GUIDE_ROW({
+          match_id: 'm1',
+          match_date: '2026-07-25',
+          result: null,
+          springboks_score: null,
+          springboks_score_provenance: 'not_yet_fetched',
+          opponent_score: null,
+          opponent_score_provenance: 'not_yet_fetched',
+        }),
+      ];
+      const { html } = await renderWith([
+        NO_FIXTURES,
+        NO_LIVE_MATCH,
+        latestResultMatcher(rows[0]),
+        formGuideMatcher([...rows].reverse()),
+      ]);
+
+      expect(html.querySelector('[data-testid="form-guide"]')?.textContent).toContain(
+        'FORM · LAST TWO TESTS',
+      );
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1W');
+      expect(html.querySelector('[data-testid="form-caption"]')?.textContent).toContain(
+        '1 not recorded',
+      );
+      const marks = html.querySelectorAll('[data-testid="form-mark"]');
+      expect(marks[1].querySelector('.mark--absent')).toBeTruthy();
+    });
+
+    it('does not render the strip at all when there are zero completed tests', async () => {
+      const { html } = await renderWith([
+        NO_FIXTURES,
+        NO_LIVE_MATCH,
+        latestResultMatcher(null),
+        formGuideMatcher([]),
+      ]);
+
+      expect(html.querySelector('[data-testid="form-guide"]')).toBeNull();
+    });
   });
 });

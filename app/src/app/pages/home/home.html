@@ -13,15 +13,23 @@
     }
     @case ('loaded') {
       <div class="card-row">
-        <div class="card" data-testid="next-fixture-card">
-          <h3>Next fixture</h3>
+        <div class="plate plate--headed" data-testid="next-fixture-card">
+          <div class="plate__head">
+            @if (liveMatch()) {
+              MATCH UNDER WAY
+            } @else if (nextFixture()) {
+              NEXT TEST
+            } @else {
+              NO TEST SCHEDULED
+            }
+          </div>
 
           @if (liveMatch(); as live) {
             <p class="note" data-testid="match-under-way">
               Match under way — no live coverage here; result appears after full time.
             </p>
           } @else if (nextFixture(); as fixture) {
-            <div class="fixture-title">South Africa vs {{ opponentName(fixture) }}</div>
+            <div class="fixture-title">South Africa v {{ opponentName(fixture) }}</div>
             <div class="meta-row">
               @if (fixture.competition) {
                 <span>{{ fixture.competition }}</span>
@@ -63,11 +71,11 @@
           }
         </div>
 
-        <div class="card" data-testid="latest-result-card">
+        <div class="plate plate--headed" data-testid="latest-result-card">
+          <div class="plate__head">LATEST RESULT</div>
           @if (latestResult(); as last) {
-            <div class="result-bar" [class]="last.result"></div>
-            <h3>Latest result</h3>
-            <div class="fixture-title">
+            <div class="result-rule" [class]="last.result"></div>
+            <div class="fixture-title score-line">
               South Africa
               <app-field-value
                 [value]="last.springboks_score"
@@ -88,8 +96,30 @@
               <span>{{ last.match_date }}</span>
             </div>
             <a class="plain" [routerLink]="['/match', last.match_id]">Open game detail &rarr;</a>
+
+            @if (formGuide(); as form) {
+              <div class="form-guide" data-testid="form-guide">
+                <span class="eyebrow">{{ form.eyebrow }}</span>
+                <div class="form-body">
+                  <ol class="form-marks">
+                    @for (mark of form.marks; track mark.matchId) {
+                      <li data-testid="form-mark">
+                        <a [routerLink]="['/match', mark.matchId]">
+                          <app-result-mark [result]="mark.result" [ariaLabel]="mark.ariaLabel" />
+                        </a>
+                        <span class="form-meta">{{ mark.opponentAbbrev }}</span>
+                        <span class="form-meta">{{ mark.scoreLabel }}</span>
+                      </li>
+                    }
+                  </ol>
+                  <div class="form-summary" data-testid="form-summary">
+                    {{ form.wins }}W &middot; {{ form.losses }}L &middot; {{ form.draws }}D
+                  </div>
+                </div>
+                <p class="count-caption" data-testid="form-caption">{{ form.caption }}</p>
+              </div>
+            }
           } @else {
-            <h3>Latest result</h3>
             <p class="note">No results recorded yet</p>
           }
         </div>
@@ -97,10 +127,10 @@
 
       @if (upcomingFixtures().length) {
         <div class="upcoming" data-testid="upcoming-fixtures">
-          <h3>Upcoming fixtures</h3>
+          <span class="eyebrow">UPCOMING FIXTURES</span>
           @for (fixture of upcomingFixtures(); track fixture.id) {
             <div class="meta-row upcoming-row">
-              <span>South Africa vs {{ opponentName(fixture) }}</span>
+              <span>South Africa v {{ opponentName(fixture) }}</span>
               <span>{{ fixture.match_date }}</span>
               @if (fixture.competition) {
                 <span>{{ fixture.competition }}</span>
@@ -114,15 +144,14 @@
       }
 
       <!-- Site-level attribution footer (PRD D26/D31, journeys.md J0). This
-           duplicates the ~15-line footer template and the .footer-attrib
-           CSS rule already repeated verbatim in history.css and
-           match-detail.css (now three byte-identical copies). Left
-           duplicated for now per AGENTS.md 1.3 (simplicity first; no
+           duplicates the colophon markup already repeated verbatim in
+           history.html and match-detail.html (three byte-identical copies).
+           Left duplicated for now per AGENTS.md 1.3 (simplicity first; no
            shared component yet exists to extract into without inventing
            one). Extraction trigger: if a 4th consumer needs this footer,
            extract a shared component/partial instead of copying a fourth
            time. -->
-      <footer class="footer-attrib" data-testid="home-footer">
+      <footer class="colophon" data-testid="home-footer">
         Match list adapted from
         <a
           href="https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches"
