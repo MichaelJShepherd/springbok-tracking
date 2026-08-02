@@ -26,8 +26,8 @@
         <app-score-progression
           [events]="events()"
           [year]="matchYear()"
-          [finalSa]="m.springboks_score || 0"
-          [finalOpp]="m.opponent_score || 0"
+          [finalSa]="m.springboks_score_provenance === 'present' ? m.springboks_score : null"
+          [finalOpp]="m.opponent_score_provenance === 'present' ? m.opponent_score : null"
           [opponentLabel]="opponentName(m)"
         />
 

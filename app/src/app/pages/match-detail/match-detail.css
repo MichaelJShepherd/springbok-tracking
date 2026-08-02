@@ -64,6 +64,13 @@ h2 {
   margin: 0;
 }
 
+/* WCAG AA fix: the shared `.field-absent` colour (--ink-3) is 2.90:1 against
+   this masthead's dark --g-900 background — fails AA. Scoped override to
+   --gold-300 (11.91:1), keeping the italic "not recorded" treatment. */
+.detail-masthead .field-absent {
+  color: var(--gold-300);
+}
+
 .plain--on-dark {
   color: var(--gold-300);
 }
@@ -142,18 +149,7 @@ h2 {
   margin: var(--s-2) 0 0;
 }
 
-.note {
-  color: var(--ink-3);
-}
-
-.meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-1) var(--s-2);
-  color: var(--ink-3);
-  font-size: var(--t-sm);
-  margin-top: var(--s-2);
-}
+/* `.note` and `.meta-row` base rules live in src/styles.css (Gate 2 dedupe). */
 
 .other-officials {
   margin-top: var(--s-3);
@@ -210,8 +206,4 @@ h2 {
   flex-shrink: 0;
 }
 
-.count-caption {
-  margin-top: var(--s-2);
-  font-size: var(--t-cap);
-  color: var(--ink-3);
-}
+/* `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

@@ -29,10 +29,6 @@ h1 {
   }
 }
 
-.era-row-header {
-  display: none;
-}
-
 .era-column {
   display: flex;
   flex-direction: column;

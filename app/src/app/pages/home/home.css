@@ -34,15 +34,8 @@ h1 {
   font-variant-numeric: tabular-nums lining;
 }
 
-.meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--s-1) var(--s-2);
-  color: var(--ink-3);
-  font-size: var(--t-sm);
-  margin-top: var(--s-2);
-}
-
+/* `.meta-row` base rules live in src/styles.css (Gate 2 dedupe); this page
+   adds only the middot separator between meta spans. */
 .meta-row > span:not(:last-child)::after {
   content: ' \00b7 ';
 }
@@ -144,8 +137,4 @@ h1 {
   font-weight: 600;
 }
 
-.count-caption {
-  margin-top: var(--s-2);
-  font-size: var(--t-cap);
-  color: var(--ink-3);
-}
+/* `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

@@ -15,7 +15,11 @@ const SCORING_EVENT_TYPES: readonly EventType[] = ['try', 'conversion', 'penalty
 
 type EraPointsRow = Record<Extract<EventType, 'try' | 'conversion' | 'penalty' | 'drop_goal'>, number>;
 
-/** [1894–1947, 1948–1970, 1971–1991, 1992–] */
+/**
+ * [1894–1947, 1948–1970, 1971–1991, 1992–]. Keyed on calendar year even
+ * though law changes actually took effect mid-season — the reconciliation
+ * gate absorbs any single-fixture edge case by simply failing to reconcile.
+ */
 const ERA_TABLE: EraPointsRow[] = [
   { try: 3, conversion: 2, penalty: 3, drop_goal: 4 },
   { try: 3, conversion: 2, penalty: 3, drop_goal: 3 },
@@ -54,7 +58,7 @@ export interface ProgressionPoint {
   opp: number;
 }
 
-export type ProgressionFailureReason = 'none' | 'pre1894' | 'untimed' | 'mismatch';
+export type ProgressionFailureReason = 'none' | 'no_final_score' | 'pre1894' | 'untimed' | 'mismatch';
 
 export type ProgressionResult =
   | { ok: true; points: ProgressionPoint[]; leadChanges: number; timedEventCount: number }
@@ -69,8 +73,8 @@ export type ProgressionResult =
 export function computeProgression(
   events: readonly MatchEventRow[],
   year: number,
-  finalSa: number,
-  finalOpp: number,
+  finalSa: number | null,
+  finalOpp: number | null,
 ): ProgressionResult {
   const scoring = [...events]
     .filter((e) => isScoringEvent(e))
@@ -78,6 +82,12 @@ export function computeProgression(
 
   if (scoring.length === 0) {
     return { ok: false, reason: 'none' };
+  }
+  // An absent final score (D16 provenance not `present`) must never be
+  // coerced to 0 before the gate — that would blame the recorded events for
+  // a mismatch that is really a missing final score (Gate 2).
+  if (finalSa == null || finalOpp == null) {
+    return { ok: false, reason: 'no_final_score' };
   }
   if (year < 1894) {
     return { ok: false, reason: 'pre1894' };
@@ -123,6 +133,8 @@ export function computeProgression(
 /** The reason copy for a failed gate (docs/design.md §7.4, verbatim causes). */
 export function progressionFailureCopy(result: Extract<ProgressionResult, { ok: false }>): string {
   switch (result.reason) {
+    case 'no_final_score':
+      return 'No recorded final score for this match, so no progression can be checked against it.';
     case 'untimed':
       return "Scoring times aren't recorded for this match — the sequence below is the order the source gives, without clock positions.";
     case 'pre1894':

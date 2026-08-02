@@ -1,7 +1,5 @@
-.field-absent {
-  color: var(--state-absent);
-  font-style: italic;
-}
+/* `.field-absent` lives in src/styles.css (Gate 2 dedupe: it was declared
+   byte-for-byte identically in both files). */
 
 .field-loading {
   display: inline-block;

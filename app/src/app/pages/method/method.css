@@ -22,17 +22,10 @@ h2 {
   line-height: var(--lh-body);
 }
 
-.note {
-  color: var(--ink-2);
-  line-height: var(--lh-body);
-}
+/* `.note` and the card-plate look are shared globally (src/styles.css's
+   `.note` / `.plate`) — no per-page redeclaration needed here. */
 
-.card {
-  background: var(--card);
-  border: var(--hairline);
-  border-radius: var(--r-md);
-  box-shadow: var(--plate-lift);
-  padding: var(--s-4);
+.plate {
   display: flex;
   flex-direction: column;
   gap: var(--s-2);

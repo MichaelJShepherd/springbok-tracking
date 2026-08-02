@@ -37,6 +37,8 @@ export interface HeadToHeadExtreme {
 
 export interface HeadToHeadSummary {
   total: number;
+  played: number;
+  unrecorded: number;
   wins: number;
   losses: number;
   draws: number;
@@ -46,6 +48,7 @@ export interface HeadToHeadSummary {
   extremesCaption: string;
   meetingNumber: number;
   isFirstMeeting: boolean;
+  matchFound: boolean;
   before: { wins: number; losses: number; draws: number } | null;
   previousMeetings: HeadToHeadRow[];
   countCaption: string;
@@ -59,13 +62,24 @@ export interface HeadToHeadSummary {
  * which meeting the fan is looking at.
  */
 export function buildHeadToHead(allRows: HeadToHeadRow[], currentMatchId: string): HeadToHeadSummary {
-  const rows = [...allRows].sort((a, b) => a.match_date.localeCompare(b.match_date));
+  // D13: sort by (match_date, sequence) — same-day double-headers would
+  // otherwise be ordered arbitrarily by date alone. `sequence` is derivable
+  // from the trailing `-N` on `match_id` (e.g. `2020-01-01-fiji-2`).
+  const sequenceOf = (row: HeadToHeadRow): number => {
+    const match = /-(\d+)$/.exec(row.match_id);
+    return match ? Number(match[1]) : 0;
+  };
+  const rows = [...allRows].sort((a, b) => {
+    const byDate = a.match_date.localeCompare(b.match_date);
+    return byDate !== 0 ? byDate : sequenceOf(a) - sequenceOf(b);
+  });
   const total = rows.length;
 
   const wins = rows.filter((r) => r.result === 'win').length;
   const losses = rows.filter((r) => r.result === 'loss').length;
   const draws = rows.filter((r) => r.result === 'draw').length;
   const played = wins + losses + draws;
+  const unrecorded = total - played;
   const winPercent = played > 0 ? Math.round((wins / played) * 100) : null;
 
   const scored = rows.filter(
@@ -125,26 +139,39 @@ export function buildHeadToHead(allRows: HeadToHeadRow[], currentMatchId: string
   }
 
   const currentIndex = rows.findIndex((r) => r.match_id === currentMatchId);
-  const meetingNumber = currentIndex >= 0 ? currentIndex + 1 : total;
-  const isFirstMeeting = meetingNumber <= 1;
+  // If the current match isn't among `allRows` (a bad opponent_team_id, or a
+  // race with the head-to-head query), there is no honest "Nth meeting" or
+  // "before this match" to report — render nothing for those zones rather
+  // than a fabricated meetingNumber = total / "W 0 · L 0 · D 0" (Gate 2).
+  const matchFound = currentIndex >= 0;
+  const meetingNumber = matchFound ? currentIndex + 1 : 0;
+  const isFirstMeeting = matchFound && meetingNumber <= 1;
 
-  const beforeRows = currentIndex > 0 ? rows.slice(0, currentIndex) : [];
-  const before = isFirstMeeting
-    ? null
-    : {
-        wins: beforeRows.filter((r) => r.result === 'win').length,
-        losses: beforeRows.filter((r) => r.result === 'loss').length,
-        draws: beforeRows.filter((r) => r.result === 'draw').length,
-      };
-  const previousMeetings = beforeRows.slice(-6);
+  const beforeRows = matchFound && currentIndex > 0 ? rows.slice(0, currentIndex) : [];
+  const before =
+    matchFound && !isFirstMeeting
+      ? {
+          wins: beforeRows.filter((r) => r.result === 'win').length,
+          losses: beforeRows.filter((r) => r.result === 'loss').length,
+          draws: beforeRows.filter((r) => r.result === 'draw').length,
+        }
+      : null;
+  const previousMeetings = matchFound ? beforeRows.slice(-6) : [];
 
-  const countCaption =
-    scored.length < total
-      ? `From ${total} test${total === 1 ? '' : 's'} against this opponent; margins from the ${scored.length} with both scores recorded.`
+  // D33: state the win-% denominator and the excluded/unrecorded count,
+  // mirroring the era-strip's treatment (docs/design.md §7.2).
+  const recordedNote =
+    unrecorded > 0
+      ? `Win % of the ${played} of ${total} meeting${total === 1 ? '' : 's'} with a recorded result; ${unrecorded} not recorded.`
       : `From ${total} test${total === 1 ? '' : 's'} against this opponent.`;
+  const marginsNote =
+    scored.length < total ? ` Margins from the ${scored.length} with both scores recorded.` : '';
+  const countCaption = `${recordedNote}${marginsNote}`;
 
   return {
     total,
+    played,
+    unrecorded,
     wins,
     losses,
     draws,
@@ -154,6 +181,7 @@ export function buildHeadToHead(allRows: HeadToHeadRow[], currentMatchId: string
     extremesCaption,
     meetingNumber,
     isFirstMeeting,
+    matchFound,
     before,
     previousMeetings,
     countCaption,

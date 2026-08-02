@@ -45,11 +45,23 @@
       }
       <path [attr.d]="c.oppPath" fill="none" stroke="var(--loss)" stroke-width="2.5" stroke-dasharray="6 3" />
       <path [attr.d]="c.saPath" fill="none" stroke="var(--g-600)" stroke-width="2.5" />
-      <text x="590" [attr.y]="c.y(finalSa()) + 4" font-size="16" font-family="var(--font-display)" fill="var(--win)">
-        {{ finalSa() }}
+      <text
+        x="590"
+        [attr.y]="c.y(finalSaNum()) + 4 + saLabelDy()"
+        font-size="16"
+        font-family="var(--font-display)"
+        fill="var(--win)"
+      >
+        {{ finalSaNum() }}
       </text>
-      <text x="590" [attr.y]="c.y(finalOpp()) + 4" font-size="16" font-family="var(--font-display)" fill="var(--loss)">
-        {{ finalOpp() }}
+      <text
+        x="590"
+        [attr.y]="c.y(finalOppNum()) + 4 + oppLabelDy()"
+        font-size="16"
+        font-family="var(--font-display)"
+        fill="var(--loss)"
+      >
+        {{ finalOppNum() }}
       </text>
     </svg>
     <div class="chart-keys">
@@ -57,7 +69,7 @@
       <span class="key-opp"><b>{{ opponentLabel() }}</b></span>
       <span>&#9679; lead change</span>
     </div>
-    <figcaption>{{ caption() }}</figcaption>
+    <figcaption data-testid="score-progression-caption">{{ caption() }}</figcaption>
   </figure>
 } @else {
   <p class="note degraded" data-testid="score-progression-degraded">{{ failureCopy() }}</p>

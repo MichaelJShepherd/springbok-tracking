@@ -36,8 +36,8 @@ interface ChartModel {
 export class ScoreProgression {
   readonly events = input.required<MatchEventRow[]>();
   readonly year = input.required<number>();
-  readonly finalSa = input.required<number>();
-  readonly finalOpp = input.required<number>();
+  readonly finalSa = input.required<number | null>();
+  readonly finalOpp = input.required<number | null>();
   readonly springboksLabel = input<string>('South Africa');
   readonly opponentLabel = input.required<string>();
 
@@ -54,8 +54,12 @@ export class ScoreProgression {
     const r = this.result();
     if (!r.ok) return null;
 
+    // finalSa/finalOpp are guaranteed non-null here: the gate above
+    // (`computeProgression`) only returns `ok: true` once both are present.
+    const finalSa = this.finalSa()!;
+    const finalOpp = this.finalOpp()!;
     const maxMinute = Math.max(80, ...r.points.map((p) => p.m));
-    const yTop = Math.max(3, Math.ceil((Math.max(this.finalSa(), this.finalOpp()) + 1) / 3) * 3);
+    const yTop = Math.max(3, Math.ceil((Math.max(finalSa, finalOpp) + 1) / 3) * 3);
     const x = (m: number) => PAD_LEFT + (m / maxMinute) * (W - PAD_LEFT - PAD_RIGHT);
     const y = (v: number) => H - PAD_BOTTOM - (v / yTop) * (H - PAD_TOP - PAD_BOTTOM);
 
@@ -98,6 +102,17 @@ export class ScoreProgression {
       y,
     };
   });
+
+  // Non-null accessors for the template's chart branch, which only renders
+  // once the gate has confirmed both finals are present.
+  readonly finalSaNum = () => this.finalSa() ?? 0;
+  readonly finalOppNum = () => this.finalOpp() ?? 0;
+
+  // On a draw the two final-score labels sit at the identical y — nudge
+  // them apart (Gate 2) so neither overlaps/overwrites the other.
+  readonly isDraw = () => this.finalSaNum() === this.finalOppNum();
+  readonly saLabelDy = () => (this.isDraw() ? -6 : 0);
+  readonly oppLabelDy = () => (this.isDraw() ? 6 : 0);
 
   readonly viewBox = `0 0 ${W} ${H}`;
   readonly halfTimeX = () => (this.chart() ? this.chart()!.x(40) : 0);

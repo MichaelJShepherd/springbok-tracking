@@ -14,26 +14,21 @@
     @case ('loaded') {
       <figure class="figure era-figure" data-testid="era-figure">
         <span class="eyebrow">THE RECORD BY ERA</span>
-        <div class="era-columns" role="table">
-          <div class="era-row-header" role="row">
-            <span role="columnheader">Era</span>
-            <span role="columnheader">Win %</span>
-            <span role="columnheader">Played</span>
-            <span role="columnheader">Won</span>
-            <span role="columnheader">Lost</span>
-            <span role="columnheader">Drawn</span>
-          </div>
+        <div class="era-columns">
           @for (col of eraColumns(); track col.era) {
             <button
               type="button"
               class="era-column"
               data-testid="era-column"
-              role="row"
               [class.is-active]="selectedEra() === col.era"
               [attr.aria-label]="
                 col.era +
                 ': ' +
-                (col.winPercent !== null ? col.winPercent + ' per cent won, ' : 'no tests recorded, ') +
+                (col.total === 0
+                  ? 'no tests recorded, '
+                  : col.winPercent !== null
+                    ? col.winPercent + ' per cent won, '
+                    : 'no recorded results, ') +
                 col.played +
                 ' played, ' +
                 col.wins +
@@ -47,10 +42,12 @@
               (click)="toggleEra(col.era)"
             >
               <span class="era-label">{{ col.era }}</span>
-              @if (col.winPercent !== null) {
+              @if (col.total === 0) {
+                <span class="era-empty">No tests recorded</span>
+              } @else if (col.winPercent !== null) {
                 <span class="era-pct">{{ col.winPercent }}%<small> won</small></span>
               } @else {
-                <span class="era-empty">No tests recorded</span>
+                <span class="era-empty">No recorded results</span>
               }
               <span class="era-bar" aria-hidden="true">
                 @if (col.total > 0) {
