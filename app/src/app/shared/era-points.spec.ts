@@ -31,6 +31,37 @@ describe('pointsFor (docs/design.md §7.4 era table)', () => {
     expect(pointsFor('try', 1920)).toBe(3);
     expect(pointsFor('drop_goal', 1920)).toBe(4);
   });
+
+  describe('era boundaries (calendar-year keyed, docs/design.md §7.4)', () => {
+    it('the 1947/1948 boundary: drop_goal drops from 4 to 3', () => {
+      expect(pointsFor('drop_goal', 1947)).toBe(4);
+      expect(pointsFor('drop_goal', 1948)).toBe(3);
+    });
+
+    it('the 1970/1971 boundary: try rises from 3 to 4', () => {
+      expect(pointsFor('try', 1970)).toBe(3);
+      expect(pointsFor('try', 1971)).toBe(4);
+    });
+
+    it('the 1991/1992 boundary: try rises from 4 to 5', () => {
+      expect(pointsFor('try', 1991)).toBe(4);
+      expect(pointsFor('try', 1992)).toBe(5);
+    });
+
+    it('applies the 1948-1970 table in full for a row from that era', () => {
+      expect(pointsFor('try', 1960)).toBe(3);
+      expect(pointsFor('conversion', 1960)).toBe(2);
+      expect(pointsFor('penalty', 1960)).toBe(3);
+      expect(pointsFor('drop_goal', 1960)).toBe(3);
+    });
+
+    it('applies the 1971-1991 table in full for a row from that era', () => {
+      expect(pointsFor('try', 1980)).toBe(4);
+      expect(pointsFor('conversion', 1980)).toBe(2);
+      expect(pointsFor('penalty', 1980)).toBe(3);
+      expect(pointsFor('drop_goal', 1980)).toBe(3);
+    });
+  });
 });
 
 describe('computeProgression (the reconciliation gate, docs/design.md §7.4)', () => {

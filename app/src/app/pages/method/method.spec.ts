@@ -43,4 +43,13 @@ describe('Method', () => {
     expect(html.textContent).toContain('CC BY-SA 4.0');
     expect(html.textContent).toContain('parsed and normalised from wikitext');
   });
+
+  it('explains how the derived (D33) aggregate figures are computed, distinct from the D5 "computed" sentiment stamp', () => {
+    expect(html.textContent).toContain('How the derived figures are computed');
+    expect(html.textContent).toContain(
+      'arithmetic over facts already displayed and individually sourced on this site',
+    );
+    expect(html.textContent).toContain('reconciles exactly');
+    expect(html.textContent).toContain('Matches before 1894 are never charted');
+  });
 });

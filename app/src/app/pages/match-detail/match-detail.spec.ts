@@ -106,6 +106,13 @@ describe('MatchDetail', () => {
     // scoped to the competition's own eyebrow line, not just anywhere on the page.
     const competitionCell = html.querySelector('.detail-eyebrow app-field-value');
     expect(competitionCell?.textContent?.trim()).toBe('not recorded');
+
+    // WCAG AA fix: `.field-absent` on the dark masthead must be reachable by
+    // the `.detail-masthead .field-absent` override selector (--gold-300,
+    // 11.91:1) rather than the shared --ink-3 (2.90:1 on this background).
+    const mastheadAbsent = html.querySelector('.detail-masthead .field-absent');
+    expect(mastheadAbsent).toBeTruthy();
+    expect(mastheadAbsent?.textContent?.trim()).toBe('not recorded');
     expect(html.querySelector('[data-testid="lineups-absent"]')).toBeTruthy();
     expect(html.querySelector('[data-testid="events-absent"]')).toBeTruthy();
     // Fallback attribution: no source_article_url -> the list article.
@@ -339,8 +346,12 @@ describe('MatchDetail', () => {
       const strip = html.querySelector('[data-testid="head-to-head"]');
       expect(strip).toBeTruthy();
       expect(strip?.textContent).toContain('3rd meeting');
-      expect(strip?.textContent).toContain('Before this match');
-      expect(strip?.textContent).toContain('W 1');
+      const before = html.querySelector('[data-testid="h2h-before"]');
+      expect(before?.textContent).toContain('Before this match');
+      // Scoped to the "before this match" line specifically — asserting
+      // "W 1" against the whole strip's textContent would also pass off
+      // unrelated "W 1" text elsewhere in the strip (e.g. a P/W/L/D count).
+      expect(before?.textContent).toContain('W 1');
       expect(strip?.textContent).toContain('Biggest win 27–3');
       expect(strip?.textContent).toContain('Biggest defeat 10–20');
     });
@@ -359,6 +370,26 @@ describe('MatchDetail', () => {
       const strip = html.querySelector('[data-testid="head-to-head"]');
       expect(strip?.textContent).toContain('The first meeting');
       expect(strip?.querySelector('[data-testid="h2h-before"]')).toBeNull();
+    });
+
+    it('renders the count-caption stating its denominator (D33) — deleting it must fail this test', async () => {
+      const match = { ...BASE_MATCH, opponent_team_id: 'nzl' };
+      const rows = [
+        { match_id: 'm1', match_date: '1990-01-01', springboks_score: 10, springboks_score_provenance: 'present', opponent_score: 20, opponent_score_provenance: 'present', result: 'loss' },
+        { ...match, springboks_score: 15, opponent_score: 12, result: 'win' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher([]),
+        h2hMatcher(rows),
+      ]);
+
+      const caption = html.querySelector('[data-testid="h2h-count-caption"]');
+      expect(caption).toBeTruthy();
+      expect(caption?.textContent).toContain('2 tests against this opponent');
     });
 
     it('does not render the strip at all when the match has no opponent_team_id to query with', async () => {
@@ -399,6 +430,32 @@ describe('MatchDetail', () => {
       expect(html.querySelector('[data-testid="score-progression-degraded"]')).toBeNull();
     });
 
+    it('renders the figcaption stating the reconciled final score (D33) — deleting it must fail this test', async () => {
+      const match = { ...BASE_MATCH, match_date: '1995-06-24' };
+      const timedEvents = [
+        { sequence_no: 1, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 5, minute_provenance: 'present' },
+        { sequence_no: 2, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 10, minute_provenance: 'present' },
+        { sequence_no: 3, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 13, minute_provenance: 'present' },
+        { sequence_no: 4, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 22, minute_provenance: 'present' },
+        { sequence_no: 5, event_type: 'drop_goal', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 31, minute_provenance: 'present' },
+        { sequence_no: 6, event_type: 'drop_goal', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 55, minute_provenance: 'present' },
+        { sequence_no: 7, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 83, minute_provenance: 'present' },
+        { sequence_no: 8, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 90, minute_provenance: 'present' },
+        { sequence_no: 9, event_type: 'drop_goal', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 92, minute_provenance: 'present' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher(timedEvents),
+      ]);
+
+      const caption = html.querySelector('[data-testid="score-progression-caption"]');
+      expect(caption).toBeTruthy();
+      expect(caption?.textContent).toContain('final score 15–12');
+    });
+
     it('degrades to the stated reason, never a chart, when scoring events are untimed', async () => {
       const untimedEvents = [
         { sequence_no: 1, event_type: 'try', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: null, minute_provenance: 'absent_in_source' },
@@ -418,9 +475,16 @@ describe('MatchDetail', () => {
     });
 
     it('never charts a pre-1894 match, and the events list below remains the accessible record', async () => {
-      const sparseMatch = { ...BASE_MATCH, match_date: '1891-08-30' };
+      // Timed (not untimed) events whose points, under the era-0 table
+      // (try=3), WOULD reconcile to the stored final score if the year
+      // guard didn't apply — this isolates the pre-1894 guard specifically.
+      // The previous version of this fixture used a single untimed event,
+      // which meant the *untimed* branch already suppressed the chart, and
+      // deleting the pre-1894 guard alone would not have turned this test
+      // red.
+      const sparseMatch = { ...BASE_MATCH, match_date: '1891-08-30', springboks_score: 3, opponent_score: 0 };
       const events = [
-        { sequence_no: 1, event_type: 'try', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: null, minute_provenance: 'absent_in_source' },
+        { sequence_no: 1, event_type: 'try', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 10, minute_provenance: 'present' },
       ];
 
       const { html } = await renderWith(
@@ -429,6 +493,9 @@ describe('MatchDetail', () => {
       );
 
       expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeNull();
+      expect(html.querySelector('[data-testid="score-progression-degraded"]')?.textContent).toContain(
+        'before 1894',
+      );
       expect(html.querySelector('[data-testid="events-list"]')).toBeTruthy();
     });
   });

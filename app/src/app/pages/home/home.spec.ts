@@ -321,14 +321,22 @@ describe('Home', () => {
         FORM_GUIDE_ROW({ match_id: 'm2', match_date: '2026-06-20', result: 'loss', teams: { canonical_name: 'New Zealand' }, springboks_score: 11, opponent_score: 22 }),
         FORM_GUIDE_ROW({ match_id: 'm1', match_date: '2026-06-13', result: 'draw', teams: { canonical_name: 'Australia' }, springboks_score: 20, opponent_score: 20 }),
       ];
-      // DB returns newest-first; the component reverses to oldest-first for display.
+      // `rows` is already newest-first (m5 2026-07-18 ... m1 2026-06-13),
+      // exactly as the real query returns it
+      // (`.order('match_date', {ascending:false}).limit(5)`) — the mock
+      // must feed it unreversed so the component's own reversal to
+      // oldest-first is what this test actually exercises. Feeding an
+      // already-reversed mock (the bug Gate 3 caught) would make the
+      // assertions below pass for the wrong reason: the component's
+      // reversal would cancel the mock's, leaving `marks` in "rows" order
+      // by coincidence rather than because oldest-first display works.
       // The form guide sits inside the Latest Result plate (docs/design.md §6), so a
       // latest result must also be present for it to render at all.
       const { html } = await renderWith([
         NO_FIXTURES,
         NO_LIVE_MATCH,
         latestResultMatcher(rows[0]),
-        formGuideMatcher([...rows].reverse()),
+        formGuideMatcher(rows),
       ]);
 
       const strip = html.querySelector('[data-testid="form-guide"]');
@@ -336,9 +344,9 @@ describe('Home', () => {
       expect(strip?.textContent).toContain('FORM · LAST FIVE TESTS');
       const marks = html.querySelectorAll('[data-testid="form-mark"]');
       expect(marks.length).toBe(5);
-      // Oldest (Wales win) first, newest (Australia draw) last.
-      expect(marks[0].textContent).toContain('WAL');
-      expect(marks[4].textContent).toContain('AUS');
+      // Oldest (Australia draw, 2026-06-13) first, newest (Wales win, 2026-07-18) last.
+      expect(marks[0].textContent).toContain('AUS');
+      expect(marks[4].textContent).toContain('WAL');
       expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('3W');
       expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1L');
       expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1D');
@@ -377,14 +385,69 @@ describe('Home', () => {
     });
 
     it('does not render the strip at all when there are zero completed tests', async () => {
+      // A latest result IS present here (so the parent plate itself
+      // renders) but the form-guide rows come back empty — this must be
+      // what suppresses the strip. Pairing an absent latest result with an
+      // empty form-guide (as this test previously did) is always-true: the
+      // whole parent plate is absent regardless of the empty-rows guard,
+      // so the assertion below would still pass even if
+      // `buildFormGuide`'s `rowsOldestFirst.length === 0` guard were
+      // deleted.
+      const lastResult = FORM_GUIDE_ROW({ match_id: 'only-result', match_date: '2026-07-04' });
       const { html } = await renderWith([
         NO_FIXTURES,
         NO_LIVE_MATCH,
-        latestResultMatcher(null),
+        latestResultMatcher(lastResult),
         formGuideMatcher([]),
       ]);
 
+      expect(html.querySelector('[data-testid="latest-result-card"]')?.textContent).toContain(
+        'South Africa',
+      );
       expect(html.querySelector('[data-testid="form-guide"]')).toBeNull();
+    });
+
+    it('excludes a row whose result is recorded but a score is fetch_failed/absent from the tally, and never counts it as a 0 in the points differential', async () => {
+      const rows = [
+        FORM_GUIDE_ROW({
+          match_id: 'm2',
+          match_date: '2026-07-18',
+          result: 'win',
+          springboks_score: 20,
+          opponent_score: 10,
+        }),
+        FORM_GUIDE_ROW({
+          match_id: 'm1',
+          match_date: '2026-07-11',
+          result: 'loss',
+          springboks_score: null,
+          springboks_score_provenance: 'fetch_failed',
+          opponent_score: 15,
+          opponent_score_provenance: 'present',
+        }),
+      ];
+
+      const { html } = await renderWith([
+        NO_FIXTURES,
+        NO_LIVE_MATCH,
+        latestResultMatcher(rows[0]),
+        formGuideMatcher(rows),
+      ]);
+
+      // Only the fully-scored win counts into the tally and the points
+      // caption — the fetch_failed row is excluded, not silently added in
+      // as a 0-point loss (which would understate the points-against
+      // total by 15, not by nothing).
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).toContain('1W');
+      expect(html.querySelector('[data-testid="form-summary"]')?.textContent).not.toContain('1L');
+      expect(html.querySelector('[data-testid="form-caption"]')?.textContent).toContain(
+        'Points 20–10 (+10)',
+      );
+      expect(html.querySelector('[data-testid="form-caption"]')?.textContent).toContain(
+        '1 not recorded',
+      );
+      const marks = html.querySelectorAll('[data-testid="form-mark"]');
+      expect(marks[0].querySelector('.mark--absent')).toBeTruthy();
     });
   });
 });

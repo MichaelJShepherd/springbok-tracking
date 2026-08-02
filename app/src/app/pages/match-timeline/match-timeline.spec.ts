@@ -99,6 +99,41 @@ describe('MatchTimeline', () => {
     expect(strip?.querySelector('[data-testid="event-clock"]')).toBeNull();
   });
 
+  describe('score-progression figure (docs/design.md §7.4, D34(4))', () => {
+    const TIMED_RECONCILING_EVENTS = [
+      { sequence_no: 1, event_type: 'try', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 10, minute_provenance: 'present' },
+    ];
+
+    it('renders the chart section when the reconciliation gate passes', async () => {
+      const match = { ...BASE_MATCH, springboks_score: 5, opponent_score: 0, match_date: '2024-09-07' };
+      const { html } = await renderWith([
+        matchMatcher(match),
+        eventsMatcher(TIMED_RECONCILING_EVENTS),
+        sentimentMatcher([]),
+      ]);
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeTruthy();
+      expect(html.querySelector('[data-testid="score-progression-degraded"]')).toBeNull();
+      // The events list below the chart must remain intact — the chart
+      // supplements it, never replaces it.
+      expect(html.querySelector('[data-testid="events-strip"]')?.textContent).toContain('Try');
+    });
+
+    it('degrades to the stated reason, keeping the events list intact, when the gate fails', async () => {
+      const { html } = await renderWith([
+        matchMatcher(),
+        eventsMatcher([UNTIMED_EVENT]),
+        sentimentMatcher([]),
+      ]);
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeNull();
+      expect(html.querySelector('[data-testid="score-progression-degraded"]')?.textContent).toContain(
+        "aren't recorded",
+      );
+      expect(html.querySelector('[data-testid="events-strip"]')?.textContent).toContain('Try');
+    });
+  });
+
   it('renders the axis and a clock badge when a timed event exists', async () => {
     const { html } = await renderWith([
       matchMatcher(),
