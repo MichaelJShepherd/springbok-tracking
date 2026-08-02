@@ -5,8 +5,9 @@
 *.pem
 *.key
 
-# Local-only Claude skills
-.claude/skills/delivery-process/
+# Local-only Claude state — never committed (#93): agent worktrees are live
+# git checkouts, and skills are internal One Eleven process (AGENTS.md 1.1)
+.claude/
 
 # OS / editor noise
 .DS_Store
