@@ -13,39 +13,78 @@
   @case ('loaded') {
     @if (match(); as m) {
       <section class="detail" data-testid="match-detail">
-        <div class="detail-header">
-          <div>
-            @if (m.result) {
-              <div class="result-bar" [class]="m.result"></div>
-            }
-            <div class="score-hero" data-testid="score-hero">
-              South Africa
+        <div class="detail-masthead">
+          <p class="detail-eyebrow">
+            <app-field-value [value]="m.competition" [provenance]="m.competition_provenance" />
+            <app-sources-differ-badge [disagreement]="disagreementFor('competition')" />
+            &middot; {{ m.match_date }}
+          </p>
+          <div class="score-hero" data-testid="score-hero">
+            <span class="team">South Africa</span>
+            <span class="score">
               <app-field-value [value]="m.springboks_score" [provenance]="m.springboks_score_provenance" />
               <app-sources-differ-badge [disagreement]="disagreementFor('springboks_score')" />
               &ndash;
               <app-field-value [value]="m.opponent_score" [provenance]="m.opponent_score_provenance" />
               <app-sources-differ-badge [disagreement]="disagreementFor('opponent_score')" />
-              {{ opponentName(m) }}
-            </div>
-            <div class="meta-row">
-              <span>
-                <app-field-value [value]="m.competition" [provenance]="m.competition_provenance" />
-                <app-sources-differ-badge [disagreement]="disagreementFor('competition')" />
-              </span>
-              <span>{{ m.match_date }}</span>
-              <span>
-                <app-field-value [value]="m.venue" [provenance]="m.venue_provenance" />
-                <app-sources-differ-badge [disagreement]="disagreementFor('venue')" />
-              </span>
-            </div>
+            </span>
+            <span class="team">{{ opponentName(m) }}</span>
           </div>
-          <a class="plain" [routerLink]="['/match', m.match_id, 'timeline']"
+          <p class="detail-venue">
+            <app-field-value [value]="m.venue" [provenance]="m.venue_provenance" />
+            <app-sources-differ-badge [disagreement]="disagreementFor('venue')" />
+          </p>
+          <a class="plain plain--on-dark" [routerLink]="['/match', m.match_id, 'timeline']"
             ><button type="button" class="toggle-btn" data-testid="open-timeline">Open timeline &rarr;</button></a
           >
         </div>
 
+        @if (headToHead(); as h2h) {
+          <div class="plate h2h" data-testid="head-to-head">
+            <span class="eyebrow">SOUTH AFRICA V {{ opponentName(m).toUpperCase() }} &middot; ALL TIME</span>
+            <div class="h2h-zones">
+              <div class="h2h-zone">
+                <div class="h2h-pct">{{ h2h.winPercent }}%<small> won</small></div>
+                <div class="h2h-counts">
+                  P {{ h2h.total }} &middot; W {{ h2h.wins }} &middot; L {{ h2h.losses }} &middot; D {{ h2h.draws }}
+                </div>
+              </div>
+              <div class="h2h-zone">
+                <p class="h2h-line">{{ h2h.extremesCaption }}</p>
+              </div>
+              <div class="h2h-zone">
+                @if (h2h.isFirstMeeting) {
+                  <p class="h2h-line">The first meeting</p>
+                } @else {
+                  <p class="h2h-line">The {{ ordinal(h2h.meetingNumber) }} meeting</p>
+                  @if (h2h.before; as before) {
+                    <p class="h2h-line" data-testid="h2h-before">
+                      Before this match: W {{ before.wins }} &middot; L {{ before.losses }} &middot; D
+                      {{ before.draws }}
+                    </p>
+                  }
+                  @if (h2h.previousMeetings.length) {
+                    <ol class="h2h-form">
+                      @for (prev of h2h.previousMeetings; track prev.match_id) {
+                        <li>
+                          <app-result-mark
+                            [result]="prev.result"
+                            [ariaLabel]="(prev.result || 'Unrecorded') + ' — ' + prev.match_date"
+                            size="sm"
+                          />
+                        </li>
+                      }
+                    </ol>
+                  }
+                }
+              </div>
+            </div>
+            <p class="count-caption">{{ h2h.countCaption }}</p>
+          </div>
+        }
+
         <h2>Officials</h2>
-        <div class="card">
+        <div class="plate">
           <h3>Referee</h3>
           <div data-testid="referee-value">
             @if (referee(); as ref) {
@@ -77,43 +116,48 @@
         </div>
 
         <h2>Lineups</h2>
-        <div class="card">
+        <div class="plate">
           @if (springboksLineup().length || opponentLineup().length) {
             <div class="lineups" data-testid="lineups">
-              <div class="col">
-                <h3>South Africa</h3>
-                <ol>
+              <table class="ledger col">
+                <thead><tr><th colspan="2">South Africa</th></tr></thead>
+                <tbody>
                   @for (p of springboksLineup(); track $index) {
-                    <li>
-                      @if (p.shirt_number) {
-                        <span class="shirt">{{ p.shirt_number }}</span>
-                      }
-                      <app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" />
-                    </li>
+                    <tr>
+                      <td class="shirt">{{ p.shirt_number || '' }}</td>
+                      <td><app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" /></td>
+                    </tr>
                   }
-                </ol>
-              </div>
-              <div class="col">
-                <h3>{{ opponentName(m) }}</h3>
-                <ol>
+                </tbody>
+              </table>
+              <table class="ledger col">
+                <thead><tr><th colspan="2">{{ opponentName(m) }}</th></tr></thead>
+                <tbody>
                   @for (p of opponentLineup(); track $index) {
-                    <li>
-                      @if (p.shirt_number) {
-                        <span class="shirt">{{ p.shirt_number }}</span>
-                      }
-                      <app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" />
-                    </li>
+                    <tr>
+                      <td class="shirt">{{ p.shirt_number || '' }}</td>
+                      <td><app-field-value [value]="p.player_name" [provenance]="p.player_name_provenance" /></td>
+                    </tr>
                   }
-                </ol>
-              </div>
+                </tbody>
+              </table>
             </div>
           } @else {
             <p class="note" data-testid="lineups-absent">Lineups not recorded for this match.</p>
           }
         </div>
 
+        <h2>Score progression</h2>
+        <app-score-progression
+          [events]="events()"
+          [year]="matchYear()"
+          [finalSa]="m.springboks_score || 0"
+          [finalOpp]="m.opponent_score || 0"
+          [opponentLabel]="opponentName(m)"
+        />
+
         <h2>Scoring events</h2>
-        <div class="card">
+        <div class="plate">
           @if (sortedEvents().length) {
             <ul class="events-list" data-testid="events-list">
               @for (e of sortedEvents(); track e.sequence_no) {
@@ -133,7 +177,7 @@
           }
         </div>
 
-        <footer class="footer-attrib" data-testid="attribution-footer">
+        <footer class="colophon" data-testid="attribution-footer">
           Match data adapted from
           <a [href]="attributionUrl()" target="_blank" rel="noopener">{{ attributionLabel() }}</a>,
           available under

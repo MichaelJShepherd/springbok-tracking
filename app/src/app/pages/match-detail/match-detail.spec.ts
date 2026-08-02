@@ -27,7 +27,22 @@ const BASE_MATCH = {
 };
 
 function matchMatcher(row: unknown): QueryMatcher {
-  return { table: 'matches', match: () => true, result: { data: row, error: null } };
+  // Distinguishes the main `.eq('match_id', ...)` lookup from the
+  // head-to-head strip's separate `.eq('opponent_team_id', ...)` query
+  // below — both hit the `matches` table.
+  return {
+    table: 'matches',
+    match: (calls) => calls.some((c) => c.method === 'eq' && c.args[0] === 'match_id'),
+    result: { data: row, error: null },
+  };
+}
+
+function h2hMatcher(rows: unknown[]): QueryMatcher {
+  return {
+    table: 'matches',
+    match: (calls) => calls.some((c) => c.method === 'eq' && c.args[0] === 'opponent_team_id'),
+    result: { data: rows, error: null },
+  };
 }
 
 function officialsMatcher(rows: unknown[]): QueryMatcher {
@@ -88,8 +103,8 @@ describe('MatchDetail', () => {
 
     expect(html.querySelector('[data-testid="match-detail"]')).toBeTruthy();
     // Absent competition renders the calm "not recorded" state, not a blank —
-    // scoped to the competition's own meta-row span, not just anywhere on the page.
-    const competitionCell = html.querySelector('.meta-row app-field-value');
+    // scoped to the competition's own eyebrow line, not just anywhere on the page.
+    const competitionCell = html.querySelector('.detail-eyebrow app-field-value');
     expect(competitionCell?.textContent?.trim()).toBe('not recorded');
     expect(html.querySelector('[data-testid="lineups-absent"]')).toBeTruthy();
     expect(html.querySelector('[data-testid="events-absent"]')).toBeTruthy();
@@ -302,5 +317,119 @@ describe('MatchDetail', () => {
     expect(html.querySelector('[data-testid="detail-error"]')?.textContent).toContain(
       'temporarily unavailable',
     );
+  });
+
+  describe('head-to-head strip (docs/design.md §7.3, D34)', () => {
+    it('renders the all-time record and "before this match" for a match with prior meetings', async () => {
+      const match = { ...BASE_MATCH, opponent_team_id: 'nzl' };
+      const rows = [
+        { match_id: 'm1', match_date: '1990-01-01', springboks_score: 10, springboks_score_provenance: 'present', opponent_score: 20, opponent_score_provenance: 'present', result: 'loss' },
+        { match_id: 'm2', match_date: '1992-01-01', springboks_score: 27, springboks_score_provenance: 'present', opponent_score: 3, opponent_score_provenance: 'present', result: 'win' },
+        { ...match, springboks_score: 15, opponent_score: 12, result: 'win' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher([]),
+        h2hMatcher(rows),
+      ]);
+
+      const strip = html.querySelector('[data-testid="head-to-head"]');
+      expect(strip).toBeTruthy();
+      expect(strip?.textContent).toContain('3rd meeting');
+      expect(strip?.textContent).toContain('Before this match');
+      expect(strip?.textContent).toContain('W 1');
+      expect(strip?.textContent).toContain('Biggest win 27–3');
+      expect(strip?.textContent).toContain('Biggest defeat 10–20');
+    });
+
+    it('renders "the first meeting" and omits the before-this-match line for a first-ever meeting', async () => {
+      const match = { ...BASE_MATCH, opponent_team_id: 'fiji' };
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher([]),
+        h2hMatcher([match]),
+      ]);
+
+      const strip = html.querySelector('[data-testid="head-to-head"]');
+      expect(strip?.textContent).toContain('The first meeting');
+      expect(strip?.querySelector('[data-testid="h2h-before"]')).toBeNull();
+    });
+
+    it('does not render the strip at all when the match has no opponent_team_id to query with', async () => {
+      const { html } = await renderWith([
+        matchMatcher(BASE_MATCH),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher([]),
+      ]);
+
+      expect(html.querySelector('[data-testid="head-to-head"]')).toBeNull();
+    });
+  });
+
+  describe('score-progression figure (docs/design.md §7.4, D33(b), D34)', () => {
+    it('renders the chart for the real 1995 final, which reconciles exactly', async () => {
+      const match = { ...BASE_MATCH, match_date: '1995-06-24' };
+      const timedEvents = [
+        { sequence_no: 1, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 5, minute_provenance: 'present' },
+        { sequence_no: 2, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 10, minute_provenance: 'present' },
+        { sequence_no: 3, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 13, minute_provenance: 'present' },
+        { sequence_no: 4, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 22, minute_provenance: 'present' },
+        { sequence_no: 5, event_type: 'drop_goal', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 31, minute_provenance: 'present' },
+        { sequence_no: 6, event_type: 'drop_goal', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 55, minute_provenance: 'present' },
+        { sequence_no: 7, event_type: 'penalty', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: 83, minute_provenance: 'present' },
+        { sequence_no: 8, event_type: 'penalty', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 90, minute_provenance: 'present' },
+        { sequence_no: 9, event_type: 'drop_goal', team_side: 'springboks', description: null, description_provenance: 'absent_in_source', minute: 92, minute_provenance: 'present' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(match),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher(timedEvents),
+      ]);
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeTruthy();
+      expect(html.querySelector('[data-testid="score-progression-degraded"]')).toBeNull();
+    });
+
+    it('degrades to the stated reason, never a chart, when scoring events are untimed', async () => {
+      const untimedEvents = [
+        { sequence_no: 1, event_type: 'try', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: null, minute_provenance: 'absent_in_source' },
+      ];
+
+      const { html } = await renderWith([
+        matchMatcher(BASE_MATCH),
+        officialsMatcher([]),
+        lineupsMatcher([]),
+        eventsMatcher(untimedEvents),
+      ]);
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeNull();
+      expect(html.querySelector('[data-testid="score-progression-degraded"]')?.textContent).toContain(
+        "aren't recorded",
+      );
+    });
+
+    it('never charts a pre-1894 match, and the events list below remains the accessible record', async () => {
+      const sparseMatch = { ...BASE_MATCH, match_date: '1891-08-30' };
+      const events = [
+        { sequence_no: 1, event_type: 'try', team_side: 'opponent', description: null, description_provenance: 'absent_in_source', minute: null, minute_provenance: 'absent_in_source' },
+      ];
+
+      const { html } = await renderWith(
+        [matchMatcher(sparseMatch), officialsMatcher([]), lineupsMatcher([]), eventsMatcher(events)],
+        sparseMatch.match_id,
+      );
+
+      expect(html.querySelector('[data-testid="score-progression-chart"]')).toBeNull();
+      expect(html.querySelector('[data-testid="events-list"]')).toBeTruthy();
+    });
   });
 });
