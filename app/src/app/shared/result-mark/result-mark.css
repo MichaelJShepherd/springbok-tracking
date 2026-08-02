@@ -1,0 +1,42 @@
+.mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-sm);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.mark--lg {
+  width: 2.75rem;
+  height: 2.75rem;
+  font-size: var(--t-lg);
+}
+
+.mark--sm {
+  width: 1.75rem;
+  height: 1.75rem;
+  font-size: var(--t-sm);
+}
+
+.mark--win {
+  background: var(--win);
+  color: var(--card);
+}
+
+.mark--loss {
+  background: var(--loss);
+  color: var(--card);
+}
+
+.mark--draw {
+  background: var(--draw);
+  color: var(--card);
+}
+
+.mark--absent {
+  background: transparent;
+  border: 1px dashed var(--ink-4);
+  color: var(--ink-3);
+  font-style: italic;
+}

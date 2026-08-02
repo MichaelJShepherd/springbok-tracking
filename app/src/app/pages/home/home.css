@@ -1,131 +1,140 @@
 .hero {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--s-4);
+}
+
+h1 {
+  font-size: var(--t-2xl);
 }
 
 .tagline {
-  color: var(--c-ink-300);
-}
-
-.state-loading {
-  color: var(--c-state-loading);
-}
-
-.state-failed {
-  color: var(--c-state-failed);
+  color: var(--ink-3);
 }
 
 .card-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-4);
+  gap: var(--s-4);
+  align-items: stretch;
 }
 
-.card-row > .card {
-  flex: 1 1 260px;
-}
-
-.card {
-  background: var(--c-ink-900);
-  border: 1px solid var(--c-ink-700);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  padding: var(--sp-4);
-  position: relative;
-  overflow: hidden;
-}
-
-.card h3 {
-  margin: 0 0 var(--sp-2);
-  font-size: var(--fs-200);
-  color: var(--c-ink-300);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.card-row > .plate {
+  flex: 1 1 300px;
 }
 
 .fixture-title {
-  font-size: var(--fs-400);
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
 }
 
-.meta-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-1) var(--sp-2);
-  color: var(--c-ink-300);
-  font-size: var(--fs-200);
-  margin-top: var(--sp-2);
+.score-line {
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums lining;
 }
 
+/* `.meta-row` base rules live in src/styles.css (Gate 2 dedupe); this page
+   adds only the middot separator between meta spans. */
 .meta-row > span:not(:last-child)::after {
   content: ' \00b7 ';
 }
 
-.note {
-  color: var(--c-ink-300);
-}
-
-.result-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+.result-rule {
   height: 4px;
+  width: 3rem;
+  margin-bottom: var(--s-2);
+  border-radius: var(--r-sm);
 }
 
-.result-bar.win {
-  background: var(--c-win);
+.result-rule.win {
+  background: var(--win);
 }
 
-.result-bar.loss {
-  background: var(--c-loss);
+.result-rule.loss {
+  background: var(--loss);
 }
 
-.result-bar.draw {
-  background: var(--c-draw);
+.result-rule.draw {
+  background: var(--draw);
 }
 
 .chips {
   display: flex;
-  gap: var(--sp-2);
-  margin-top: var(--sp-2);
+  gap: var(--s-2);
+  margin-top: var(--s-2);
 }
 
 .chip {
   display: inline-block;
-  font-size: var(--fs-100);
-  padding: 0 var(--sp-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--c-ink-700);
-  color: var(--c-ink-300);
+  font-size: var(--t-cap);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  color: var(--ink-2);
 }
 
 .chip.tbd {
-  color: var(--c-gold-400);
-  border-color: var(--c-gold-500);
+  color: var(--gold-ink);
+  border-color: var(--gold-700);
 }
 
 .plain {
   display: inline-block;
-  margin-top: var(--sp-2);
-  color: var(--c-gold-400);
-  text-decoration: none;
+  margin-top: var(--s-3);
+  color: var(--g-700);
   font-weight: 600;
 }
 
 .upcoming {
-  margin-top: var(--sp-6);
+  margin-top: var(--s-8);
 }
 
 .upcoming-row {
-  padding: var(--sp-2) 0;
-  border-bottom: 1px solid var(--c-ink-700);
+  padding: var(--s-2) 0;
+  border-bottom: var(--hairline);
 }
 
-.footer-attrib {
-  color: var(--c-ink-500);
-  font-size: var(--fs-100);
-  border-top: 1px solid var(--c-ink-700);
-  padding-top: var(--sp-3);
+/* Form guide (docs/design.md §7.1) — sits below a divider inside the
+   Latest result plate. */
+.form-guide {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: var(--hairline);
 }
+
+.form-body {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-4);
+}
+
+.form-marks {
+  display: flex;
+  gap: var(--s-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.form-marks li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.form-meta {
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.form-summary {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 600;
+}
+
+/* `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

@@ -1,27 +1,45 @@
 .method {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--s-4);
+  max-width: var(--measure);
+}
+
+h1 {
+  font-size: var(--t-2xl);
+}
+
+h2 {
+  font-size: var(--t-xl);
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: var(--double-rule);
 }
 
 .lede {
-  color: var(--c-ink-300);
-  font-size: var(--fs-200);
+  color: var(--ink-3);
+  font-size: var(--t-base);
+  line-height: var(--lh-body);
 }
 
+/* Method's body copy is prose, not the meta/caption text design.md §3.2
+   reserves --ink-3 for — override the shared `.note` (src/styles.css) back
+   to --ink-2 here. Safe to scope in this component stylesheet (unlike the
+   masthead field-absent fix): every `.note` on this page is rendered
+   directly by Method's own template, not by a child component, so Angular's
+   `_ngcontent` shim attaches to the same elements this rule targets. */
 .note {
-  color: var(--c-ink-300);
+  color: var(--ink-2);
+  line-height: var(--lh-body);
 }
 
-.card {
-  background: var(--c-ink-900);
-  border: 1px solid var(--c-ink-700);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  padding: var(--sp-4);
+/* The card-plate look is shared globally (src/styles.css's `.plate`) — no
+   per-page redeclaration needed for that one. */
+
+.plate {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--s-2);
 }
 
 .vocab {
@@ -30,7 +48,6 @@
 }
 
 .plain {
-  color: var(--c-gold-400);
-  text-decoration: none;
+  color: var(--g-700);
   font-weight: 600;
 }

@@ -1,0 +1,27 @@
+.chart-svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 2;
+  min-height: 140px;
+  display: block;
+}
+
+.chart-keys {
+  display: flex;
+  gap: var(--s-4);
+  margin-top: var(--s-2);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+}
+
+.key-sa b {
+  color: var(--win);
+}
+
+.key-opp b {
+  color: var(--loss);
+}
+
+.degraded {
+  font-style: normal;
+}

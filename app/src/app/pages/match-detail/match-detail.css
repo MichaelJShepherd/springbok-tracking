@@ -1,105 +1,168 @@
 .detail {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--s-6);
 }
 
-.state-loading {
-  color: var(--c-state-loading);
+h2 {
+  font-size: var(--t-xl);
+  margin-top: var(--s-4);
 }
 
-.state-failed {
-  color: var(--c-state-failed);
-}
-
-.note {
-  color: var(--c-ink-300);
-}
-
-.field-absent {
-  color: var(--c-state-absent);
-  font-style: italic;
-}
-
-.detail-header {
+/* — Detail masthead: full-bleed dark green band with collar (docs/design.md §6) — */
+.detail-masthead {
+  background: var(--g-900);
+  box-shadow: var(--collar);
+  color: var(--paper);
+  padding: var(--s-6) var(--gutter);
+  margin: 0 calc(var(--gutter) * -1);
   display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--sp-4);
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--s-2);
 }
 
-.result-bar {
-  height: 4px;
-  width: 80px;
-  border-radius: 2px;
-  margin-bottom: var(--sp-2);
-}
-
-.result-bar.win {
-  background: var(--c-win);
-}
-
-.result-bar.loss {
-  background: var(--c-loss);
-}
-
-.result-bar.draw {
-  background: var(--c-draw);
+.detail-eyebrow {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.04em;
+  color: var(--gold-300);
+  margin: 0;
 }
 
 .score-hero {
-  font-size: var(--fs-600);
-  font-weight: 800;
-}
-
-.meta-row {
   display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  font-family: var(--font-display);
+  font-size: var(--t-hero);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining;
   flex-wrap: wrap;
-  gap: var(--sp-1) var(--sp-2);
-  color: var(--c-ink-300);
-  font-size: var(--fs-200);
-  margin-top: var(--sp-2);
+  justify-content: center;
 }
 
-.meta-row > span:not(:last-child)::after {
-  content: ' \00b7 ';
+.score-hero .team {
+  font-size: var(--t-lg);
+  color: var(--gold-300);
 }
 
-.card {
-  background: var(--c-ink-900);
-  border: 1px solid var(--c-ink-700);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-1);
-  padding: var(--sp-4);
+/* Below ~480px, even wrapped whole-item flex can clip a long team name
+   next to the hero score; stack team/score/team vertically instead
+   (J3: nothing overflows sideways). */
+@media (max-width: 479px) {
+  .score-hero {
+    flex-direction: column;
+    gap: var(--s-1);
+  }
 }
 
-.card h3 {
-  margin: var(--sp-3) 0 var(--sp-2);
-  font-size: var(--fs-100);
-  color: var(--c-ink-300);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.detail-venue {
+  color: var(--gold-300);
+  font-size: var(--t-sm);
+  margin: 0;
 }
 
-.card h3:first-child {
-  margin-top: 0;
+/* The `.detail-masthead .field-absent` WCAG AA override lives in
+   src/styles.css, not here: this component's styles are emulated-encapsulated
+   (Angular shims them with this component's own `_ngcontent` attribute), but
+   the `.field-absent` span is rendered inside FieldValue's own template and
+   carries FieldValue's `_ngcontent` id instead — so a rule written here would
+   never actually match it. Global stylesheet rules carry no `_ngcontent`
+   shim and match across component boundaries, which is exactly why the CSS
+   dedupe elsewhere in this file relies on the same global-stylesheet fact. */
+
+.plain--on-dark {
+  color: var(--gold-300);
 }
 
-.other-officials {
-  margin-top: var(--sp-3);
+.toggle-btn {
+  margin-top: var(--s-2);
+  background: transparent;
+  color: var(--card);
+  border: 1px solid var(--gold-500);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.toggle-btn:hover {
+  background: var(--g-800);
+}
+
+/* — Head-to-head strip (docs/design.md §7.3) — */
+.h2h {
+  background: var(--g-100);
+  border-color: var(--rule-strong);
+}
+
+.h2h-zones {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-1);
+  gap: var(--s-4);
 }
 
-/* The "sources differ" badge itself lives in shared/sources-differ-badge/
-   (its own scoped styles) — this page only lays out around it. */
+@media (min-width: 720px) {
+  .h2h-zones {
+    flex-direction: row;
+  }
 
-/* Lineups two-column, stacked on mobile (design.md §2 "Lineups two-column") */
+  .h2h-zone {
+    flex: 1 1 0;
+    border-left: var(--hairline);
+    padding-left: var(--s-4);
+  }
+
+  .h2h-zone:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+}
+
+.h2h-pct {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-pct small {
+  font-family: var(--font-text);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+}
+
+.h2h-counts {
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.h2h-line {
+  margin: 0 0 var(--s-1);
+  font-size: var(--t-sm);
+}
+
+.h2h-form {
+  display: flex;
+  gap: var(--s-1);
+  list-style: none;
+  padding: 0;
+  margin: var(--s-2) 0 0;
+}
+
+/* `.note` and `.meta-row` base rules live in src/styles.css (Gate 2 dedupe). */
+
+.other-officials {
+  margin-top: var(--s-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+}
+
 .lineups {
   display: flex;
-  gap: var(--sp-6);
+  gap: var(--s-6);
   flex-wrap: wrap;
 }
 
@@ -107,26 +170,16 @@
   flex: 1 1 240px;
 }
 
-.lineups ol {
-  padding-left: 1.2rem;
-  margin: 0;
-}
-
-.lineups li {
-  padding: 2px 0;
-  font-size: var(--fs-200);
-}
-
 .shirt {
-  color: var(--c-ink-500);
-  font-family: var(--font-mono);
-  margin-right: var(--sp-2);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums lining;
+  width: 2.5ch;
 }
 
 @media (max-width: 719px) {
   .lineups {
     flex-direction: column;
-    gap: var(--sp-4);
+    gap: var(--s-4);
   }
 }
 
@@ -137,11 +190,11 @@
 }
 
 .events-list li {
-  padding: var(--sp-2) 0;
-  border-bottom: 1px solid var(--c-ink-700);
-  font-size: var(--fs-200);
+  padding: var(--s-2) 0;
+  border-bottom: var(--hairline);
+  font-size: var(--t-sm);
   display: flex;
-  gap: var(--sp-3);
+  gap: var(--s-3);
 }
 
 .events-list li:last-child {
@@ -149,29 +202,10 @@
 }
 
 .events-list .min {
-  color: var(--c-gold-400);
-  font-family: var(--font-mono);
+  color: var(--gold-ink);
+  font-variant-numeric: tabular-nums lining;
   width: 3.2rem;
   flex-shrink: 0;
 }
 
-.toggle-btn {
-  background: var(--c-ink-800);
-  color: var(--c-ink-100);
-  border: 1px solid var(--c-ink-500);
-  border-radius: var(--radius-md);
-  padding: var(--sp-2) var(--sp-3);
-  font-size: var(--fs-100);
-  cursor: pointer;
-}
-
-.toggle-btn:hover {
-  border-color: var(--c-gold-400);
-}
-
-.footer-attrib {
-  color: var(--c-ink-500);
-  font-size: var(--fs-100);
-  border-top: 1px solid var(--c-ink-700);
-  padding-top: var(--sp-3);
-}
+/* `.count-caption` base rules live in src/styles.css (Gate 2 dedupe). */

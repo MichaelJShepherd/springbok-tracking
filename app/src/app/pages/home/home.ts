@@ -3,8 +3,114 @@ import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
 import { FixtureRow, MatchRow, formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
+import { ResultMark, MarkResult } from '../../shared/result-mark/result-mark';
+import { abbreviateOpponent } from '../../shared/team-abbrev';
 
 type LoadState = 'loading' | 'loaded' | 'error';
+
+/** One mark in the form guide strip (docs/design.md §7.1). */
+export interface FormGuideMark {
+  matchId: string;
+  result: MarkResult;
+  /** False when the result is unrecorded, or a score's provenance isn't `present` — excluded from the tally. */
+  includedInTally: boolean;
+  bothScoresPresent: boolean;
+  opponentAbbrev: string;
+  scoreLabel: string;
+  ariaLabel: string;
+  springboksScore: number | null;
+  opponentScore: number | null;
+}
+
+export interface FormGuideSummary {
+  marks: FormGuideMark[];
+  eyebrow: string;
+  wins: number;
+  losses: number;
+  draws: number;
+  excluded: number;
+  pointsFor: number;
+  pointsAgainst: number;
+  scoredCount: number;
+  caption: string;
+}
+
+/** Builds the form-guide summary from the last-N-tests rows (oldest first). Exported for unit testing the degradation rules. */
+export function buildFormGuide(rowsOldestFirst: MatchRow[]): FormGuideSummary | null {
+  if (rowsOldestFirst.length === 0) {
+    return null; // An empty form strip is noise (design.md §7.1) — don't render.
+  }
+
+  let wins = 0;
+  let losses = 0;
+  let draws = 0;
+  let excluded = 0;
+  let pointsFor = 0;
+  let pointsAgainst = 0;
+  let scoredCount = 0;
+
+  const marks: FormGuideMark[] = rowsOldestFirst.map((row) => {
+    const bothScoresPresent =
+      row.springboks_score_provenance === 'present' && row.opponent_score_provenance === 'present';
+    const includedInTally = row.result != null && bothScoresPresent;
+    const opponent = opponentName(row);
+
+    if (includedInTally) {
+      if (row.result === 'win') wins++;
+      else if (row.result === 'loss') losses++;
+      else if (row.result === 'draw') draws++;
+      pointsFor += row.springboks_score ?? 0;
+      pointsAgainst += row.opponent_score ?? 0;
+      scoredCount++;
+    } else {
+      excluded++;
+    }
+
+    const scoreLabel = bothScoresPresent ? `${row.springboks_score}–${row.opponent_score}` : '–';
+    const resultWord = row.result === 'win' ? 'Win' : row.result === 'loss' ? 'Loss' : row.result === 'draw' ? 'Draw' : 'Unrecorded';
+    const ariaLabel = includedInTally
+      ? `${resultWord} — South Africa ${row.springboks_score} ${opponent} ${row.opponent_score}, ${row.match_date}`
+      : `Result not recorded — South Africa vs ${opponent}, ${row.match_date}`;
+
+    return {
+      matchId: row.match_id,
+      result: includedInTally ? row.result : null,
+      includedInTally,
+      bothScoresPresent,
+      opponentAbbrev: abbreviateOpponent(opponent),
+      scoreLabel,
+      ariaLabel,
+      springboksScore: row.springboks_score,
+      opponentScore: row.opponent_score,
+    };
+  });
+
+  const countWord = rowsOldestFirst.length === 5 ? 'FIVE' : rowsOldestFirst.length === 4 ? 'FOUR' : rowsOldestFirst.length === 3 ? 'THREE' : rowsOldestFirst.length === 2 ? 'TWO' : 'ONE';
+  const eyebrow = `FORM · LAST ${countWord} TEST${rowsOldestFirst.length === 1 ? '' : 'S'}`;
+
+  const diff = pointsFor - pointsAgainst;
+  const diffLabel = `${diff >= 0 ? '+' : ''}${diff}`;
+  let caption = `Points ${pointsFor}–${pointsAgainst} (${diffLabel})`;
+  if (scoredCount < rowsOldestFirst.length) {
+    caption += ` from ${scoredCount} of ${rowsOldestFirst.length} tests`;
+  }
+  if (excluded > 0) {
+    caption += ` · ${excluded} not recorded`;
+  }
+
+  return {
+    marks,
+    eyebrow,
+    wins,
+    losses,
+    draws,
+    excluded,
+    pointsFor,
+    pointsAgainst,
+    scoredCount,
+    caption,
+  };
+}
 
 /** A fixture fact the source hasn't confirmed yet — rendered as a chip. */
 export interface FixtureChip {
@@ -35,7 +141,7 @@ function todayIso(): string {
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, FieldValue],
+  imports: [RouterLink, FieldValue, ResultMark],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -47,6 +153,9 @@ export class Home implements OnInit {
   readonly upcomingFixtures = signal<FixtureRow[]>([]);
   readonly liveMatch = signal<MatchRow | null>(null);
   readonly latestResult = signal<MatchRow | null>(null);
+  readonly formGuideRows = signal<MatchRow[]>([]);
+
+  readonly formGuide = computed(() => buildFormGuide(this.formGuideRows()));
 
   readonly nextFixtureChips = computed(() => {
     const fixture = this.nextFixture();
@@ -68,7 +177,7 @@ export class Home implements OnInit {
     try {
       const today = todayIso();
 
-      const [fixturesRes, liveRes, latestRes] = await Promise.all([
+      const [fixturesRes, liveRes, latestRes, formRes] = await Promise.all([
         this.supabase.client
           .from('fixtures_upstream')
           .select('id, match_date, kickoff_time, venue, competition, teams:opponent_team_id(canonical_name)')
@@ -91,9 +200,20 @@ export class Home implements OnInit {
           .order('match_date', { ascending: false })
           .limit(1)
           .maybeSingle(),
+        // Form guide (docs/design.md §7.1) — last five tests, newest first
+        // from the DB, reversed for display. `.lte` keeps this query's call
+        // signature distinct from the live/latest queries above.
+        this.supabase.client
+          .from('matches')
+          .select(
+            'match_id, match_date, competition, competition_provenance, venue, venue_provenance, kickoff_time, kickoff_time_provenance, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result, source_article_url, teams:opponent_team_id(canonical_name)',
+          )
+          .lte('match_date', today)
+          .order('match_date', { ascending: false })
+          .limit(5),
       ]);
 
-      if (fixturesRes.error || liveRes.error || latestRes.error) {
+      if (fixturesRes.error || liveRes.error || latestRes.error || formRes.error) {
         this.state.set('error');
         return;
       }
@@ -103,6 +223,8 @@ export class Home implements OnInit {
       this.upcomingFixtures.set(fixtures.slice(1));
       this.liveMatch.set((liveRes.data ?? null) as unknown as MatchRow | null);
       this.latestResult.set((latestRes.data ?? null) as unknown as MatchRow | null);
+      const formRows = ((formRes.data ?? []) as unknown as MatchRow[]).slice().reverse();
+      this.formGuideRows.set(formRows);
       this.state.set('loaded');
     } catch {
       this.state.set('error');

@@ -4,9 +4,13 @@ import { SupabaseService } from '../../core/supabase.service';
 import { formatKickoffSAST, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
 import { SourcesDifferBadge } from '../../shared/sources-differ-badge/sources-differ-badge';
+import { ResultMark } from '../../shared/result-mark/result-mark';
+import { ScoreProgression } from '../../shared/score-progression/score-progression';
+import { HeadToHeadRow, buildHeadToHead, ordinal } from '../../shared/head-to-head';
 import {
   DisagreeableField,
   EVENT_TYPE_LABELS,
+  HEAD_TO_HEAD_SELECT,
   MATCH_DETAIL_SELECT,
   MATCH_EVENTS_SELECT,
   MatchDetailRow,
@@ -20,13 +24,14 @@ import {
 } from '../../shared/match-detail-models';
 
 type LoadState = 'loading' | 'loaded' | 'not_found' | 'error';
+type H2hState = 'loading' | 'loaded' | 'error';
 
 const LIST_ARTICLE_URL =
   'https://en.wikipedia.org/wiki/List_of_South_Africa_national_rugby_union_team_test_matches';
 
 @Component({
   selector: 'app-match-detail',
-  imports: [RouterLink, FieldValue, SourcesDifferBadge],
+  imports: [RouterLink, FieldValue, SourcesDifferBadge, ResultMark, ScoreProgression],
   templateUrl: './match-detail.html',
   styleUrl: './match-detail.css',
 })
@@ -39,6 +44,14 @@ export class MatchDetail implements OnInit {
   readonly officials = signal<MatchOfficialRow[]>([]);
   readonly lineups = signal<LineupPlayerRow[]>([]);
   readonly events = signal<MatchEventRow[]>([]);
+
+  readonly h2hState = signal<H2hState>('loading');
+  readonly h2hRows = signal<HeadToHeadRow[]>([]);
+  readonly headToHead = computed(() => {
+    const m = this.match();
+    if (!m || this.h2hState() !== 'loaded') return null;
+    return buildHeadToHead(this.h2hRows(), m.match_id);
+  });
 
   readonly opponentName = opponentName;
   readonly formatKickoffSAST = formatKickoffSAST;
@@ -73,6 +86,9 @@ export class MatchDetail implements OnInit {
   readonly attributionLabel = computed(() =>
     this.match()?.source_article_url ? 'the source article on Wikipedia' : 'the source list on Wikipedia',
   );
+
+  readonly matchYear = computed(() => Number(this.match()?.match_date.slice(0, 4) ?? 0));
+  readonly ordinal = ordinal;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -115,13 +131,44 @@ export class MatchDetail implements OnInit {
         return;
       }
 
-      this.match.set(matchRes.data as unknown as MatchDetailRow);
+      const match = matchRes.data as unknown as MatchDetailRow;
+      this.match.set(match);
       this.officials.set((officialsRes.data ?? []) as unknown as MatchOfficialRow[]);
       this.lineups.set((lineupsRes.data ?? []) as unknown as LineupPlayerRow[]);
       this.events.set((eventsRes.data ?? []) as unknown as MatchEventRow[]);
       this.state.set('loaded');
+
+      // Head-to-head strip (docs/design.md §7.3) — deliberately not awaited:
+      // one extra, independent read that must never block or blank the
+      // rest of the page if it is slow or fails (same non-negotiable as
+      // the timeline's sentiment layer).
+      if (match.opponent_team_id) {
+        void this.loadHeadToHead(match.opponent_team_id);
+      } else {
+        this.h2hState.set('error');
+      }
     } catch {
       this.state.set('error');
+    }
+  }
+
+  private async loadHeadToHead(opponentTeamId: string): Promise<void> {
+    try {
+      const { data, error } = await this.supabase.client
+        .from('matches')
+        .select(HEAD_TO_HEAD_SELECT)
+        .eq('opponent_team_id', opponentTeamId)
+        .order('match_date', { ascending: true });
+
+      if (error) {
+        this.h2hState.set('error');
+        return;
+      }
+
+      this.h2hRows.set((data ?? []) as unknown as HeadToHeadRow[]);
+      this.h2hState.set('loaded');
+    } catch {
+      this.h2hState.set('error');
     }
   }
 }

@@ -84,6 +84,8 @@ export interface FieldDisagreement {
 
 export interface MatchDetailRow extends MatchRow {
   disagreements?: FieldDisagreement[];
+  /** FK behind the `teams:opponent_team_id(canonical_name)` embed — needed to query the head-to-head strip's opponent-history rows (docs/design.md §7.3). */
+  opponent_team_id?: string;
 }
 
 export function disagreementFor(
@@ -158,7 +160,11 @@ export function sentimentBadgeText(source: SentimentSource): string {
 
 /** Shared select strings so the detail and timeline pages fetch identically (dedupe). */
 export const MATCH_DETAIL_SELECT =
-  'match_id, match_date, competition, competition_provenance, venue, venue_provenance, kickoff_time, kickoff_time_provenance, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result, source_article_url, teams:opponent_team_id(canonical_name)';
+  'match_id, match_date, competition, competition_provenance, venue, venue_provenance, kickoff_time, kickoff_time_provenance, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result, source_article_url, opponent_team_id, teams:opponent_team_id(canonical_name)';
 
 export const MATCH_EVENTS_SELECT =
   'sequence_no, event_type, team_side, description, description_provenance, minute, minute_provenance';
+
+/** docs/design.md §7.3 — one indexed read of every meeting against this match's opponent. */
+export const HEAD_TO_HEAD_SELECT =
+  'match_id, match_date, springboks_score, springboks_score_provenance, opponent_score, opponent_score_provenance, result';

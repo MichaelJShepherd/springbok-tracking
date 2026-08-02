@@ -1,13 +1,66 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SupabaseService } from '../../core/supabase.service';
-import { MatchRow, decadeOf, opponentName } from '../../shared/match-models';
+import { MatchRow, opponentName } from '../../shared/match-models';
 import { FieldValue } from '../../shared/field-value/field-value';
+import { ERA_BUCKETS, EraBucket, eraBucketOf } from '../../shared/era-buckets';
 
 type LoadState = 'loading' | 'loaded' | 'error';
 
 function unique(values: (string | null)[]): string[] {
   return Array.from(new Set(values.filter((v): v is string => !!v))).sort();
+}
+
+/** One column of the record-by-era figure (docs/design.md §7.2, D34). */
+export interface EraColumn {
+  era: EraBucket;
+  played: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  unrecorded: number;
+  winPercent: number | null;
+  total: number;
+}
+
+/**
+ * Computed client-side over the rows History already loads — no extra
+ * query (docs/design.md §7.2). Rows with `result === null` count into the
+ * unrecorded segment and are excluded from the win-% denominator.
+ */
+export function buildEraColumns(matches: MatchRow[]): EraColumn[] {
+  return ERA_BUCKETS.map((era) => {
+    const rows = matches.filter((m) => eraBucketOf(m.match_date) === era);
+    const wins = rows.filter((m) => m.result === 'win').length;
+    const losses = rows.filter((m) => m.result === 'loss').length;
+    const draws = rows.filter((m) => m.result === 'draw').length;
+    const unrecorded = rows.filter((m) => m.result == null).length;
+    const played = wins + losses + draws;
+    const total = played + unrecorded;
+    return {
+      era,
+      played,
+      wins,
+      losses,
+      draws,
+      unrecorded,
+      winPercent: played > 0 ? Math.round((wins / played) * 100) : null,
+      total,
+    };
+  });
+}
+
+/** The D33 count caption for the whole era figure. */
+export function eraFigureCaption(columns: EraColumn[]): string {
+  const withUnrecorded = columns.filter((c) => c.unrecorded > 0);
+  const base = 'Win % of tests with a recorded result.';
+  if (withUnrecorded.length === 0) {
+    return base;
+  }
+  const parts = withUnrecorded.map(
+    (c) => `${c.era}: ${c.played} of ${c.total} tests have a recorded result`,
+  );
+  return `${base} ${parts.join('; ')}.`;
 }
 
 @Component({
@@ -24,15 +77,18 @@ export class History implements OnInit {
 
   readonly selectedOpponent = signal<string | null>(null);
   readonly selectedCompetition = signal<string | null>(null);
-  readonly selectedEra = signal<string | null>(null);
+  readonly selectedEra = signal<EraBucket | null>(null);
 
   readonly opponentName = opponentName;
 
   readonly opponents = computed(() => unique(this.matches().map((m) => opponentName(m))));
   readonly competitions = computed(() => unique(this.matches().map((m) => m.competition)));
   readonly eras = computed(() =>
-    Array.from(new Set(this.matches().map((m) => decadeOf(m.match_date)))).sort(),
+    ERA_BUCKETS.filter((era) => this.matches().some((m) => eraBucketOf(m.match_date) === era)),
   );
+
+  readonly eraColumns = computed(() => buildEraColumns(this.matches()));
+  readonly eraCaption = computed(() => eraFigureCaption(this.eraColumns()));
 
   readonly filtered = computed(() => {
     const opponent = this.selectedOpponent();
@@ -42,7 +98,7 @@ export class History implements OnInit {
       (m) =>
         (!opponent || opponentName(m) === opponent) &&
         (!competition || m.competition === competition) &&
-        (!era || decadeOf(m.match_date) === era),
+        (!era || eraBucketOf(m.match_date) === era),
     );
   });
 
@@ -58,7 +114,7 @@ export class History implements OnInit {
     this.selectedCompetition.set(this.selectedCompetition() === value ? null : value);
   }
 
-  toggleEra(value: string): void {
+  toggleEra(value: EraBucket): void {
     this.selectedEra.set(this.selectedEra() === value ? null : value);
   }
 

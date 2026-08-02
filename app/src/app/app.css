@@ -1,38 +1,74 @@
-.app-header {
+.app-masthead {
+  background: var(--g-900);
+  box-shadow: var(--collar);
+}
+
+.app-masthead__inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-6);
-  background: var(--c-ink-900);
-  border-bottom: 1px solid var(--c-ink-700);
+  gap: var(--s-4);
+  padding: var(--s-4) var(--gutter);
+  flex-wrap: wrap;
 }
 
-.app-brand {
-  font-size: var(--fs-400);
+.app-wordmark {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
   font-weight: 600;
-  color: var(--c-ink-100);
+  letter-spacing: -0.01em;
+  color: var(--card);
   text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-strapline {
+  font-family: var(--font-text);
+  font-size: var(--t-cap);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--gold-300);
 }
 
 .app-nav {
   display: flex;
-  gap: var(--sp-4);
+  gap: var(--s-4);
 }
 
 .app-nav a {
-  color: var(--c-ink-300);
+  font: 650 var(--t-eyebrow) / 1 var(--font-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-300);
   text-decoration: none;
-  font-size: var(--fs-200);
+  padding: var(--s-2) 0;
+  border-bottom: 2px solid transparent;
 }
 
-.app-nav a.active,
+.app-nav a.is-active,
 .app-nav a:hover {
-  color: var(--c-gold-400);
+  border-bottom-color: var(--gold-500);
+  color: var(--card);
 }
 
 .app-main {
-  padding: var(--sp-6);
-  max-width: 960px;
+  position: relative;
+  z-index: 1;
+  padding: var(--s-6) var(--gutter);
+  max-width: var(--page-max);
   margin: 0 auto;
+}
+
+/* Below ~480px the wordmark + nav no longer both fit on one line even
+   wrapped as whole flex items (long single-word content); stack them
+   explicitly rather than let them clip (J3: nothing overflows sideways). */
+@media (max-width: 479px) {
+  .app-masthead__inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

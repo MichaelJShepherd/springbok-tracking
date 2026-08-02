@@ -1,159 +1,223 @@
 .history {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
+  gap: var(--s-4);
+}
+
+h1 {
+  font-size: var(--t-2xl);
 }
 
 .tagline {
-  color: var(--c-ink-300);
+  color: var(--ink-3);
 }
 
-.state-loading {
-  color: var(--c-state-loading);
+/* — Record-by-era figure (docs/design.md §7.2) — */
+.era-figure {
+  margin: 0;
 }
 
-.state-failed {
-  color: var(--c-state-failed);
+.era-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
 }
 
-.note {
-  color: var(--c-ink-300);
+@media (min-width: 720px) {
+  .era-columns {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.era-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-1);
+  text-align: left;
+  background: none;
+  border: none;
+  border-left: var(--hairline);
+  padding: 0 var(--s-3);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.era-column.is-active {
+  background: var(--g-100);
+}
+
+.era-label {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.era-pct {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums lining;
+}
+
+.era-pct small {
+  font-family: var(--font-text);
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+}
+
+.era-empty {
+  font-style: italic;
+  color: var(--ink-3);
+}
+
+.era-bar {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  background: var(--rule);
+}
+
+.era-bar i {
+  display: block;
+  height: 100%;
+}
+
+.seg-w {
+  background: var(--g-600);
+}
+
+.seg-d {
+  background: var(--draw);
+}
+
+.seg-l {
+  background: var(--loss);
+}
+
+.seg-u {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--ink-4),
+    var(--ink-4) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+.era-counts {
+  font-size: var(--t-cap);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums lining;
 }
 
 .filters {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-2);
+  gap: var(--s-2);
+}
+
+.tabs {
+  display: flex;
 }
 
 .chips {
   display: flex;
-  gap: var(--sp-2);
+  gap: var(--s-2);
   overflow-x: auto;
-  padding-bottom: var(--sp-1);
+  padding-bottom: var(--s-1);
 }
 
 .chip {
   flex: 0 0 auto;
   font: inherit;
-  font-size: var(--fs-100);
-  padding: var(--sp-1) var(--sp-3);
-  border-radius: 999px;
-  border: 1px solid var(--c-ink-700);
-  background: transparent;
-  color: var(--c-ink-300);
+  font-size: var(--t-cap);
+  padding: var(--s-1) var(--s-3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--rule-strong);
+  background: var(--card);
+  color: var(--ink-2);
   cursor: pointer;
   white-space: nowrap;
 }
 
 .chip.selected {
-  border-color: var(--c-gold-500);
-  color: var(--c-gold-400);
-}
-
-.history-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--fs-200);
-}
-
-.history-table th,
-.history-table td {
-  text-align: left;
-  padding: var(--sp-2) var(--sp-3);
-  border-bottom: 1px solid var(--c-ink-700);
-}
-
-.history-table th {
-  color: var(--c-ink-300);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: var(--fs-100);
+  border-color: var(--g-700);
+  background: var(--g-700);
+  color: var(--card);
 }
 
 .row-link {
   cursor: pointer;
 }
 
-.row-link:hover {
-  background: var(--c-ink-900);
-}
-
 .wld {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5em;
-  height: 1.5em;
-  border-radius: 50%;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: var(--r-sm);
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--fs-100);
-  color: var(--c-ink-950);
+  font-size: var(--t-sm);
+  color: var(--card);
 }
 
 .wld.win {
-  background: var(--c-win);
+  background: var(--win);
 }
 
 .wld.loss {
-  background: var(--c-loss);
+  background: var(--loss);
 }
 
 .wld.draw {
-  background: var(--c-draw);
+  background: var(--draw);
 }
 
-.field-absent {
-  color: var(--c-state-absent);
-  font-style: italic;
-}
-
-.footer-attrib {
-  color: var(--c-ink-500);
-  font-size: var(--fs-100);
-  border-top: 1px solid var(--c-ink-700);
-  padding-top: var(--sp-3);
-}
-
-/* Mobile collapse (docs/design.md §3.1): below 720px the dense table
-   becomes a stacked card list — nothing scrolls sideways except the one
-   intentional exception, the filter chip rows above. */
+/* Mobile collapse (docs/design.md §8, J3): below 720px the ledger becomes a
+   stacked card list — nothing scrolls sideways except the filter chip rows
+   above (the one intentional exception). */
 @media (max-width: 719px) {
-  .history-table thead {
+  .ledger thead {
     display: none;
   }
 
-  .history-table,
-  .history-table tbody,
-  .history-table tr {
+  .ledger,
+  .ledger tbody,
+  .ledger tr {
     display: block;
     width: 100%;
   }
 
-  .history-table tr {
-    margin-bottom: var(--sp-4);
-    border: 1px solid var(--c-ink-700);
-    border-radius: var(--radius-md);
+  .ledger tr {
+    margin-bottom: var(--s-4);
+    border: var(--hairline);
+    border-radius: var(--r-md);
     overflow: hidden;
   }
 
-  .history-table td {
+  .ledger td {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--sp-2);
-    border-bottom: 1px solid var(--c-ink-800);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    border-bottom: var(--hairline);
+    padding: var(--s-2) var(--s-3);
+    /* Long values (venues, "sources differ" badges) must wrap within the
+       row, never push past the viewport (design.md §8, J3: no sideways
+       scroll anywhere but the filter chip strip). */
+    overflow-wrap: anywhere;
   }
 
-  .history-table tr td:last-child {
+  .ledger tr td:last-child {
     border-bottom: none;
   }
 
-  .history-table td::before {
+  .ledger td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: var(--c-ink-300);
-    font-size: var(--fs-100);
+    color: var(--ink-3);
+    font-size: var(--t-cap);
   }
 }

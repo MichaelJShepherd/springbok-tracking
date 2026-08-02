@@ -1,10 +1,15 @@
-<header class="app-header">
-  <a class="app-brand" routerLink="/">Springbok Tracking</a>
-  <nav class="app-nav">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
-    <a routerLink="/history" routerLinkActive="active">History</a>
-    <a routerLink="/method" routerLinkActive="active">Method</a>
-  </nav>
+<header class="app-masthead">
+  <div class="app-masthead__inner">
+    <a class="app-wordmark" routerLink="/">
+      Springbok Tracking
+      <span class="app-strapline">Every Springbok test, 1891&ndash; </span>
+    </a>
+    <nav class="app-nav">
+      <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+      <a routerLink="/history" routerLinkActive="is-active">History</a>
+      <a routerLink="/method" routerLinkActive="is-active">Method</a>
+    </nav>
+  </div>
 </header>
 
 <main class="app-main">
