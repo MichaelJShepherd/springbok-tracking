@@ -1,0 +1,64 @@
+@if (chart(); as c) {
+  <figure class="figure" data-testid="score-progression-chart">
+    <svg
+      class="chart-svg"
+      [attr.viewBox]="viewBox"
+      role="img"
+      [attr.aria-label]="ariaLabel()"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      @for (m of c.gridMinutes; track m) {
+        <line
+          [attr.x1]="c.x(m)"
+          [attr.y1]="16"
+          [attr.x2]="c.x(m)"
+          [attr.y2]="axisY()"
+          stroke="var(--rule)"
+        />
+        <text
+          [attr.x]="c.x(m)"
+          [attr.y]="axisY() + 16"
+          text-anchor="middle"
+          font-size="11"
+          fill="var(--ink-3)"
+        >
+          {{ m }}&prime;
+        </text>
+      }
+      <line x1="42" [attr.y1]="topY()" [attr.x2]="608" [attr.y2]="axisY()" stroke="none" />
+      <line x1="42" [attr.y1]="axisY()" x2="582" [attr.y2]="axisY()" stroke="var(--rule-strong)" />
+      <text x="36" [attr.y]="zeroY() + 4" text-anchor="end" font-size="11" fill="var(--ink-3)">0</text>
+      <text x="36" [attr.y]="topY() + 4" text-anchor="end" font-size="11" fill="var(--ink-3)">
+        {{ c.yTop }}
+      </text>
+      <line
+        [attr.x1]="halfTimeX()"
+        y1="16"
+        [attr.x2]="halfTimeX()"
+        [attr.y2]="axisY()"
+        stroke="var(--gold-700)"
+        stroke-width="2"
+      />
+      <text [attr.x]="halfTimeX() + 4" y="27" font-size="11" fill="var(--gold-ink)">HT</text>
+      @for (dot of c.leadDots; track $index) {
+        <circle [attr.cx]="dot.x" [attr.cy]="dot.y" r="4" fill="var(--gold-700)" />
+      }
+      <path [attr.d]="c.oppPath" fill="none" stroke="var(--loss)" stroke-width="2.5" stroke-dasharray="6 3" />
+      <path [attr.d]="c.saPath" fill="none" stroke="var(--g-600)" stroke-width="2.5" />
+      <text x="590" [attr.y]="c.y(finalSa()) + 4" font-size="16" font-family="var(--font-display)" fill="var(--win)">
+        {{ finalSa() }}
+      </text>
+      <text x="590" [attr.y]="c.y(finalOpp()) + 4" font-size="16" font-family="var(--font-display)" fill="var(--loss)">
+        {{ finalOpp() }}
+      </text>
+    </svg>
+    <div class="chart-keys">
+      <span class="key-sa"><b>{{ springboksLabel() }}</b></span>
+      <span class="key-opp"><b>{{ opponentLabel() }}</b></span>
+      <span>&#9679; lead change</span>
+    </div>
+    <figcaption>{{ caption() }}</figcaption>
+  </figure>
+} @else {
+  <p class="note degraded" data-testid="score-progression-degraded">{{ failureCopy() }}</p>
+}

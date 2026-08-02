@@ -1,0 +1,12 @@
+<span
+  class="mark"
+  [class.mark--lg]="size() === 'lg'"
+  [class.mark--sm]="size() === 'sm'"
+  [class.mark--win]="result() === 'win'"
+  [class.mark--loss]="result() === 'loss'"
+  [class.mark--draw]="result() === 'draw'"
+  [class.mark--absent]="!result()"
+  role="img"
+  [attr.aria-label]="ariaLabel()"
+  >{{ letter() }}</span
+>
